@@ -1,0 +1,78 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Recetas Médicas" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Sistema de Gestión PWA
+    - navigation [ref=e7]:
+      - link "Dashboard" [ref=e8] [cursor=pointer]:
+        - /url: /
+        - button "Dashboard" [ref=e9]:
+          - img
+          - text: Dashboard
+      - link "Pacientes" [ref=e10] [cursor=pointer]:
+        - /url: /pacientes
+        - button "Pacientes" [ref=e11]:
+          - img
+          - text: Pacientes
+      - link "Recetas" [ref=e12] [cursor=pointer]:
+        - /url: /recetas
+        - button "Recetas" [ref=e13]:
+          - img
+          - text: Recetas
+      - link "Configuración" [ref=e14] [cursor=pointer]:
+        - /url: /configuracion
+        - button "Configuración" [ref=e15]:
+          - img
+          - text: Configuración
+    - link "Nueva Receta" [ref=e17] [cursor=pointer]:
+      - /url: /recetas/nueva
+      - button "Nueva Receta" [ref=e18]:
+        - img
+        - text: Nueva Receta
+  - main [ref=e20]:
+    - generic [ref=e21]:
+      - heading "Configuración" [level=2] [ref=e22]
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - heading "Datos del Médico" [level=3] [ref=e25]
+          - paragraph [ref=e26]: Configura tus datos personales y profesionales. Estos aparecerán en todas las recetas que generes.
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - text: Logo Institucional (Opcional)
+              - paragraph [ref=e31]: "Aparecerá en las recetas PDF. Tamaño máximo: 500KB"
+            - generic [ref=e34]:
+              - img
+              - text: Subir Logo
+          - generic [ref=e35]:
+            - generic [ref=e36]:
+              - text: Nombre Completo
+              - textbox "Nombre Completo" [ref=e37]:
+                - /placeholder: Dr. Juan Pérez
+            - generic [ref=e38]:
+              - text: Especialidad
+              - textbox "Especialidad" [ref=e39]:
+                - /placeholder: Medicina General
+            - generic [ref=e40]:
+              - text: Cédula Profesional
+              - textbox "Cédula Profesional" [ref=e41]:
+                - /placeholder: "12345678"
+            - generic [ref=e42]:
+              - text: Teléfono
+              - textbox "Teléfono" [ref=e43]:
+                - /placeholder: +52 55 1234 5678
+          - generic [ref=e44]:
+            - text: Dirección del Consultorio (Opcional)
+            - textbox "Dirección del Consultorio (Opcional)" [ref=e45]:
+              - /placeholder: "Av. Principal #123, Col. Centro"
+            - paragraph [ref=e46]: Esta dirección aparecerá en el pie de página de las recetas.
+          - button "Guardar Configuración" [ref=e47] [cursor=pointer]:
+            - img
+            - text: Guardar Configuración
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e48]
+```

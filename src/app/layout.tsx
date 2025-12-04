@@ -3,6 +3,8 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { Toaster } from "@/components/ui/toaster";
+import ServiceWorkerRegister from './ServiceWorkerRegister';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
     title: "Recetas Médicas - Sistema de Gestión",
@@ -41,6 +43,12 @@ export default function RootLayout({
                     </main>
                 </div>
                 <Toaster />
+                <ServiceWorkerRegister />
+                    {/* Fallback: ensure SW registration runs after interactive. This helps tests/CI
+                        where the client component might not mount fast enough. */}
+                    <Script id="sw-register" strategy="afterInteractive">
+                        {`if(typeof navigator !== 'undefined' && 'serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(()=>{}); }`}
+                    </Script>
             </body>
         </html>
     );
