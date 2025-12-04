@@ -1,0 +1,21 @@
+# Node / Next
+node_modules/
+.next/
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.vscode/
+.DS_Store
+npm-debug.log
+yarn-error.log
+
+# Build / coverage
+dist/
+out/
+coverage/
+
+# Misc
+.idea/
+.vagrant/
