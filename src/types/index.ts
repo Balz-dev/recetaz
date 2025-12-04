@@ -4,7 +4,10 @@ export interface Paciente {
     edad: number;
     cedula: string;
     telefono?: string;
+    email?: string;
     direccion?: string;
+    alergias?: string;
+    antecedentes?: string;
     createdAt: Date;
     updatedAt: Date;
 }
