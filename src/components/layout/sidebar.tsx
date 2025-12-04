@@ -1,0 +1,98 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+    LayoutDashboard,
+    Users,
+    FileText,
+    Settings,
+    PlusCircle
+} from 'lucide-react';
+
+/**
+ * Definición de las rutas de navegación del sidebar.
+ * Cada objeto contiene:
+ * - href: La ruta URL
+ * - label: El texto a mostrar
+ * - icon: El icono de Lucide React
+ */
+const routes = [
+    {
+        href: '/',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+    },
+    {
+        href: '/pacientes',
+        label: 'Pacientes',
+        icon: Users,
+    },
+    {
+        href: '/recetas',
+        label: 'Recetas',
+        icon: FileText,
+    },
+    {
+        href: '/configuracion',
+        label: 'Configuración',
+        icon: Settings,
+    },
+];
+
+/**
+ * Componente Sidebar para la navegación principal.
+ * Se adapta a móvil y escritorio.
+ */
+export function Sidebar() {
+    const pathname = usePathname();
+
+    return (
+        <div className="flex flex-col h-full bg-slate-900 text-white w-64 border-r border-slate-800">
+            {/* Header del Sidebar */}
+            <div className="p-6">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                    Recetas Médicas
+                </h1>
+                <p className="text-xs text-slate-400 mt-1">Sistema de Gestión PWA</p>
+            </div>
+
+            {/* Navegación Principal */}
+            <nav className="flex-1 px-4 space-y-2">
+                {routes.map((route) => {
+                    const Icon = route.icon;
+                    const isActive = pathname === route.href;
+
+                    return (
+                        <Link key={route.href} href={route.href}>
+                            <Button
+                                variant="ghost"
+                                className={cn(
+                                    "w-full justify-start gap-3 mb-1",
+                                    isActive
+                                        ? "bg-slate-800 text-blue-400 hover:bg-slate-800 hover:text-blue-400"
+                                        : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                                )}
+                            >
+                                <Icon size={20} />
+                                {route.label}
+                            </Button>
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            {/* Acciones Rápidas */}
+            <div className="p-4 border-t border-slate-800">
+                <Link href="/recetas/nueva">
+                    <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+                        <PlusCircle size={20} />
+                        Nueva Receta
+                    </Button>
+                </Link>
+            </div>
+        </div>
+    );
+}

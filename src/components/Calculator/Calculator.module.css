@@ -1,0 +1,106 @@
+/* 
+ * Tutorial: Módulos CSS
+ * ---------------------
+ * Next.js soporta Módulos CSS nativamente (archivos que terminan en .module.css).
+ * Las clases tienen un ámbito local al componente, por lo que puedes usar nombres comunes
+ * como .button sin preocuparte por conflictos con otras partes de la app.
+ */
+
+.calculatorCard {
+    /* Usando nuestros tokens globales de glassmorphism */
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-lg);
+
+    padding: 20px;
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Estilos de la Pantalla */
+.displayContainer {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100px;
+}
+
+.history {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    min-height: 1.2rem;
+}
+
+.currentValue {
+    color: var(--text-primary);
+    font-size: 2.5rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Cuadrícula del Teclado */
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* Estilos de Botones */
+.button {
+    appearance: none;
+    border: none;
+    outline: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    /* Efecto de vidrio para botones también */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.button:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Tipos de Botones Específicos */
+.operator {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.function {
+    color: var(--text-secondary);
+}
+
+.equals {
+    background: var(--accent-color);
+    color: #000;
+    /* Texto de contraste para botón brillante */
+    font-weight: bold;
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.equals:active {
+    background: var(--accent-color);
+    opacity: 0.8;
+}
+
+.zero {
+    grid-column: span 2;
+}
