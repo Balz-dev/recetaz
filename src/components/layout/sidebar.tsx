@@ -35,11 +35,6 @@ const routes = [
         label: 'Recetas',
         icon: FileText,
     },
-    {
-        href: '/configuracion',
-        label: 'Configuración',
-        icon: Settings,
-    },
 ];
 
 /**
@@ -52,16 +47,16 @@ export function Sidebar() {
     return (
         <div className="flex flex-col h-full bg-slate-900 text-white w-64 border-r border-slate-800">
             {/* Header del Sidebar */}
-            <div className="p-6">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    Recetas Médicas
+            <div className="p-3">
+                <h1 className="p-0 text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                    Receta-Z
                 </h1>
-                <p className="text-xs text-slate-400 mt-1">Sistema de Gestión PWA</p>
+                <p className=" pt-0 text-xs text-slate-400 mt-1 text-[10px] ">Tu aliado en la creación de recetas médicas</p>
             </div>
 
             {/* Navegación Principal */}
             <nav className="flex-1 px-4 space-y-2">
-                {routes.map((route) => {
+                {routes.map((route) => { 
                     const Icon = route.icon;
                     const isActive = pathname === route.href;
 
@@ -85,11 +80,17 @@ export function Sidebar() {
             </nav>
 
             {/* Acciones Rápidas */}
-            <div className="p-4 border-t border-slate-800">
+            <div className="p-4 border-t border-slate-800 flex flex-col gap-2">
                 <Link href="/recetas/nueva">
                     <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white">
                         <PlusCircle size={20} />
                         Nueva Receta
+                    </Button>
+                </Link>
+                <Link href="/configuracion">
+                    <Button variant="ghost" className="w-full gap-2 text-slate-400 hover:text-white hover:bg-slate-800/50 mt-2">
+                        <Settings size={20} />
+                        Configuración
                     </Button>
                 </Link>
             </div>

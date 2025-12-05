@@ -34,7 +34,7 @@ export function Header() {
                     <Sidebar />
                 </SheetContent>
             </Sheet>
-            <h1 className="ml-4 font-bold text-lg">Recetas Médicas</h1>
+            <h1 className="ml-4 font-bold text-lg">Receta-Z</h1>
         </header>
     );
 }
