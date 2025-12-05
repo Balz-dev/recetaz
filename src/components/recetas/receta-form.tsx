@@ -209,19 +209,6 @@ export function RecetaForm() {
 
                     {/* Medicamentos */}
                     <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-medium">Medicamentos</h3>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => append({ nombre: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" })}
-                            >
-                                <Plus className="mr-2 h-4 w-4" />
-                                Agregar Medicamento
-                            </Button>
-                        </div>
-
                         {fields.map((field, index) => (
                             <Card key={field.id} className="relative">
                                 <Button
@@ -303,6 +290,18 @@ export function RecetaForm() {
                                 </CardContent>
                             </Card>
                         ))}
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-medium">Medicamentos</h3>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => append({ nombre: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" })}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Agregar Medicamento
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Instrucciones Generales */}
