@@ -17,13 +17,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { recetaService } from "@/lib/db/recetas"
 import { pacienteService } from "@/lib/db/pacientes"
-import { RecetaFormData, Paciente } from "@/types"
+import { RecetaFormData, Paciente, Receta } from "@/types"
 import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, Save, ArrowLeft, Plus, Trash2 } from "lucide-react"
+import { Loader2, Save, ArrowLeft, Plus, Trash2, PlusCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
     Dialog,
     DialogContent,
@@ -33,7 +33,6 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { PacienteForm } from "@/components/pacientes/paciente-form"
-import { PlusCircle } from "lucide-react"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -50,7 +49,12 @@ const recetaFormSchema = z.object({
     instrucciones: z.string().optional(),
 })
 
-export function RecetaForm() {
+interface RecetaFormProps {
+    preSelectedPacienteId?: string;
+    onCancel?: () => void;
+}
+
+export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])
     const [isPacienteModalOpen, setIsPacienteModalOpen] = useState(false)
@@ -60,7 +64,7 @@ export function RecetaForm() {
     const form = useForm<RecetaFormData>({
         resolver: zodResolver(recetaFormSchema),
         defaultValues: {
-            pacienteId: "",
+            pacienteId: preSelectedPacienteId || "",
             diagnostico: "",
             medicamentos: [{ nombre: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
             instrucciones: "",
@@ -77,6 +81,8 @@ export function RecetaForm() {
         setPacientes(data)
     }
 
+
+
     useEffect(() => {
         loadPacientes()
     }, [])
@@ -88,11 +94,6 @@ export function RecetaForm() {
     }
 
     async function onSubmit(values: RecetaFormData) {
-        // NOTE (funcional): La lógica de envío de la receta está implementada y funciona.
-        // - Carga del paciente seleccionado mediante `pacienteService.getById`
-        // - Creación de la receta mediante `recetaService.create`
-        // - Mensajes de toast en caso de éxito/error y redirección a la receta creada
-        // Pruebas manuales recomendadas: crear un paciente en la DB local y enviar una receta.
         setIsLoading(true)
         try {
             // Obtener datos del paciente seleccionado
@@ -149,42 +150,50 @@ export function RecetaForm() {
                                     <FormItem>
                                         <FormLabel>Paciente *</FormLabel>
                                         <div className="flex gap-2">
-                                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="flex-1">
-                                                        <SelectValue placeholder="Seleccionar paciente..." />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {pacientes.map((paciente) => (
-                                                        <SelectItem key={paciente.id} value={paciente.id}>
-                                                            {paciente.nombre}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            {preSelectedPacienteId ? (
+                                                <div className="flex-1 p-2 border rounded-md bg-muted text-muted-foreground">
+                                                    {pacientes.find(p => p.id === preSelectedPacienteId)?.nombre || "Cargando..."}
+                                                </div>
+                                            ) : (
+                                                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="flex-1">
+                                                            <SelectValue placeholder="Seleccionar paciente..." />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {pacientes.map((paciente) => (
+                                                            <SelectItem key={paciente.id} value={paciente.id}>
+                                                                {paciente.nombre}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
 
-                                            <Dialog open={isPacienteModalOpen} onOpenChange={setIsPacienteModalOpen}>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="outline" size="icon" type="button" title="Nuevo Paciente">
-                                                        <PlusCircle className="h-4 w-4" />
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                                                    <DialogHeader>
-                                                        <DialogTitle>Registrar Nuevo Paciente</DialogTitle>
-                                                        <DialogDescription>
-                                                            Complete los datos para registrar un paciente rápidamente.
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <div className="py-4">
-                                                        <PacienteForm
-                                                            afterSave={handlePacienteCreated}
-                                                            onCancel={() => setIsPacienteModalOpen(false)}
-                                                        />
-                                                    </div>
-                                                </DialogContent>
-                                            </Dialog>
+                                            {!preSelectedPacienteId && (
+                                                <Dialog open={isPacienteModalOpen} onOpenChange={setIsPacienteModalOpen}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="icon" type="button" title="Nuevo Paciente">
+                                                            <PlusCircle className="h-4 w-4" />
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                                        <DialogHeader>
+                                                            <DialogTitle>Registrar Nuevo Paciente</DialogTitle>
+                                                            <DialogDescription>
+                                                                Complete los datos para registrar un paciente rápidamente.
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <div className="py-4">
+                                                            <PacienteForm
+                                                                afterSave={handlePacienteCreated}
+                                                                onCancel={() => setIsPacienteModalOpen(false)}
+                                                            />
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            )}
                                         </div>
                                         <FormMessage />
                                     </FormItem>
@@ -206,6 +215,9 @@ export function RecetaForm() {
                             />
                         </CardContent>
                     </Card>
+
+                    {/* Panel de Información del Paciente y Historial */}
+
 
                     {/* Medicamentos */}
                     <div className="space-y-4">
@@ -329,9 +341,13 @@ export function RecetaForm() {
                 </div>
 
                 <div className="flex justify-end gap-4">
-                    <Link href="/recetas">
-                        <Button variant="outline" type="button">Cancelar</Button>
-                    </Link>
+                    {onCancel ? (
+                        <Button variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
+                    ) : (
+                        <Link href="/recetas">
+                            <Button variant="outline" type="button">Cancelar</Button>
+                        </Link>
+                    )}
                     <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
                         {isLoading ? (
                             <>
