@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { FileText, Users, Activity, Plus } from "lucide-react";
 import Link from "next/link";
+import { ConfiguracionModal } from "@/components/configuracion/configuracion-modal";
 
 export default function HomePage() {
     const router = useRouter();
@@ -17,13 +18,15 @@ export default function HomePage() {
         totalPacientes: 0,
         loading: true
     });
+    const [showConfigModal, setShowConfigModal] = useState(false);
 
     useEffect(() => {
         const checkConfig = async () => {
             const hasConfig = await medicoService.exists();
             if (!hasConfig) {
-                router.push("/configuracion");
-                return;
+                setShowConfigModal(true);
+                // Don't simplify return here, we still want to load stats if possible (might be empty)
+                // But usually if no config, stats are 0.
             }
 
             // Cargar estadísticas
@@ -46,6 +49,11 @@ export default function HomePage() {
         checkConfig();
     }, [router]);
 
+    const handleConfigSuccess = () => {
+        setShowConfigModal(false);
+        // Could trigger a reload or just let them continue
+    };
+
     if (stats.loading) {
         return (
             <div className="flex h-64 items-center justify-center">
@@ -56,6 +64,12 @@ export default function HomePage() {
 
     return (
         <div className="space-y-8">
+            <ConfiguracionModal
+                open={showConfigModal}
+                onOpenChange={setShowConfigModal}
+                onSuccess={handleConfigSuccess}
+            />
+
             {/* Header */}
             <div>
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>

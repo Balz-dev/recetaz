@@ -39,7 +39,11 @@ const medicoFormSchema = z.object({
     direccion: z.string().optional(),
 })
 
-export function MedicoConfigForm() {
+interface MedicoConfigFormProps {
+    onSuccess?: () => void;
+}
+
+export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [logoBase64, setLogoBase64] = useState<string | undefined>(undefined)
@@ -138,6 +142,9 @@ export function MedicoConfigForm() {
                 title: "Configuración guardada",
                 description: "Los datos del médico han sido actualizados correctamente.",
             })
+            if (onSuccess) {
+                onSuccess();
+            }
         } catch (error) {
             console.error(error)
             toast({
