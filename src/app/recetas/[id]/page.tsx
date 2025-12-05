@@ -53,12 +53,19 @@ export default function DetalleRecetaPage() {
         loadData();
     }, [params.id]);
 
+    const generatePDFBlob = async () => {
+        if (!receta || !paciente || !medico) return null;
+        return pdf(<RecetaPDFTemplate receta={receta} paciente={paciente} medico={medico} />).toBlob();
+    };
+
     const handleDownloadPDF = async () => {
-        if (!receta || !paciente || !medico || !receta.fechaEmision) return;
+        if (!receta?.fechaEmision || !paciente) return;
 
         setDownloadingPDF(true);
         try {
-            const blob = await pdf(<RecetaPDFTemplate receta={receta} paciente={paciente} medico={medico} />).toBlob();
+            const blob = await generatePDFBlob();
+            if (!blob) return;
+
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -69,6 +76,30 @@ export default function DetalleRecetaPage() {
             URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Error generando PDF:', error);
+        } finally {
+            setDownloadingPDF(false);
+        }
+    };
+
+    const handlePrintPDF = async () => {
+        setDownloadingPDF(true);
+        try {
+            // Abrir ventana inmediatamente para evitar bloqueo de popups
+            const pdfWindow = window.open('', '_blank');
+            if (pdfWindow) {
+                pdfWindow.document.write('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;"><div>Cargando vista previa del PDF...</div></body></html>');
+            }
+
+            const blob = await generatePDFBlob();
+            if (blob && pdfWindow) {
+                const url = URL.createObjectURL(blob);
+                pdfWindow.location.href = url;
+            } else if (pdfWindow) {
+                pdfWindow.close();
+                alert("No se pudo generar el PDF");
+            }
+        } catch (error) {
+            console.error('Error al abrir PDF:', error);
         } finally {
             setDownloadingPDF(false);
         }
@@ -131,9 +162,9 @@ export default function DetalleRecetaPage() {
                             {downloadingPDF ? 'Generando...' : 'Descargar PDF'}
                         </Button>
                     )}
-                    <Button onClick={() => window.print()} className="gap-2">
+                    <Button onClick={handlePrintPDF} className="gap-2" disabled={downloadingPDF}>
                         <Printer size={18} />
-                        Imprimir
+                        Imprimir / Ver PDF
                     </Button>
                 </div>
             </div>

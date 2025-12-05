@@ -6,146 +6,181 @@ import { es } from 'date-fns/locale';
 // Estilos del PDF - Media Carta (8.5" x 5.5" = 612pt x 396pt)
 const styles = StyleSheet.create({
     page: {
-        padding: 30,
+        padding: 20,
         fontSize: 10,
         fontFamily: 'Helvetica',
     },
-    // Header horizontal: médico (izquierda) + paciente (derecha)
+    // Header Row: Doctor (Left) - Paciente (Right)
     headerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottom: 2,
+        height: 65, // Altura fija para el encabezado para asegurar espacio uniforme
+        borderBottom: 1.5,
         borderBottomColor: '#0066CC',
-        paddingBottom: 12,
-        marginBottom: 20,
+        paddingBottom: 5,
+        marginBottom: 10,
     },
+    // Doctor Section (Left) - 35% del ancho - Compacto
     headerLeft: {
-        width: '48%',
-    },
-    headerRight: {
-        width: '48%',
-        paddingLeft: 10,
+        width: '35%',
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     logoContainer: {
-        marginBottom: 8,
+        marginRight: 8,
     },
     logo: {
-        width: 60,
-        height: 60,
+        width: 45,
+        height: 45,
         objectFit: 'contain',
     },
+    doctorInfo: {
+        justifyContent: 'center',
+    },
     medicoNombre: {
-        fontSize: 14,
+        fontSize: 10,
         fontWeight: 'bold',
         color: '#0066CC',
-        marginBottom: 3,
     },
-    medicoInfo: {
-        fontSize: 9,
-        color: '#666',
+    medicoSmall: {
+        fontSize: 7,
+        color: '#555',
+    },
+    // Paciente Section (Right) - 60% del ancho - Destacado
+    headerRight: {
+        width: '60%',
+        alignItems: 'flex-end', // Alinear a la derecha
+        justifyContent: 'center',
+    },
+    pacienteNombre: {
+        fontSize: 16, // Más grande
+        fontWeight: 'bold',
         marginBottom: 2,
     },
-    pacienteLabel: {
-        fontSize: 8,
-        color: '#666',
-        marginBottom: 1,
+    pacienteInfoRow: {
+        flexDirection: 'row',
+        gap: 15,
     },
-    pacienteValue: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        marginBottom: 6,
+    pacienteDato: {
+        fontSize: 9,
+        color: '#444',
     },
-    // Sección central ampliada
-    section: {
-        marginBottom: 12,
+
+    // Cuerpo Principal
+    bodySection: {
+        flexGrow: 1, // Ocupa el espacio restante
     },
-    diagnostico: {
-        marginBottom: 16,
+
+    // Diagnóstico
+    diagnosticoContainer: {
+        marginBottom: 8,
+        flexDirection: 'row',
+        alignItems: 'baseline',
     },
     diagnosticoLabel: {
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: 'bold',
         color: '#0066CC',
-        marginBottom: 4,
+        marginRight: 5,
     },
     diagnosticoText: {
-        fontSize: 14,
+        fontSize: 10,
         fontWeight: 'bold',
-        color: '#000',
     },
-    tratamientoLabel: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: '#0066CC',
-        marginBottom: 10,
-        borderBottom: 1,
-        borderBottomColor: '#0066CC',
-        paddingBottom: 3,
+
+    // Medicamentos
+    medicamentosContainer: {
+        marginTop: 5,
     },
     medicamentoItem: {
-        marginBottom: 14,
-        paddingLeft: 8,
-        borderLeft: 3,
+        marginBottom: 8,
+        paddingLeft: 6,
+        borderLeft: 2,
         borderLeftColor: '#0066CC',
     },
-    medicamentoNombre: {
-        fontSize: 13,
-        fontWeight: 'bold',
-        marginBottom: 4,
-        color: '#000',
-    },
-    medicamentoDetalle: {
+    medicamentoHeader: {
         fontSize: 11,
-        marginBottom: 2,
+        fontWeight: 'bold',
+        marginBottom: 1,
+    },
+    medicamentoDetailsRow: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    medicamentoDetail: {
+        fontSize: 9,
         color: '#333',
     },
-    medicamentoLabel: {
-        fontWeight: 'bold',
-    },
     indicaciones: {
-        fontSize: 10,
+        fontSize: 9,
         fontStyle: 'italic',
         color: '#555',
-        marginTop: 3,
+        marginTop: 1,
     },
-    // Footer compacto
+
+    // Instrucciones Generales
+    generalInstrucciones: {
+        marginTop: 10,
+        padding: 5,
+        backgroundColor: '#f8f9fa',
+        borderRadius: 2,
+    },
+    generalLabel: {
+        fontSize: 8,
+        fontWeight: 'bold',
+        color: '#0066CC',
+        marginBottom: 2,
+    },
+    generalText: {
+        fontSize: 8,
+        color: '#333',
+    },
+
+    // Footer & Firma
     footer: {
         position: 'absolute',
         bottom: 20,
-        left: 30,
-        right: 30,
-        borderTop: 1,
-        borderTopColor: '#999',
-        paddingTop: 8,
-    },
-    footerRow: {
+        left: 20,
+        right: 20,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 4,
+        alignItems: 'flex-end',
+    },
+    footerAddress: {
+        width: '50%',
     },
     footerText: {
         fontSize: 7,
-        color: '#666',
+        color: '#888',
+    },
+    firmaContainer: {
+        width: 180,
+        alignItems: 'center',
     },
     firmaLine: {
-        width: 180,
+        width: '100%',
         borderTop: 1,
         borderTopColor: '#333',
-        marginTop: 15,
-        paddingTop: 3,
+        marginBottom: 3,
     },
-    firmaText: {
-        fontSize: 8,
-        textAlign: 'center',
-        color: '#666',
-    },
-    numeroReceta: {
-        position: 'absolute',
-        top: 30,
-        right: 30,
+    firmaName: {
         fontSize: 9,
-        color: '#666',
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
+    firmaLabel: {
+        fontSize: 7,
+        color: '#666',
+        textAlign: 'center',
+    },
+
+    numeroRecetaLabel: {
+        position: 'absolute',
+        top: 25,
+        right: 20,
+        fontSize: 8,
+        color: '#999',
+    }
 });
 
 interface RecetaPDFTemplateProps {
@@ -156,87 +191,91 @@ interface RecetaPDFTemplateProps {
 
 export const RecetaPDFTemplate = ({ receta, paciente, medico }: RecetaPDFTemplateProps) => (
     <Document>
-        <Page size={[612, 396]} style={styles.page}>
-            {/* Número de Receta */}
-            <Text style={styles.numeroReceta}>Receta N° {receta.numeroReceta}</Text>
+        <Page size={[612, 396]} style={styles.page}> {/* Half Letter Horizontal */}
 
-            {/* Header Horizontal: Médico (izq) + Paciente (der) */}
+            {/* Header */}
             <View style={styles.headerRow}>
-                {/* Columna Izquierda: Médico */}
+                {/* Left: Doctor Info */}
                 <View style={styles.headerLeft}>
                     {medico.logo && (
                         <View style={styles.logoContainer}>
                             <Image src={medico.logo} style={styles.logo} />
                         </View>
                     )}
-                    <Text style={styles.medicoNombre}>{medico.nombre}</Text>
-                    <Text style={styles.medicoInfo}>{medico.especialidad}</Text>
-                    <Text style={styles.medicoInfo}>Cédula Prof: {medico.cedula}</Text>
-                </View>
-
-                {/* Columna Derecha: Paciente */}
-                <View style={styles.headerRight}>
-                    <Text style={styles.pacienteLabel}>Paciente:</Text>
-                    <Text style={styles.pacienteValue}>{paciente.nombre}</Text>
-
-                    <Text style={styles.pacienteLabel}>Edad:</Text>
-                    <Text style={styles.pacienteValue}>{paciente.edad} años</Text>
-
-                    <Text style={styles.pacienteLabel}>Fecha:</Text>
-                    <Text style={styles.pacienteValue}>
-                        {receta.fechaEmision
-                            ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es })
-                            : "N/A"
-                        }
-                    </Text>
-                </View>
-            </View>
-
-            {/* Diagnóstico */}
-            <View style={styles.diagnostico}>
-                <Text style={styles.diagnosticoLabel}>Diagnóstico:</Text>
-                <Text style={styles.diagnosticoText}>{receta.diagnostico}</Text>
-            </View>
-
-            {/* Tratamiento Prescrito */}
-            <View style={styles.section}>
-                <Text style={styles.tratamientoLabel}>Tratamiento Prescrito</Text>
-                {receta.medicamentos.map((med, index) => (
-                    <View key={med.id} style={styles.medicamentoItem}>
-                        <Text style={styles.medicamentoNombre}>
-                            {index + 1}. {med.nombre} - {med.dosis}
-                        </Text>
-                        <Text style={styles.medicamentoDetalle}>
-                            <Text style={styles.medicamentoLabel}>Frecuencia:</Text> {med.frecuencia}
-                        </Text>
-                        <Text style={styles.medicamentoDetalle}>
-                            <Text style={styles.medicamentoLabel}>Duración:</Text> {med.duracion}
-                        </Text>
-                        {med.indicaciones && (
-                            <Text style={styles.indicaciones}>
-                                Nota: {med.indicaciones}
-                            </Text>
-                        )}
+                    <View style={styles.doctorInfo}>
+                        <Text style={styles.medicoNombre}>{medico.nombre}</Text>
+                        <Text style={styles.medicoSmall}>{medico.especialidad}</Text>
+                        <Text style={styles.medicoSmall}>Ced. Prof: {medico.cedula}</Text>
                     </View>
-                ))}
+                </View>
+
+                {/* Right: Patient Info */}
+                <View style={styles.headerRight}>
+                    <Text style={styles.pacienteDato}>Receta #{receta.numeroReceta}</Text>
+                    <Text style={styles.pacienteNombre}>{paciente.nombre}</Text>
+                    <View style={styles.pacienteInfoRow}>
+                        <Text style={styles.pacienteDato}>Edad: {paciente.edad} años</Text>
+                        <Text style={styles.pacienteDato}>
+                            Fecha: {receta.fechaEmision
+                                ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es })
+                                : "N/D"}
+                        </Text>
+
+                    </View>
+                </View>
             </View>
 
-            {/* Instrucciones Generales */}
-            {receta.instrucciones && (
-                <View style={styles.section}>
-                    <Text style={styles.diagnosticoLabel}>Indicaciones Generales:</Text>
-                    <Text style={styles.medicamentoDetalle}>{receta.instrucciones}</Text>
+            {/* Body */}
+            <View style={styles.bodySection}>
+                {/* Diagnóstico */}
+                <View style={styles.diagnosticoContainer}>
+                    <Text style={styles.diagnosticoLabel}>Dx:</Text>
+                    <Text style={styles.diagnosticoText}>{receta.diagnostico}</Text>
                 </View>
-            )}
+
+                {/* Medicamentos */}
+                <View style={styles.medicamentosContainer}>
+                    {receta.medicamentos.map((med, index) => (
+                        <View key={med.id} style={styles.medicamentoItem}>
+                            <Text style={styles.medicamentoHeader}>
+                                {index + 1}. {med.nombre} - {med.dosis}
+                            </Text>
+                            <View style={styles.medicamentoDetailsRow}>
+                                <Text style={styles.medicamentoDetail}>
+                                    <Text style={{ fontWeight: 'bold' }}>Frec:</Text> {med.frecuencia}
+                                </Text>
+                                <Text style={styles.medicamentoDetail}>
+                                    <Text style={{ fontWeight: 'bold' }}>Dur:</Text> {med.duracion}
+                                </Text>
+                            </View>
+                            {med.indicaciones && (
+                                <Text style={styles.indicaciones}>
+                                    Nota: {med.indicaciones}
+                                </Text>
+                            )}
+                        </View>
+                    ))}
+                </View>
+
+                {/* Instrucciones Generales (si existen) */}
+                {receta.instrucciones && (
+                    <View style={styles.generalInstrucciones}>
+                        <Text style={styles.generalLabel}>Recomendaciones / Cuidados Generales:</Text>
+                        <Text style={styles.generalText}>{receta.instrucciones}</Text>
+                    </View>
+                )}
+            </View>
 
             {/* Footer */}
             <View style={styles.footer}>
-                <View style={styles.footerRow}>
+                <View style={styles.footerAddress}>
                     <Text style={styles.footerText}>{medico.direccion}</Text>
                     <Text style={styles.footerText}>Tel: {medico.telefono}</Text>
                 </View>
-                <View style={styles.firmaLine}>
-                    <Text style={styles.firmaText}>Firma del Médico</Text>
+                <View style={styles.firmaContainer}>
+                    <View style={styles.firmaLine} />
+                    <Text style={styles.firmaName}>{medico.nombre}</Text>
+                    <Text style={styles.firmaLabel}>Firma del Médico</Text>
                 </View>
             </View>
         </Page>
