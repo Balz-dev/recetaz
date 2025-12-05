@@ -58,7 +58,7 @@ export const recetaService = {
      * @param pacienteData Datos del paciente necesarios para la receta
      * @returns ID de la nueva receta
      */
-    async create(data: RecetaFormData, pacienteData: { nombre: string, edad: number, cedula: string }): Promise<string> {
+    async create(data: RecetaFormData, pacienteData: { nombre: string, edad: number }): Promise<string> {
         const numeroReceta = await this.getNextNumeroReceta();
 
         const receta: Receta = {
@@ -71,7 +71,6 @@ export const recetaService = {
             // aunque cambien los datos del paciente en el futuro
             pacienteNombre: pacienteData.nombre,
             pacienteEdad: pacienteData.edad,
-            pacienteCedula: pacienteData.cedula,
             createdAt: new Date(),
             updatedAt: new Date()
         };

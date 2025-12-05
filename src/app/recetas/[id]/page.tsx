@@ -34,7 +34,6 @@ export default function DetalleRecetaPage() {
                             id: recetaData.pacienteId,
                             nombre: recetaData.pacienteNombre,
                             edad: recetaData.pacienteEdad,
-                            cedula: recetaData.pacienteCedula,
                             createdAt: new Date(),
                             updatedAt: new Date()
                         };

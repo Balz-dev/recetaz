@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -49,14 +50,14 @@ export function Sidebar() {
             {/* Header del Sidebar */}
             <div className="p-3">
                 <h1 className="p-0 text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    Receta-Z
+                    <Image src="/fenotipo.png" alt="Logo" width={200} height={200} />
                 </h1>
-                <p className=" pt-0 text-xs text-slate-400 mt-1 text-[10px] ">Tu aliado en la creación de recetas médicas</p>
+                <p className=" pt-0 text-xs text-slate-400 mt-1 text-[10px] color-cyan-400">Tu aliado en la creación de recetas médicas</p>
             </div>
 
             {/* Navegación Principal */}
             <nav className="flex-1 px-4 space-y-2">
-                {routes.map((route) => { 
+                {routes.map((route) => {
                     const Icon = route.icon;
                     const isActive = pathname === route.href;
 

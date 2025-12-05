@@ -26,10 +26,7 @@ const pacienteFormSchema = z.object({
     nombre: z.string().min(2, {
         message: "El nombre es requerido.",
     }),
-    edad: z.coerce.number().min(0, {
-        message: "La edad debe ser un número válido.",
-    }),
-    cedula: z.string().optional(),
+    edad: z.coerce.number().optional(), // Can be empty or 0, simple number coercion
     telefono: z.string().optional(),
     email: z.string().email({ message: "Email inválido" }).optional().or(z.literal("")),
     direccion: z.string().optional(),
@@ -40,9 +37,11 @@ const pacienteFormSchema = z.object({
 interface PacienteFormProps {
     initialData?: Paciente
     isEditing?: boolean
+    afterSave?: (newPacienteId: string) => void
+    onCancel?: () => void
 }
 
-export function PacienteForm({ initialData, isEditing = false }: PacienteFormProps) {
+export function PacienteForm({ initialData, isEditing = false, afterSave, onCancel }: PacienteFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast()
     const router = useRouter()
@@ -51,8 +50,7 @@ export function PacienteForm({ initialData, isEditing = false }: PacienteFormPro
         resolver: zodResolver(pacienteFormSchema),
         defaultValues: {
             nombre: initialData?.nombre || "",
-            edad: initialData?.edad || 0,
-            cedula: initialData?.cedula || "",
+            edad: initialData?.edad, // Undefined by default to avoid 0
             telefono: initialData?.telefono || "",
             email: initialData?.email || "",
             direccion: initialData?.direccion || "",
@@ -64,21 +62,28 @@ export function PacienteForm({ initialData, isEditing = false }: PacienteFormPro
     async function onSubmit(values: PacienteFormData) {
         setIsLoading(true)
         try {
+            let pacienteId = "";
             if (isEditing && initialData) {
                 await pacienteService.update(initialData.id, values)
+                pacienteId = initialData.id;
                 toast({
                     title: "Paciente actualizado",
                     description: "Los datos del paciente se han guardado correctamente.",
                 })
             } else {
-                await pacienteService.create(values)
+                pacienteId = await pacienteService.create(values)
                 toast({
                     title: "Paciente registrado",
                     description: "El nuevo paciente ha sido creado exitosamente.",
                 })
             }
-            router.push("/pacientes")
-            router.refresh()
+
+            if (afterSave) {
+                afterSave(pacienteId)
+            } else {
+                router.push("/pacientes")
+                router.refresh()
+            }
         } catch (error) {
             console.error(error)
             toast({
@@ -125,28 +130,24 @@ export function PacienteForm({ initialData, isEditing = false }: PacienteFormPro
                         name="edad"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Edad *</FormLabel>
+                                <FormLabel>Edad</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="0" {...field} />
+                                    <Input
+                                        type="number"
+                                        placeholder="0"
+                                        {...field}
+                                        value={field.value ?? ""} // Handle undefined/null to show empty or placeholder
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            field.onChange(val === "" ? undefined : Number(val));
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="cedula"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>DNI / Cédula</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Identificación oficial" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
 
                     <FormField
                         control={form.control}
@@ -230,9 +231,13 @@ export function PacienteForm({ initialData, isEditing = false }: PacienteFormPro
                 </div>
 
                 <div className="flex justify-end gap-4">
-                    <Link href="/pacientes">
-                        <Button variant="outline" type="button">Cancelar</Button>
-                    </Link>
+                    {onCancel ? (
+                        <Button variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
+                    ) : (
+                        <Link href="/pacientes">
+                            <Button variant="outline" type="button">Cancelar</Button>
+                        </Link>
+                    )}
                     <Button type="submit" disabled={isLoading}>
                         {isLoading ? (
                             <>

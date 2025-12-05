@@ -1,8 +1,7 @@
 export interface Paciente {
     id: string;
     nombre: string;
-    edad: number;
-    cedula: string;
+    edad?: number;
     telefono?: string;
     email?: string;
     direccion?: string;
@@ -39,7 +38,6 @@ export interface Receta {
     pacienteId: string;
     pacienteNombre: string; // Desnormalizado para búsquedas rápidas y persistencia histórica
     pacienteEdad: number;   // Desnormalizado
-    pacienteCedula: string; // Desnormalizado
     diagnostico: string;
     medicamentos: Medicamento[];
     instrucciones: string;
@@ -54,6 +52,6 @@ export type MedicoConfigFormData = Omit<MedicoConfig, 'id' | 'createdAt' | 'upda
 // Tipo para el formulario de configuración del médico sin el logo (se maneja por separado)
 export type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfigFormData, 'logo'>;
 export type PacienteFormData = Omit<Paciente, 'id' | 'createdAt' | 'updatedAt'>;
-export type RecetaFormData = Omit<Receta, 'id' | 'numeroReceta' | 'createdAt' | 'updatedAt' | 'pacienteNombre' | 'pacienteEdad' | 'pacienteCedula' | 'medicamentos'> & {
+export type RecetaFormData = Omit<Receta, 'id' | 'numeroReceta' | 'createdAt' | 'updatedAt' | 'pacienteNombre' | 'pacienteEdad' | 'medicamentos'> & {
     medicamentos: Omit<Medicamento, 'id'>[];
 };

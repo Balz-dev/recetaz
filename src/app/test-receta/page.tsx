@@ -17,7 +17,6 @@ export default function TestRecetaPage() {
             const pacienteId = await pacienteService.create({
                 nombre: "Paciente Test",
                 edad: 45,
-                cedula: "TEST-123",
                 telefono: "555-0000",
                 alergias: "Ninguna",
                 antecedentes: "Ninguno"
@@ -51,8 +50,7 @@ export default function TestRecetaPage() {
                 fechaEmision: new Date()
             }, {
                 nombre: paciente.nombre,
-                edad: paciente.edad,
-                cedula: paciente.cedula
+                edad: paciente.edad || 0
             })
 
             setStatus(`Receta creada: ${recetaId}. Redirigiendo...`)

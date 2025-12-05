@@ -24,6 +24,16 @@ import { Loader2, Save, ArrowLeft, Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { PacienteForm } from "@/components/pacientes/paciente-form"
+import { PlusCircle } from "lucide-react"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -43,6 +53,7 @@ const recetaFormSchema = z.object({
 export function RecetaForm() {
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])
+    const [isPacienteModalOpen, setIsPacienteModalOpen] = useState(false)
     const { toast } = useToast()
     const router = useRouter()
 
@@ -61,13 +72,20 @@ export function RecetaForm() {
         name: "medicamentos",
     })
 
+    const loadPacientes = async () => {
+        const data = await pacienteService.getAll()
+        setPacientes(data)
+    }
+
     useEffect(() => {
-        const loadPacientes = async () => {
-            const data = await pacienteService.getAll()
-            setPacientes(data)
-        }
         loadPacientes()
     }, [])
+
+    const handlePacienteCreated = async (newPacienteId: string) => {
+        await loadPacientes()
+        form.setValue("pacienteId", newPacienteId)
+        setIsPacienteModalOpen(false)
+    }
 
     async function onSubmit(values: RecetaFormData) {
         // NOTE (funcional): La lógica de envío de la receta está implementada y funciona.
@@ -86,8 +104,7 @@ export function RecetaForm() {
             // Crear receta con datos del paciente
             const recetaId = await recetaService.create(values, {
                 nombre: paciente.nombre,
-                edad: paciente.edad,
-                cedula: paciente.cedula
+                edad: paciente.edad ?? 0
             })
 
             toast({
@@ -131,20 +148,44 @@ export function RecetaForm() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Paciente *</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccionar paciente..." />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {pacientes.map((paciente) => (
-                                                    <SelectItem key={paciente.id} value={paciente.id}>
-                                                        {paciente.nombre} - {paciente.cedula || "S/C"}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="flex gap-2">
+                                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger className="flex-1">
+                                                        <SelectValue placeholder="Seleccionar paciente..." />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {pacientes.map((paciente) => (
+                                                        <SelectItem key={paciente.id} value={paciente.id}>
+                                                            {paciente.nombre}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+
+                                            <Dialog open={isPacienteModalOpen} onOpenChange={setIsPacienteModalOpen}>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="outline" size="icon" type="button" title="Nuevo Paciente">
+                                                        <PlusCircle className="h-4 w-4" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                                    <DialogHeader>
+                                                        <DialogTitle>Registrar Nuevo Paciente</DialogTitle>
+                                                        <DialogDescription>
+                                                            Complete los datos para registrar un paciente rápidamente.
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <div className="py-4">
+                                                        <PacienteForm
+                                                            afterSave={handlePacienteCreated}
+                                                            onCancel={() => setIsPacienteModalOpen(false)}
+                                                        />
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}

@@ -79,7 +79,7 @@ export default function TestDBPage() {
             const recetaId = await recetaService.create(recetaData, {
                 nombre: pacienteData.nombre,
                 edad: pacienteData.edad,
-                cedula: pacienteData.cedula
+
             });
             addLog(`Receta creada con ID: ${recetaId}`);
 

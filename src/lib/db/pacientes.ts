@@ -29,8 +29,7 @@ export const pacienteService = {
         const lowerQuery = query.toLowerCase();
         return await db.pacientes
             .filter(p =>
-                p.nombre.toLowerCase().includes(lowerQuery) ||
-                p.cedula.toLowerCase().includes(lowerQuery)
+                p.nombre.toLowerCase().includes(lowerQuery)
             )
             .toArray();
     },
