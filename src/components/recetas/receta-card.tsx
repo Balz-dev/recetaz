@@ -10,9 +10,10 @@ import { Receta } from "@/types";
 
 interface RecetaCardProps {
     receta: Receta;
+    patientName?: string;
 }
 
-export function RecetaCard({ receta }: RecetaCardProps) {
+export function RecetaCard({ receta, patientName }: RecetaCardProps) {
     return (
         <Card className="overflow-hidden h-full hover:shadow-md transition-shadow">
             <CardContent className="p-4 flex flex-col h-full gap-4">
@@ -29,8 +30,16 @@ export function RecetaCard({ receta }: RecetaCardProps) {
                         </span>
                     </div>
 
+                    {patientName && (
+                        <div>
+                            <p className="text-sm font-medium leading-tight truncate" title={patientName}>
+                                {patientName}
+                            </p>
+                        </div>
+                    )}
+
                     <div>
-                        <h4 className="font-semibold text-xs uppercase text-muted-foreground mb-1">
+                        <h4 className="font-semibold text-xs  text-muted-foreground mb-1">
                             Diagnóstico
                         </h4>
                         <p
@@ -42,7 +51,7 @@ export function RecetaCard({ receta }: RecetaCardProps) {
                     </div>
 
                     <div>
-                        <h4 className="font-semibold text-xs uppercase text-muted-foreground mb-1">
+                        <h4 className="font-semibold text-xs  text-muted-foreground mb-1">
                             Medicamentos
                         </h4>
                         <p className="text-xs text-muted-foreground line-clamp-3">

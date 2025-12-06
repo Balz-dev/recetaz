@@ -17,6 +17,7 @@ import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlusCircle } from "lucide-react";
 import { RecetaForm } from "@/components/recetas/receta-form";
+import { RecetaCard } from "@/components/recetas/receta-card";
 
 export default function EditarPacientePage() {
     const params = useParams();
@@ -112,44 +113,7 @@ export default function EditarPacientePage() {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                 {historialRecetas.map((receta) => (
-                                    <Card key={receta.id} className="overflow-hidden h-full hover:shadow-md transition-shadow">
-                                        <CardContent className="p-4 flex flex-col h-full gap-4">
-                                            <div className="space-y-2 flex-1">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-secondary text-secondary-foreground font-mono">
-                                                        #{receta.numeroReceta}
-                                                    </span>
-                                                    <span className="text-[10px] text-muted-foreground flex items-center gap-1 shrink-0">
-                                                        <Calendar className="h-3 w-3" />
-                                                        {receta.fechaEmision ? format(new Date(receta.fechaEmision), "dd/MM/yy", { locale: es }) : "N/D"}
-                                                    </span>
-                                                </div>
-
-                                                <div>
-                                                    <h4 className="font-semibold text-xs uppercase text-muted-foreground mb-1">Diagnóstico</h4>
-                                                    <p className="text-sm font-medium leading-tight line-clamp-2" title={receta.diagnostico}>
-                                                        {receta.diagnostico}
-                                                    </p>
-                                                </div>
-
-                                                <div>
-                                                    <h4 className="font-semibold text-xs uppercase text-muted-foreground mb-1">Medicamentos</h4>
-                                                    <p className="text-xs text-muted-foreground line-clamp-3">
-                                                        {receta.medicamentos.map(m => m.nombre).join(", ")}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="w-full mt-auto pt-2 border-t">
-                                                <Link href={`/recetas/${receta.id}`} target="_blank" className="w-full">
-                                                    <Button variant="ghost" size="sm" className="w-full h-8 text-xs gap-2">
-                                                        <ExternalLink className="h-3 w-3" />
-                                                        Ver Receta
-                                                    </Button>
-                                                </Link>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                    <RecetaCard key={receta.id} receta={receta} patientName={paciente?.nombre} />
                                 ))}
                             </div>
                         )}

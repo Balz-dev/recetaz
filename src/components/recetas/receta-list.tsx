@@ -6,11 +6,10 @@ import { recetaService } from "@/lib/db/recetas"
 import { pacienteService } from "@/lib/db/pacientes"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Search, FileText, Calendar, User, PlusCircle } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Search, FileText, PlusCircle } from "lucide-react"
 import Link from "next/link"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
+import { RecetaCard } from "@/components/recetas/receta-card"
 
 export function RecetaList() {
     const [recetas, setRecetas] = useState<Receta[]>([])
@@ -100,37 +99,14 @@ export function RecetaList() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {recetas.map((receta) => (
-                        <Link key={receta.id} href={`/recetas/${receta.id}`}>
-                            <Card className="hover:border-blue-400 transition-colors cursor-pointer h-full">
-                                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-base font-bold">
-                                        Receta #{receta.numeroReceta}
-                                    </CardTitle>
-                                    <FileText className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-sm text-muted-foreground space-y-2">
-                                        <div className="flex items-center gap-2 font-medium text-foreground">
-                                            <User className="h-3 w-3" />
-                                            {pacientes[receta.pacienteId] || "Paciente Desconocido"}
-                                        </div>
-                                        <div className="line-clamp-2 text-xs">
-                                            <span className="font-semibold">Dx:</span> {receta.diagnostico}
-                                        </div>
-                                        <div className="flex items-center gap-2 text-xs pt-2 border-t mt-2">
-                                            <Calendar className="h-3 w-3" />
-                                            {receta.fechaEmision
-                                                ? format(new Date(receta.fechaEmision), "d MMM yyyy, HH:mm", { locale: es })
-                                                : "Fecha no disponible"
-                                            }
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {recetas
+                        .sort((a, b) => new Date(a.fechaEmision).getTime() - new Date(b.fechaEmision).getTime())
+                        .map((receta) => (
+                            <div key={receta.id}>
+                                <RecetaCard receta={receta} patientName={pacientes[receta.pacienteId]} />
+                            </div>
+                        ))}
                 </div>
             )}
         </div>
