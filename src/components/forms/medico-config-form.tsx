@@ -197,20 +197,15 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                                 className="hidden"
                                 id="logo-upload"
                             />
-                            <label htmlFor="logo-upload">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    asChild
-                                >
-                                    <span>
-                                        <Upload className="h-4 w-4 mr-2" />
-                                        Subir Logo
-                                    </span>
-                                </Button>
-                            </label>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Subir Logo
+                            </Button>
                         </div>
                     )}
                 </div>

@@ -13,16 +13,33 @@ interface ConfiguracionModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;
+    preventClose?: boolean;
 }
 
 export function ConfiguracionModal({
     open,
     onOpenChange,
     onSuccess,
+    preventClose = false,
 }: ConfiguracionModalProps) {
+    const handleOpenChange = (newOpen: boolean) => {
+        if (preventClose && !newOpen) {
+            return;
+        }
+        onOpenChange(newOpen);
+    };
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogContent
+                className={`sm:max-w-[800px] max-h-[90vh] overflow-y-auto ${preventClose ? "[&>button]:hidden" : ""}`}
+                onPointerDownOutside={(e) => {
+                    if (preventClose) e.preventDefault();
+                }}
+                onEscapeKeyDown={(e) => {
+                    if (preventClose) e.preventDefault();
+                }}
+            >
                 <DialogHeader>
                     <DialogTitle>Bienvenido al Sistema de Recetas Médicas</DialogTitle>
                     <DialogDescription>

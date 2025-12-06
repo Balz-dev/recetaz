@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { pdf } from "@react-pdf/renderer";
 import { RecetaPDFTemplate } from "@/components/pdf/receta-pdf-template";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function DetalleRecetaPage() {
     const params = useParams();
@@ -21,6 +22,16 @@ export default function DetalleRecetaPage() {
     const [medico, setMedico] = useState<MedicoConfig | null>(null);
     const [loading, setLoading] = useState(true);
     const [downloadingPDF, setDownloadingPDF] = useState(false);
+    const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (pdfUrl) {
+                URL.revokeObjectURL(pdfUrl);
+            }
+        };
+    }, [pdfUrl]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -84,22 +95,16 @@ export default function DetalleRecetaPage() {
     const handlePrintPDF = async () => {
         setDownloadingPDF(true);
         try {
-            // Abrir ventana inmediatamente para evitar bloqueo de popups
-            const pdfWindow = window.open('', '_blank');
-            if (pdfWindow) {
-                pdfWindow.document.write('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;"><div>Cargando vista previa del PDF...</div></body></html>');
-            }
-
             const blob = await generatePDFBlob();
-            if (blob && pdfWindow) {
+            if (blob) {
                 const url = URL.createObjectURL(blob);
-                pdfWindow.location.href = url;
-            } else if (pdfWindow) {
-                pdfWindow.close();
+                setPdfUrl(url);
+                setIsPdfModalOpen(true);
+            } else {
                 alert("No se pudo generar el PDF");
             }
         } catch (error) {
-            console.error('Error al abrir PDF:', error);
+            console.error('Error al generar PDF:', error);
         } finally {
             setDownloadingPDF(false);
         }
@@ -129,6 +134,21 @@ export default function DetalleRecetaPage() {
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
+            <Dialog open={isPdfModalOpen} onOpenChange={setIsPdfModalOpen}>
+                <DialogContent className="max-w-4xl h-[90vh] flex flex-col gap-2 p-4">
+                    <DialogHeader>
+                        <DialogTitle>Vista Previa de Receta</DialogTitle>
+                    </DialogHeader>
+                    {pdfUrl && (
+                        <iframe
+                            src={pdfUrl}
+                            className="w-full flex-1 rounded-md border"
+                            title="Vista Previa PDF"
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
             <div className="flex items-center justify-between print:hidden">
                 <div className="flex items-center gap-4">
                     <Link href="/recetas">

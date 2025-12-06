@@ -68,6 +68,7 @@ export default function HomePage() {
                 open={showConfigModal}
                 onOpenChange={setShowConfigModal}
                 onSuccess={handleConfigSuccess}
+                preventClose={true}
             />
 
             {/* Header */}
