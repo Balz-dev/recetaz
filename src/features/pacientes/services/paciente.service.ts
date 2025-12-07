@@ -1,7 +1,22 @@
+/**
+ * @fileoverview Servicio de Gestión de Pacientes
+ * 
+ * Este servicio gestiona toda la lógica de negocio relacionada con los pacientes del consultorio.
+ * Incluye operaciones CRUD completas, búsqueda por nombre, y gestión de datos demográficos.
+ * 
+ * Los pacientes son entidades independientes que se relacionan con las recetas a través
+ * de su ID único (UUID). Los datos básicos del paciente se desnormalizan en las recetas
+ * para mantener la integridad histórica.
+ */
+
 import { db } from '@/shared/db/db.config';
 import { Paciente, PacienteFormData } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * Servicio de gestión de pacientes.
+ * Proporciona métodos para crear, consultar, actualizar y eliminar pacientes.
+ */
 export const pacienteService = {
     /**
      * Obtiene la lista completa de pacientes ordenada alfabéticamente.

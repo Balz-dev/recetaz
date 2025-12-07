@@ -1,7 +1,25 @@
+/**
+ * @fileoverview Servicio de Recetas Médicas
+ * 
+ * Este servicio gestiona toda la lógica de negocio relacionada con las recetas médicas.
+ * Incluye operaciones CRUD, generación de números de folio consecutivos, búsqueda,
+ * y desnormalización de datos del paciente para mantener la integridad histórica.
+ * 
+ * Características principales:
+ * - Generación automática de números de receta consecutivos (formato: 0001, 0002, etc.)
+ * - Almacenamiento de datos del paciente en la receta (desnormalización)
+ * - Búsqueda por número de folio o nombre de paciente
+ * - Historial de recetas por paciente
+ */
+
 import { db } from '@/shared/db/db.config';
 import { Receta, RecetaFormData } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * Servicio de gestión de recetas médicas.
+ * Proporciona métodos para crear, consultar y eliminar recetas.
+ */
 export const recetaService = {
     /**
      * Obtiene todas las recetas ordenadas por fecha de emisión descendente (más recientes primero).

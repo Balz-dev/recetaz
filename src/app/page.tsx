@@ -1,3 +1,18 @@
+/**
+ * @fileoverview Página Principal - Dashboard
+ * 
+ * Esta es la página de inicio del sistema de gestión de recetas médicas.
+ * Muestra un dashboard con estadísticas generales, accesos rápidos a las
+ * principales funcionalidades y el panel de finanzas.
+ * 
+ * Funcionalidades:
+ * - Verificación de configuración inicial del médico
+ * - Estadísticas de recetas y pacientes
+ * - Accesos rápidos a módulos principales
+ * - Panel de ganancias de los últimos 7 días
+ * - Modal de configuración inicial (si no existe configuración)
+ */
+
 "use client"
 
 import { useEffect, useState } from "react";
@@ -12,6 +27,14 @@ import Link from "next/link";
 import { ConfiguracionModal } from "@/features/config-medico/components/ConfiguracionModal";
 import { PanelGanancias } from "@/features/finanzas/components/PanelGanancias";
 
+/**
+ * Componente de la página principal del sistema.
+ * 
+ * Verifica si existe configuración del médico al cargar. Si no existe,
+ * muestra un modal obligatorio para completar la configuración inicial.
+ * 
+ * @returns Página de dashboard con estadísticas y accesos rápidos
+ */
 export default function HomePage() {
     const router = useRouter();
     const [stats, setStats] = useState({

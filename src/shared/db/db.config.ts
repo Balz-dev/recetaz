@@ -1,15 +1,48 @@
+/**
+ * @fileoverview Configuración de Base de Datos IndexedDB
+ * 
+ * Este archivo configura la base de datos local del sistema usando Dexie.js,
+ * un wrapper moderno sobre IndexedDB que facilita las operaciones de base de datos.
+ * 
+ * La base de datos almacena:
+ * - Configuración del médico (singleton)
+ * - Pacientes (directorio completo)
+ * - Recetas médicas (con historial completo)
+ * - Movimientos financieros (ingresos y gastos)
+ * - Configuración financiera (costos de consulta)
+ * 
+ * El sistema funciona completamente offline gracias a IndexedDB.
+ * Todas las operaciones son locales y no requieren conexión a internet.
+ */
+
 import Dexie, { Table } from 'dexie';
 import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera } from '@/types';
 
 /**
- * Configuración principal de la base de datos IndexedDB usando Dexie.
- * Gestiona el almacenamiento local persistence offline-first.
+ * Clase principal de la base de datos.
+ * 
+ * Extiende Dexie para proporcionar tipado TypeScript completo
+ * y definir el esquema de todas las tablas del sistema.
+ * 
+ * Versiones:
+ * - v1: Esquema inicial (medico, pacientes, recetas)
+ * - v2: Agregado índice createdAt para recetas
+ * - v3: Agregado módulo de finanzas (finanzas, configuracionFinanciera)
  */
 class RecetasDatabase extends Dexie {
+    /** Tabla de configuración del médico (singleton) */
     medico!: Table<MedicoConfig>;
+    
+    /** Tabla de pacientes del consultorio */
     pacientes!: Table<Paciente>;
+    
+    /** Tabla de recetas médicas emitidas */
     recetas!: Table<Receta>;
+    
+    /** Tabla de movimientos financieros (ingresos y gastos) */
     finanzas!: Table<MovimientoFinanciero>;
+    
+    /** Tabla de configuración financiera (costos de consulta) */
     configuracionFinanciera!: Table<ConfiguracionFinanciera>;
 
     constructor() {
@@ -50,4 +83,12 @@ class RecetasDatabase extends Dexie {
     }
 }
 
+/**
+ * Instancia única de la base de datos.
+ * Esta es la instancia que se debe importar en todos los servicios.
+ * 
+ * @example
+ * import { db } from '@/shared/db/db.config';
+ * const pacientes = await db.pacientes.toArray();
+ */
 export const db = new RecetasDatabase();

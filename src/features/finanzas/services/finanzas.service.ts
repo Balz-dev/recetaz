@@ -1,8 +1,23 @@
+/**
+ * @fileoverview Servicio de Finanzas
+ * 
+ * Este servicio gestiona toda la lógica relacionada con las finanzas del consultorio médico.
+ * Permite configurar el costo de consulta, calcular ganancias basadas en recetas emitidas,
+ * y generar reportes de ingresos para análisis financiero.
+ * 
+ * La ganancia se calcula multiplicando el número de recetas emitidas por el costo de consulta
+ * configurado. Esta información se almacena en IndexedDB para análisis histórico.
+ */
+
 import { db } from '@/shared/db/db.config';
 import { ConfiguracionFinanciera } from '@/types';
 import { subDays, startOfDay, endOfDay, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+/**
+ * Servicio de gestión financiera del consultorio.
+ * Proporciona métodos para configurar costos y calcular ganancias.
+ */
 export const finanzasService = {
     /**
      * Obtiene la configuración financiera actual.
