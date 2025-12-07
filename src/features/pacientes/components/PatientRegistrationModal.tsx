@@ -6,8 +6,8 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
-import { PacienteForm } from "./paciente-form";
+} from "@/shared/components/ui/dialog";
+import { PacienteForm } from "./PacienteForm";
 
 interface PatientRegistrationModalProps {
     open: boolean;

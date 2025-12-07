@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { recetaService } from "@/lib/db/recetas";
-import { medicoService } from "@/lib/db/medico";
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { recetaService } from "@/features/recetas/services/receta.service";
+import { medicoService } from "@/features/config-medico/services/medico.service";
 import { Receta, Paciente, MedicoConfig } from "@/types";
 import { Loader2, Printer, ArrowLeft, FileText, Download } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -12,8 +12,8 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { pdf } from "@react-pdf/renderer";
-import { RecetaPDFTemplate } from "@/components/pdf/receta-pdf-template";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RecetaPDFTemplate } from "@/features/recetas/components/RecetaPdfTemplate";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
 
 export default function DetalleRecetaPage() {
     const params = useParams();

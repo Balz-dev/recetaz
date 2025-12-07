@@ -1,4 +1,4 @@
-import { RecetaList } from "@/components/recetas/receta-list";
+import { RecetaList } from "@/features/recetas/components/RecetaList";
 
 export default function RecetasPage() {
     return (

@@ -6,8 +6,8 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
-import { MedicoConfigForm } from "@/components/forms/medico-config-form";
+} from "@/shared/components/ui/dialog";
+import { MedicoConfigForm } from "@/features/config-medico/components/MedicoConfigForm";
 
 interface ConfiguracionModalProps {
     open: boolean;

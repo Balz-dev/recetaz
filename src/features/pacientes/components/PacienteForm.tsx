@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/shared/components/ui/button"
 import {
     Form,
     FormControl,
@@ -11,13 +11,13 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { pacienteService } from "@/lib/db/pacientes"
+} from "@/shared/components/ui/form"
+import { Input } from "@/shared/components/ui/input"
+import { Textarea } from "@/shared/components/ui/textarea"
+import { pacienteService } from "@/features/pacientes/services/paciente.service"
 import { PacienteFormData, Paciente } from "@/types"
 import { useState } from "react"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/shared/components/ui/use-toast"
 import { Loader2, Save, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -41,6 +41,15 @@ interface PacienteFormProps {
     onCancel?: () => void
 }
 
+/**
+ * Formulario para crear o editar la información de un paciente.
+ * Utiliza React Hook Form y Zod para validación.
+ * Integra campos para datos personales, médicos y antecedentes.
+ * @param props.initialData Datos iniciales si se está editando
+ * @param props.isEditing Flag para indicar modo edición
+ * @param props.afterSave Callback ejecutado tras guardar exitosamente
+ * @param props.onCancel Callback para el botón cancelar
+ */
 export function PacienteForm({ initialData, isEditing = false, afterSave, onCancel }: PacienteFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast()

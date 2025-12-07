@@ -1,4 +1,4 @@
-import { db } from './index';
+import { db } from '@/shared/db/db.config';
 import { MedicoConfig, MedicoConfigFormData } from '@/types';
 
 const MEDICO_ID = 'default';

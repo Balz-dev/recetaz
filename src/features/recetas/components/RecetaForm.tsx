@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/shared/components/ui/button"
 import {
     Form,
     FormControl,
@@ -11,19 +11,19 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { recetaService } from "@/lib/db/recetas"
-import { pacienteService } from "@/lib/db/pacientes"
+} from "@/shared/components/ui/form"
+import { Input } from "@/shared/components/ui/input"
+import { Textarea } from "@/shared/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { recetaService } from "@/features/recetas/services/receta.service"
+import { pacienteService } from "@/features/pacientes/services/paciente.service"
 import { RecetaFormData, Paciente, Receta } from "@/types"
 import { useState, useEffect } from "react"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/shared/components/ui/use-toast"
 import { Loader2, Save, ArrowLeft, Plus, Trash2, PlusCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
     Dialog,
     DialogContent,
@@ -31,8 +31,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
-import { PacienteForm } from "@/components/pacientes/paciente-form"
+} from "@/shared/components/ui/dialog"
+import { PacienteForm } from "@/features/pacientes/components/PacienteForm"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -54,6 +54,14 @@ interface RecetaFormProps {
     onCancel?: () => void;
 }
 
+/**
+ * Formulario maestro para la creación de recetas médicas.
+ * @description Permite seleccionar un paciente existente o crear uno nuevo, 
+ * y agregar múltiples medicamentos dinámicamente.
+ * Calcula automáticamente la fecha y folio.
+ * @param props.preSelectedPacienteId ID opcional para pre-cargar un paciente
+ * @param props.onCancel Callback para cancelar la operación
+ */
 export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])

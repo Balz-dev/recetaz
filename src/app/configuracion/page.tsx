@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { MedicoConfigForm } from "@/components/forms/medico-config-form";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
+import { MedicoConfigForm } from "@/features/config-medico/components/MedicoConfigForm";
 
 export default function ConfiguracionPage() {
   return (

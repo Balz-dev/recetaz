@@ -1,4 +1,4 @@
-import { PacienteList } from "@/components/pacientes/paciente-list";
+import { PacienteList } from "@/features/pacientes/components/PacienteList";
 
 export default function PacientesPage() {
     return (

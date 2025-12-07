@@ -11,7 +11,7 @@
 1. **Clonar el repositorio**
 
    ```bash
-   git clone <url-del-repo>
+   git clone https://github.com/balzhoyt/receta-z.git
    cd receta-z
    ```
 

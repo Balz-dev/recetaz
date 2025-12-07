@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { Receta } from "@/types"
-import { recetaService } from "@/lib/db/recetas"
-import { pacienteService } from "@/lib/db/pacientes"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { recetaService } from "@/features/recetas/services/receta.service"
+import { pacienteService } from "@/features/pacientes/services/paciente.service"
+import { Input } from "@/shared/components/ui/input"
+import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent } from "@/shared/components/ui/card"
 import { Search, FileText, PlusCircle } from "lucide-react"
 import Link from "next/link"
-import { RecetaCard } from "@/components/recetas/receta-card"
+import { RecetaCard } from "@/features/recetas/components/RecetaCard"
 
 export function RecetaList() {
     const [recetas, setRecetas] = useState<Receta[]>([])

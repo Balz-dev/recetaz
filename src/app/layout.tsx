@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
-import { Toaster } from "@/components/ui/toaster";
+import { Sidebar } from "@/shared/components/layout/sidebar";
+import { Header } from "@/shared/components/layout/header";
+import { Toaster } from "@/shared/components/ui/toaster";
 import ServiceWorkerRegister from './ServiceWorkerRegister';
 import Script from 'next/script';
 

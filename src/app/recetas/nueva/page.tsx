@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { RecetaForm } from "@/components/recetas/receta-form";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { RecetaForm } from "@/features/recetas/components/RecetaForm";
 
 export default function NuevaRecetaPage() {
     return (

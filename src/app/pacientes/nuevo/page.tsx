@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PacienteForm } from "@/components/pacientes/paciente-form";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
+import { PacienteForm } from "@/features/pacientes/components/PacienteForm";
 
 export default function NuevoPacientePage() {
     return (

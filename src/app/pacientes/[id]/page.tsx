@@ -1,23 +1,23 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { PacienteForm } from "@/components/pacientes/paciente-form";
-import { Card, CardContent } from "@/components/ui/card";
-import { pacienteService } from "@/lib/db/pacientes";
+import { PacienteForm } from "@/features/pacientes/components/PacienteForm";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { pacienteService } from "@/features/pacientes/services/paciente.service";
 import { Paciente } from "@/types";
 import { Loader2, Calendar, ExternalLink } from "lucide-react";
 import { useParams } from "next/navigation";
-import { recetaService } from "@/lib/db/recetas";
+import { recetaService } from "@/features/recetas/services/receta.service";
 import { Receta } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/shared/components/ui/button";
+import { CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog";
 import { PlusCircle } from "lucide-react";
-import { RecetaForm } from "@/components/recetas/receta-form";
-import { RecetaCard } from "@/components/recetas/receta-card";
+import { RecetaForm } from "@/features/recetas/components/RecetaForm";
+import { RecetaCard } from "@/features/recetas/components/RecetaCard";
 
 export default function EditarPacientePage() {
     const params = useParams();

@@ -1,8 +1,8 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { recetaService } from "@/lib/db/recetas"
-import { pacienteService } from "@/lib/db/pacientes"
+import { Button } from "@/shared/components/ui/button"
+import { recetaService } from "@/features/recetas/services/receta.service"
+import { pacienteService } from "@/features/pacientes/services/paciente.service"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 

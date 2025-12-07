@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { medicoService } from "@/lib/db/medico";
-import { recetaService } from "@/lib/db/recetas";
-import { pacienteService } from "@/lib/db/pacientes";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { medicoService } from "@/features/config-medico/services/medico.service";
+import { recetaService } from "@/features/recetas/services/receta.service";
+import { pacienteService } from "@/features/pacientes/services/paciente.service";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
 import { FileText, Users, Activity, Plus } from "lucide-react";
 import Link from "next/link";
-import { ConfiguracionModal } from "@/components/configuracion/configuracion-modal";
+import { ConfiguracionModal } from "@/features/config-medico/components/ConfiguracionModal";
 
 export default function HomePage() {
     const router = useRouter();

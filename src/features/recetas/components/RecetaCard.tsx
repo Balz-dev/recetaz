@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
 import { Calendar, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";

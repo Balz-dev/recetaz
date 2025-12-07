@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/shared/components/ui/button"
 import {
     Form,
     FormControl,
@@ -12,13 +12,13 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { medicoService } from "@/lib/db/medico"
+} from "@/shared/components/ui/form"
+import { Input } from "@/shared/components/ui/input"
+import { Textarea } from "@/shared/components/ui/textarea"
+import { medicoService } from "@/features/config-medico/services/medico.service"
 import { MedicoConfigFormDataWithoutLogo } from "@/types"
 import { useEffect, useState, useRef } from "react"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/shared/components/ui/use-toast"
 import { Loader2, Save, Upload, X } from "lucide-react"
 import Image from "next/image"
 

@@ -1,6 +1,10 @@
 import Dexie, { Table } from 'dexie';
 import { MedicoConfig, Paciente, Receta } from '@/types';
 
+/**
+ * Configuración principal de la base de datos IndexedDB usando Dexie.
+ * Gestiona el almacenamiento local persistence offline-first.
+ */
 class RecetasDatabase extends Dexie {
     medico!: Table<MedicoConfig>;
     pacientes!: Table<Paciente>;

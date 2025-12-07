@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { medicoService } from '@/lib/db/medico';
-import { pacienteService } from '@/lib/db/pacientes';
-import { recetaService } from '@/lib/db/recetas';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { medicoService } from '@/features/config-medico/services/medico.service';
+import { pacienteService } from '@/features/pacientes/services/paciente.service';
+import { recetaService } from '@/features/recetas/services/receta.service';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 
 export default function TestDBPage() {
     const [logs, setLogs] = useState<string[]>([]);

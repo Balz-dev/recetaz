@@ -1,4 +1,4 @@
-import { db } from './index';
+import { db } from '@/shared/db/db.config';
 import { Paciente, PacienteFormData } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
