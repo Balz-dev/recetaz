@@ -59,7 +59,7 @@ export type PacienteFormData = {
     direccion?: string;
     alergias?: string;
     antecedentes?: string;
-    cedula?: string;
+    //cedula?: string;
 };
 export type RecetaFormData = {
     // Paciente: puede ser ID existente o datos para crear nuevo

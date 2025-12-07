@@ -38,7 +38,7 @@ const recetaFormSchema = z.object({
     pacienteEdad: z.number().optional(),
     pacienteTelefono: z.string().optional(),
     pacienteDireccion: z.string().optional(),
-    pacienteCedula: z.string().optional(),
+    //pacienteCedula: z.string().optional(),
     diagnostico: z.string().min(1, "El diagnóstico es requerido"),
     medicamentos: z.array(medicamentoSchema).min(1, "Debe agregar al menos un medicamento"),
     instrucciones: z.string().optional(),
@@ -75,7 +75,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
             pacienteEdad: undefined,
             pacienteTelefono: "",
             pacienteDireccion: "",
-            pacienteCedula: "",
+           // pacienteCedula: "",
             diagnostico: "",
             medicamentos: [{ nombre: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
             instrucciones: "",
@@ -168,8 +168,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                     nombre: values.pacienteNombre,
                     edad: values.pacienteEdad,
                     telefono: values.pacienteTelefono,
-                    direccion: values.pacienteDireccion,
-                    cedula: values.pacienteCedula,
+                    direccion: values.pacienteDireccion
+                  
                 }
                 
                 pacienteId = await pacienteService.create(newPacienteData)
@@ -384,19 +384,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                         )}
                                     />
                                     
-                                    <FormField
-                                        control={form.control}
-                                        name="pacienteCedula"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Cédula</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Cédula" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    
                                 </div>
                             </CardContent>
                         </Card>
