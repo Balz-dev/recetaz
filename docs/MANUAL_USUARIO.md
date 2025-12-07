@@ -65,6 +65,25 @@ Una vez guardada la receta:
 - Haga clic en **"Imprimir PDF"** para generar el documento oficial.
 - Puede guardar el PDF o imprimirlo directamente.
 
+### 5. Módulo de Finanzas (NUEVO)
+
+El dashboard principal ahora incluye un panel de finanzas que le permite monitorear sus ingresos.
+
+#### Configurar Costo de Consulta
+
+- En el panel de **"Ingresos por Consultas"** del dashboard, encontrará un campo para configurar el costo de su consulta.
+- El valor predeterminado es $500.00 MXN.
+- Puede modificarlo en cualquier momento haciendo clic en el botón de guardar.
+
+#### Visualizar Ganancias
+
+- El gráfico de barras muestra las ganancias estimadas de los últimos 7 días.
+- Las ganancias se calculan automáticamente: **Número de recetas del día × Costo de consulta**.
+- El total acumulado se muestra en la parte superior del panel.
+- Los datos se actualizan automáticamente al cambiar el costo de consulta.
+
+**Nota**: Este módulo está diseñado para un seguimiento básico de ingresos. En futuras versiones se agregará un módulo contable completo con gastos operativos y otros ingresos.
+
 ## Funcionalidad Offline
 
 RecetaZ funciona sin conexión a internet.
