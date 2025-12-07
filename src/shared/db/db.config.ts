@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { MedicoConfig, Paciente, Receta } from '@/types';
+import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera } from '@/types';
 
 /**
  * Configuración principal de la base de datos IndexedDB usando Dexie.
@@ -9,6 +9,8 @@ class RecetasDatabase extends Dexie {
     medico!: Table<MedicoConfig>;
     pacientes!: Table<Paciente>;
     recetas!: Table<Receta>;
+    finanzas!: Table<MovimientoFinanciero>;
+    configuracionFinanciera!: Table<ConfiguracionFinanciera>;
 
     constructor() {
         super('RecetasMedicasDB');
@@ -35,6 +37,15 @@ class RecetasDatabase extends Dexie {
             // - fechaEmision: Para ordenar historial y reportes
             // - createdAt: Para obtener la última receta creada (necesario para autoincremental)
             recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt'
+        });
+
+        // Versión 3: Módulo de Finanzas
+        this.version(3).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, cedula',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id'
         });
     }
 }

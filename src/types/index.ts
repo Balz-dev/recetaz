@@ -53,5 +53,25 @@ export type MedicoConfigFormData = Omit<MedicoConfig, 'id' | 'createdAt' | 'upda
 export type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfigFormData, 'logo'>;
 export type PacienteFormData = Omit<Paciente, 'id' | 'createdAt' | 'updatedAt'>;
 export type RecetaFormData = Omit<Receta, 'id' | 'numeroReceta' | 'createdAt' | 'updatedAt' | 'pacienteNombre' | 'pacienteEdad' | 'medicamentos' | 'fechaEmision'> & {
+// ... (previous content)
     medicamentos: Omit<Medicamento, 'id'>[];
 };
+
+export interface MovimientoFinanciero {
+    id: string;
+    tipo: 'ingreso' | 'gasto';
+    categoria: string; // 'consulta', 'farmacia', 'operacion', 'honorarios'
+    concepto: string;
+    monto: number;
+    fecha: Date;
+    createdAt: Date;
+}
+
+export interface ConfiguracionFinanciera {
+    id: string; // 'default'
+    costoConsulta: number;
+    updatedAt: Date;
+}
+
+export type MovimientoFinancieroFormData = Omit<MovimientoFinanciero, 'id' | 'createdAt'>;
+

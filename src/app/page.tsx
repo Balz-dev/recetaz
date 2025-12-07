@@ -10,6 +10,7 @@ import { Button } from "@/shared/components/ui/button";
 import { FileText, Users, Activity, Plus } from "lucide-react";
 import Link from "next/link";
 import { ConfiguracionModal } from "@/features/config-medico/components/ConfiguracionModal";
+import { PanelGanancias } from "@/features/finanzas/components/PanelGanancias";
 
 export default function HomePage() {
     const router = useRouter();
@@ -178,6 +179,9 @@ export default function HomePage() {
                     </Card>
                 </Link>
             </div>
+
+            {/* Panel de Finanzas */}
+            <PanelGanancias />
         </div>
     );
 }
