@@ -3,9 +3,11 @@
 ## Fase 1: Setup Inicial del Proyecto
 
 ### Objetivo
+
 Crear la base del proyecto Next.js 15 con todas las dependencias necesarias.
 
 ### Tareas
+
 1. **Verificar entorno actual**
    - Revisar si ya existe un proyecto Next.js
    - Verificar versión de Node.js
@@ -15,29 +17,30 @@ Crear la base del proyecto Next.js 15 con todas las dependencias necesarias.
    - Configurar TypeScript
 
 3. **Instalar dependencias principales**
+
    ```bash
    # Core
    npm install next@latest react@latest react-dom@latest
-   
+
    # UI y Estilos
    npx shadcn-ui@latest init
-   
+
    # Base de datos local
    npm install dexie dexie-react-hooks
-   
+
    # Formularios y validación
    npm install react-hook-form @hookform/resolvers zod
-   
+
    # PDF
    npm install @react-pdf/renderer
-   
+
    # PWA
    npm install next-pwa
-   
+
    # Utilidades
    npm install date-fns uuid
    npm install -D @types/uuid
-   
+
    # Icons
    npm install lucide-react
    ```
@@ -50,12 +53,14 @@ Crear la base del proyecto Next.js 15 con todas las dependencias necesarias.
    - Crear manifest.json
 
 ### Criterios de Aceptación
+
 - ✅ Proyecto Next.js 15 funcionando
 - ✅ shadcn/ui configurado correctamente
 - ✅ TypeScript sin errores
 - ✅ Servidor de desarrollo corriendo
 
 ### Pruebas
+
 - Ejecutar `npm run dev` sin errores
 - Verificar que la página inicial carga
 
@@ -64,9 +69,11 @@ Crear la base del proyecto Next.js 15 con todas las dependencias necesarias.
 ## Fase 2: Base de Datos IndexedDB
 
 ### Objetivo
+
 Configurar Dexie.js y crear la estructura de base de datos local.
 
 ### Tareas
+
 1. **Crear tipos TypeScript**
    - Definir interfaces en `src/types/index.ts`
 
@@ -86,11 +93,13 @@ Configurar Dexie.js y crear la estructura de base de datos local.
    - Funciones de búsqueda y filtrado
 
 ### Criterios de Aceptación
+
 - ✅ IndexedDB creada correctamente
 - ✅ Funciones CRUD funcionando
 - ✅ Datos persisten después de recargar
 
 ### Pruebas
+
 - Crear datos de prueba
 - Verificar en DevTools > Application > IndexedDB
 - Probar operaciones CRUD
@@ -100,9 +109,11 @@ Configurar Dexie.js y crear la estructura de base de datos local.
 ## Fase 3: Layout y Navegación
 
 ### Objetivo
+
 Crear el layout principal con sidebar y navegación.
 
 ### Tareas
+
 1. **Crear componentes de layout**
    - `src/components/layout/sidebar.tsx`
    - `src/components/layout/header.tsx`
@@ -123,11 +134,13 @@ Crear el layout principal con sidebar y navegación.
    - Separator
 
 ### Criterios de Aceptación
+
 - ✅ Navegación funcional entre páginas
 - ✅ Sidebar responsive
 - ✅ UI moderna y profesional
 
 ### Pruebas
+
 - Navegar entre todas las rutas
 - Probar en móvil y desktop
 - Verificar responsive
@@ -137,9 +150,11 @@ Crear el layout principal con sidebar y navegación.
 ## Fase 4: Configuración del Médico
 
 ### Objetivo
+
 Permitir al médico configurar sus datos por primera vez.
 
 ### Tareas
+
 1. **Crear formulario de configuración**
    - `src/components/forms/medico-config-form.tsx`
    - Campos: nombre, especialidad, cédula, teléfono, dirección
@@ -156,12 +171,14 @@ Permitir al médico configurar sus datos por primera vez.
    - Guardar en IndexedDB
 
 ### Criterios de Aceptación
+
 - ✅ Formulario valida correctamente
 - ✅ Datos se guardan en IndexedDB
 - ✅ Datos persisten después de recargar
 - ✅ Se puede editar configuración
 
 ### Pruebas
+
 - Completar formulario con datos válidos
 - Intentar enviar con datos inválidos
 - Verificar persistencia
@@ -172,9 +189,11 @@ Permitir al médico configurar sus datos por primera vez.
 ## Fase 5: Gestión de Pacientes
 
 ### Objetivo
+
 CRUD completo de pacientes con búsqueda.
 
 ### Tareas
+
 1. **Crear formulario de paciente**
    - `src/components/forms/paciente-form.tsx`
    - Campos: nombre, edad, cédula, teléfono, dirección
@@ -197,6 +216,7 @@ CRUD completo de pacientes con búsqueda.
    - Opción de editar
 
 ### Criterios de Aceptación
+
 - ✅ Se pueden crear pacientes
 - ✅ Se pueden listar pacientes
 - ✅ Se pueden buscar pacientes
@@ -204,6 +224,7 @@ CRUD completo de pacientes con búsqueda.
 - ✅ Se pueden eliminar pacientes
 
 ### Pruebas
+
 - Crear 5 pacientes de prueba
 - Buscar por nombre
 - Editar un paciente
@@ -215,9 +236,11 @@ CRUD completo de pacientes con búsqueda.
 ## Fase 6: Sistema de Recetas
 
 ### Objetivo
+
 Crear y gestionar recetas médicas.
 
 ### Tareas
+
 1. **Crear formulario de receta**
    - `src/components/forms/receta-form.tsx`
    - Paso 1: Seleccionar/crear paciente
@@ -248,6 +271,7 @@ Crear y gestionar recetas médicas.
    - Botón para generar PDF
 
 ### Criterios de Aceptación
+
 - ✅ Se pueden crear recetas
 - ✅ Se asigna número automático
 - ✅ Se pueden agregar múltiples medicamentos
@@ -255,6 +279,7 @@ Crear y gestionar recetas médicas.
 - ✅ Se puede buscar y filtrar
 
 ### Pruebas
+
 - Crear receta con 1 medicamento
 - Crear receta con 3 medicamentos
 - Verificar numeración automática
@@ -266,9 +291,11 @@ Crear y gestionar recetas médicas.
 ## Fase 7: Generación de PDF
 
 ### Objetivo
+
 Generar PDF profesional de la receta para imprimir.
 
 ### Tareas
+
 1. **Crear template de PDF**
    - `src/components/pdf/receta-template.tsx`
    - Encabezado con datos del médico
@@ -290,6 +317,7 @@ Generar PDF profesional de la receta para imprimir.
    - Vista previa opcional
 
 ### Criterios de Aceptación
+
 - ✅ PDF se genera correctamente
 - ✅ Todos los datos aparecen
 - ✅ Formato profesional
@@ -297,6 +325,7 @@ Generar PDF profesional de la receta para imprimir.
 - ✅ Se puede descargar
 
 ### Pruebas
+
 - Generar PDF de receta
 - Verificar todos los datos
 - Imprimir en impresora PDF
@@ -307,9 +336,11 @@ Generar PDF profesional de la receta para imprimir.
 ## Fase 8: Dashboard
 
 ### Objetivo
+
 Crear dashboard con resumen y accesos rápidos.
 
 ### Tareas
+
 1. **Crear página de dashboard**
    - `src/app/page.tsx`
    - Tarjetas con estadísticas:
@@ -325,12 +356,14 @@ Crear dashboard con resumen y accesos rápidos.
    - Funciones para filtrar por fecha
 
 ### Criterios de Aceptación
+
 - ✅ Dashboard muestra estadísticas correctas
 - ✅ Recetas recientes se listan
 - ✅ Accesos rápidos funcionan
 - ✅ UI atractiva y útil
 
 ### Pruebas
+
 - Verificar números de estadísticas
 - Probar accesos rápidos
 - Verificar actualización en tiempo real
@@ -340,9 +373,11 @@ Crear dashboard con resumen y accesos rápidos.
 ## Fase 9: PWA y Funcionalidad Offline
 
 ### Objetivo
+
 Convertir la aplicación en PWA completamente funcional offline.
 
 ### Tareas
+
 1. **Configurar Service Worker**
    - Actualizar `next.config.js`
    - Configurar estrategias de cache
@@ -364,12 +399,14 @@ Convertir la aplicación en PWA completamente funcional offline.
    - Verificar funcionamiento offline
 
 ### Criterios de Aceptación
-- ✅ App se puede instalar
-- ✅ Funciona completamente offline
-- ✅ Assets se cachean correctamente
-- ✅ UI muestra estado offline
+
+- [x] App se puede instalar
+- [x] Funciona completamente offline
+- [x] Assets se cachean correctamente
+- [x] UI muestra estado offline
 
 ### Pruebas
+
 - Instalar app en desktop
 - Instalar app en móvil
 - Desconectar internet
@@ -381,9 +418,11 @@ Convertir la aplicación en PWA completamente funcional offline.
 ## Fase 10: Pruebas Finales y Optimización
 
 ### Objetivo
+
 Asegurar calidad y rendimiento óptimo.
 
 ### Tareas
+
 1. **Pruebas de funcionalidad**
    - Flujo completo: configuración → paciente → receta → PDF
    - Casos edge: campos vacíos, datos largos, etc.
@@ -405,12 +444,14 @@ Asegurar calidad y rendimiento óptimo.
    - Troubleshooting
 
 ### Criterios de Aceptación
-- ✅ Lighthouse score > 90
-- ✅ Sin errores en consola
-- ✅ Funciona en Chrome, Firefox, Safari
-- ✅ Documentación completa
+
+- [x] Lighthouse score > 90
+- [ ] Sin errores en consola
+- [ ] Funciona en Chrome, Firefox, Safari
+- [x] Documentación completa
 
 ### Pruebas
+
 - Ejecutar Lighthouse
 - Probar en diferentes navegadores
 - Probar en diferentes dispositivos

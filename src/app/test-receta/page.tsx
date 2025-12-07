@@ -47,7 +47,7 @@ export default function TestRecetaPage() {
                     }
                 ],
                 instrucciones: "Reposo relativo por 3 días.",
-                fechaEmision: new Date()
+
             }, {
                 nombre: paciente.nombre,
                 edad: paciente.edad || 0

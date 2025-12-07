@@ -17,7 +17,7 @@ export interface MedicoConfig {
     especialidad: string;
     cedula: string;
     telefono: string;
-    direccion: string;
+    direccion?: string;
     logo?: string; // Base64 string de imagen del logo institucional
     createdAt: Date;
     updatedAt: Date;
@@ -40,7 +40,7 @@ export interface Receta {
     pacienteEdad: number;   // Desnormalizado
     diagnostico: string;
     medicamentos: Medicamento[];
-    instrucciones: string;
+    instrucciones?: string;
     fechaEmision: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -52,6 +52,6 @@ export type MedicoConfigFormData = Omit<MedicoConfig, 'id' | 'createdAt' | 'upda
 // Tipo para el formulario de configuración del médico sin el logo (se maneja por separado)
 export type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfigFormData, 'logo'>;
 export type PacienteFormData = Omit<Paciente, 'id' | 'createdAt' | 'updatedAt'>;
-export type RecetaFormData = Omit<Receta, 'id' | 'numeroReceta' | 'createdAt' | 'updatedAt' | 'pacienteNombre' | 'pacienteEdad' | 'medicamentos'> & {
+export type RecetaFormData = Omit<Receta, 'id' | 'numeroReceta' | 'createdAt' | 'updatedAt' | 'pacienteNombre' | 'pacienteEdad' | 'medicamentos' | 'fechaEmision'> & {
     medicamentos: Omit<Medicamento, 'id'>[];
 };

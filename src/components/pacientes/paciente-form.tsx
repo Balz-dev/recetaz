@@ -26,7 +26,7 @@ const pacienteFormSchema = z.object({
     nombre: z.string().min(2, {
         message: "El nombre es requerido.",
     }),
-    edad: z.coerce.number().optional(), // Can be empty or 0, simple number coercion
+    edad: z.number().optional(),
     telefono: z.string().optional(),
     email: z.string().email({ message: "Email inválido" }).optional().or(z.literal("")),
     direccion: z.string().optional(),

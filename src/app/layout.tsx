@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -10,13 +10,18 @@ export const metadata: Metadata = {
     title: "Recetas Médicas - Sistema de Gestión",
     description: "Sistema PWA para gestión de recetas médicas offline-first",
     manifest: "/manifest.json",
-    themeColor: "#0066CC",
-    viewport: "width=device-width, initial-scale=1, maximum-scale=1",
     appleWebApp: {
         capable: true,
         statusBarStyle: "default",
         title: "Recetas Médicas",
     },
+};
+
+export const viewport: Viewport = {
+    themeColor: "#0066CC",
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
 };
 
 export default function RootLayout({
