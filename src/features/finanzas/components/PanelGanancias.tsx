@@ -1,3 +1,16 @@
+/**
+ * @fileoverview Panel de Ganancias
+ * 
+ * Componente que muestra un dashboard financiero con las ganancias estimadas
+ * de los últimos 7 días basadas en las recetas emitidas y el costo de consulta.
+ * 
+ * Características:
+ * - Gráfico de barras con ganancias diarias
+ * - Configuración del costo de consulta
+ * - Cálculo automático de ingresos totales
+ * - Actualización en tiempo real al cambiar el costo
+ */
+
 "use client"
 
 import { useEffect, useState } from 'react';
@@ -9,6 +22,15 @@ import { finanzasService } from '../services/finanzas.service';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Save, Loader2, DollarSign } from 'lucide-react';
 
+/**
+ * Panel de visualización de ganancias del consultorio.
+ * 
+ * Muestra un gráfico de barras con las ganancias de los últimos 7 días,
+ * calculadas a partir del número de recetas emitidas multiplicado por
+ * el costo de consulta configurado.
+ * 
+ * @returns Componente de panel de ganancias con gráfico y controles
+ */
 export function PanelGanancias() {
     const [data, setData] = useState<{ fecha: string; ganancia: number; recetas: number }[]>([]);
     const [costo, setCosto] = useState<number>(0);
