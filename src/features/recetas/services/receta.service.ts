@@ -76,19 +76,21 @@ export const recetaService = {
      * @param pacienteData Datos del paciente necesarios para la receta
      * @returns ID de la nueva receta
      */
-    async create(data: RecetaFormData, pacienteData: { nombre: string, edad: number }): Promise<string> {
+    // Accept form data without the desnormalized patient fields —
+    // `pacienteNombre` and `pacienteEdad` will be provided via `pacienteData`.
+    async create(data: Omit<RecetaFormData, 'pacienteNombre' | 'pacienteEdad'>, pacienteData: { nombre: string, edad: number }): Promise<string> {
         const numeroReceta = await this.getNextNumeroReceta();
 
         const receta: Receta = {
-            ...data,
             id: uuidv4(),
             numeroReceta,
-            fechaEmision: new Date(),
-            medicamentos: data.medicamentos.map(m => ({ ...m, id: uuidv4() })),
-            // Guardamos copia de datos del paciente para que la receta sea inmutable
-            // aunque cambien los datos del paciente en el futuro
+            pacienteId: (data as RecetaFormData).pacienteId!,
             pacienteNombre: pacienteData.nombre,
             pacienteEdad: pacienteData.edad,
+            diagnostico: data.diagnostico,
+            medicamentos: data.medicamentos.map(m => ({ ...m, id: uuidv4() })),
+            instrucciones: data.instrucciones,
+            fechaEmision: new Date(),
             createdAt: new Date(),
             updatedAt: new Date()
         };

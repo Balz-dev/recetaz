@@ -2,6 +2,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/render
 import { Receta, Paciente, MedicoConfig } from '@/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { getMedicoLogo } from '@/shared/constants/logo-default';
 
 // Estilos del PDF - Media Carta (8.5" x 5.5" = 612pt x 396pt)
 const styles = StyleSheet.create({
@@ -197,11 +198,9 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico }: RecetaPDFTemplat
             <View style={styles.headerRow}>
                 {/* Left: Doctor Info */}
                 <View style={styles.headerLeft}>
-                    {medico.logo && (
-                        <View style={styles.logoContainer}>
-                            <Image src={medico.logo} style={styles.logo} />
-                        </View>
-                    )}
+                    <View style={styles.logoContainer}>
+                        <Image src={getMedicoLogo(medico.logo)} style={styles.logo} />
+                    </View>
                     <View style={styles.doctorInfo}>
                         <Text style={styles.medicoNombre}>{medico.nombre}</Text>
                         <Text style={styles.medicoSmall}>{medico.especialidad}</Text>

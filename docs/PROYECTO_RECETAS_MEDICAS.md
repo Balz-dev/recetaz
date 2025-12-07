@@ -85,6 +85,8 @@ recetaz/
 │   │   ├── page.tsx              # Dashboard principal
 │   │   ├── configuracion/
 │   │   │   └── page.tsx
+│   │   ├── dev-utils/            # Herramientas de desarrollo (NUEVO)
+│   │   │   └── page.tsx          # Página para poblar BD
 │   │   ├── pacientes/
 │   │   │   ├── page.tsx
 │   │   │   ├── nuevo/page.tsx
@@ -115,7 +117,7 @@ recetaz/
 │   │   │   │   └── RecetaPdfTemplate.tsx
 │   │   │   └── services/
 │   │   │       └── receta.service.ts
-│   │   └── finanzas/             # Módulo de finanzas (NUEVO)
+│   │   └── finanzas/             # Módulo de finanzas
 │   │       ├── components/
 │   │       │   └── PanelGanancias.tsx
 │   │       └── services/
@@ -127,8 +129,11 @@ recetaz/
 │   │   ├── db/
 │   │   │   └── db.config.ts      # Configuración de Dexie/IndexedDB
 │   │   └── utils/
+│   │       └── seed.ts           # Módulo de seeding (NUEVO)
 │   └── types/
 │       └── index.ts              # Tipos globales
+├── scripts/
+│   └── seed-db.ts                # Script CLI de seeding (NUEVO)
 ├── public/
 │   ├── manifest.json
 │   ├── icons/
@@ -138,7 +143,9 @@ recetaz/
     ├── PLAN_IMPLEMENTACION_RECETAS.md
     ├── REFACTORING_PLAN.md
     ├── MANUAL_USUARIO.md
-    └── GUIA_INSTALACION.md
+    ├── ARQUITECTURA.md
+    ├── GUIA_INSTALACION.md
+    └── SEED_DATABASE.md          # Documentación de seeding (NUEVO)
 ```
 
 ## Características Principales
@@ -190,13 +197,25 @@ recetaz/
 - Recetas recientes
 - Acceso rápido a funciones principales
 
-### 7. Módulo de Finanzas (NUEVO)
+### 7. Módulo de Finanzas
 
 - Panel de ganancias de los últimos 7 días
 - Configuración de costo de consulta
 - Gráfico de barras con ingresos diarios
 - Cálculo automático basado en recetas emitidas
 - Almacenamiento de configuración financiera en IndexedDB
+
+### 8. Herramientas de Desarrollo (NUEVO)
+
+- Página `/dev-utils` para desarrollo
+- Población de base de datos con datos de ejemplo:
+  - 8 pacientes con datos variados
+  - 12 recetas médicas distribuidas
+  - Movimientos financieros de los últimos 7 días
+  - Configuración del médico y finanzas
+- Interfaz web con confirmación y logs en tiempo real
+- Script CLI alternativo: `pnpm run datos`
+- Fácil de eliminar antes de producción (`rm -rf src/app/dev-utils`)
 
 ## Plan de Implementación por Fases
 

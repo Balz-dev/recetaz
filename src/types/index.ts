@@ -51,10 +51,28 @@ export type MedicoConfigFormData = Omit<MedicoConfig, 'id' | 'createdAt' | 'upda
 
 // Tipo para el formulario de configuración del médico sin el logo (se maneja por separado)
 export type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfigFormData, 'logo'>;
-export type PacienteFormData = Omit<Paciente, 'id' | 'createdAt' | 'updatedAt'>;
-export type RecetaFormData = Omit<Receta, 'id' | 'numeroReceta' | 'createdAt' | 'updatedAt' | 'pacienteNombre' | 'pacienteEdad' | 'medicamentos' | 'fechaEmision'> & {
-// ... (previous content)
+export type PacienteFormData = {
+    nombre: string;
+    edad?: number;
+    telefono?: string;
+    email?: string;
+    direccion?: string;
+    alergias?: string;
+    antecedentes?: string;
+    //cedula?: string;
+};
+export type RecetaFormData = {
+    // Paciente: puede ser ID existente o datos para crear nuevo
+    pacienteId?: string;
+    pacienteNombre: string;
+    pacienteEdad?: number;
+    pacienteTelefono?: string;
+    pacienteDireccion?: string;
+    pacienteCedula?: string;
+    // Datos de la receta
+    diagnostico: string;
     medicamentos: Omit<Medicamento, 'id'>[];
+    instrucciones?: string;
 };
 
 export interface MovimientoFinanciero {
