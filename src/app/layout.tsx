@@ -3,6 +3,7 @@ import "./globals.css";
 import { Sidebar } from "@/shared/components/layout/sidebar";
 import { Header } from "@/shared/components/layout/header";
 import { Toaster } from "@/shared/components/ui/toaster";
+import { OnlineStatusIndicator } from "@/shared/components/ui/OnlineStatusIndicator";
 import ServiceWorkerRegister from './ServiceWorkerRegister';
 import Script from 'next/script';
 
@@ -48,6 +49,7 @@ export default function RootLayout({
                     </main>
                 </div>
                 <Toaster />
+                <OnlineStatusIndicator />
                 <ServiceWorkerRegister />
                     {/* Fallback: ensure SW registration runs after interactive. This helps tests/CI
                         where the client component might not mount fast enough. */}
