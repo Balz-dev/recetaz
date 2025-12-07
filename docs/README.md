@@ -15,7 +15,7 @@ Este directorio contiene toda la documentación del proyecto RecetaZ, un sistema
 - Principios arquitectónicos (Feature-Sliced Design)
 - Estructura de directorios detallada
 - Capas de la aplicación
-- Patrones de diseño utilizados
+- Patrones de diseño utilizadosn
 - Decisiones arquitectónicas y trade-offs
 - Guía para agregar nuevas características
 

@@ -14,25 +14,15 @@ import {
 } from "@/shared/components/ui/form"
 import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { recetaService } from "@/features/recetas/services/receta.service"
 import { pacienteService } from "@/features/pacientes/services/paciente.service"
-import { RecetaFormData, Paciente, Receta } from "@/types"
+import { RecetaFormData, Paciente } from "@/types"
 import { useState, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
-import { Loader2, Save, ArrowLeft, Plus, Trash2, PlusCircle } from "lucide-react"
+import { Loader2, Save, ArrowLeft, Plus, Trash2, Check } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/shared/components/ui/dialog"
-import { PacienteForm } from "@/features/pacientes/components/PacienteForm"
+import { Card, CardContent } from "@/shared/components/ui/card"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -43,7 +33,12 @@ const medicamentoSchema = z.object({
 })
 
 const recetaFormSchema = z.object({
-    pacienteId: z.string().min(1, "Debe seleccionar un paciente"),
+    pacienteId: z.string().optional(),
+    pacienteNombre: z.string().min(1, "El nombre del paciente es requerido"),
+    pacienteEdad: z.number().optional(),
+    pacienteTelefono: z.string().optional(),
+    pacienteDireccion: z.string().optional(),
+    pacienteCedula: z.string().optional(),
     diagnostico: z.string().min(1, "El diagnóstico es requerido"),
     medicamentos: z.array(medicamentoSchema).min(1, "Debe agregar al menos un medicamento"),
     instrucciones: z.string().optional(),
@@ -56,23 +51,31 @@ interface RecetaFormProps {
 
 /**
  * Formulario maestro para la creación de recetas médicas.
- * @description Permite seleccionar un paciente existente o crear uno nuevo, 
- * y agregar múltiples medicamentos dinámicamente.
- * Calcula automáticamente la fecha y folio.
+ * @description Permite buscar pacientes existentes o crear uno nuevo con registro rápido.
+ * Búsqueda en tiempo real mientras escribe.
  * @param props.preSelectedPacienteId ID opcional para pre-cargar un paciente
  * @param props.onCancel Callback para cancelar la operación
  */
 export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])
-    const [isPacienteModalOpen, setIsPacienteModalOpen] = useState(false)
+    const [filteredPacientes, setFilteredPacientes] = useState<Paciente[]>([])
+    const [searchQuery, setSearchQuery] = useState("")
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null)
+    const [showFullRegistration, setShowFullRegistration] = useState(false)
     const { toast } = useToast()
     const router = useRouter()
 
     const form = useForm<RecetaFormData>({
         resolver: zodResolver(recetaFormSchema),
         defaultValues: {
-            pacienteId: preSelectedPacienteId || "",
+            pacienteId: preSelectedPacienteId || undefined,
+            pacienteNombre: "",
+            pacienteEdad: undefined,
+            pacienteTelefono: "",
+            pacienteDireccion: "",
+            pacienteCedula: "",
             diagnostico: "",
             medicamentos: [{ nombre: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
             instrucciones: "",
@@ -89,32 +92,107 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
         setPacientes(data)
     }
 
-
-
     useEffect(() => {
         loadPacientes()
     }, [])
 
-    const handlePacienteCreated = async (newPacienteId: string) => {
-        await loadPacientes()
-        form.setValue("pacienteId", newPacienteId)
-        setIsPacienteModalOpen(false)
+    // Cargar paciente preseleccionado
+    useEffect(() => {
+        if (preSelectedPacienteId && pacientes.length > 0) {
+            const paciente = pacientes.find(p => p.id === preSelectedPacienteId)
+            if (paciente) {
+                setSelectedPaciente(paciente)
+                setSearchQuery(paciente.nombre)
+                form.setValue("pacienteNombre", paciente.nombre)
+                form.setValue("pacienteEdad", paciente.edad)
+            }
+        }
+    }, [preSelectedPacienteId, pacientes, form])
+
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value)
+        form.setValue("pacienteNombre", value)
+        
+        if (value.trim().length === 0) {
+            setFilteredPacientes([])
+            setShowSuggestions(false)
+            setSelectedPaciente(null)
+            return
+        }
+        
+        // Buscar pacientes que coincidan
+        const matches = pacientes.filter(p => 
+            p.nombre.toLowerCase().includes(value.toLowerCase())
+        )
+        
+        setFilteredPacientes(matches)
+        setShowSuggestions(matches.length > 0)
+        
+        // Si hay coincidencia exacta, seleccionar automáticamente
+        const exactMatch = matches.find(p => 
+            p.nombre.toLowerCase() === value.toLowerCase()
+        )
+        
+        if (exactMatch) {
+            setSelectedPaciente(exactMatch)
+            form.setValue("pacienteId", exactMatch.id)
+            form.setValue("pacienteEdad", exactMatch.edad)
+        } else {
+            setSelectedPaciente(null)
+            form.setValue("pacienteId", undefined)
+        }
+    }
+
+    const handleSelectPaciente = (paciente: Paciente) => {
+        setSelectedPaciente(paciente)
+        setSearchQuery(paciente.nombre)
+        form.setValue("pacienteId", paciente.id)
+        form.setValue("pacienteNombre", paciente.nombre)
+        form.setValue("pacienteEdad", paciente.edad)
+        setShowSuggestions(false)
+        setShowFullRegistration(false)
     }
 
     async function onSubmit(values: RecetaFormData) {
         setIsLoading(true)
         try {
-            // Obtener datos del paciente seleccionado
-            const paciente = await pacienteService.getById(values.pacienteId)
-            if (!paciente) {
-                throw new Error("Paciente no encontrado")
+            let pacienteId = values.pacienteId
+            let pacienteData = {
+                nombre: values.pacienteNombre,
+                edad: values.pacienteEdad || 0
             }
-
+            
+            // Si no hay paciente seleccionado, crear uno nuevo
+            if (!pacienteId) {
+                const newPacienteData = {
+                    nombre: values.pacienteNombre,
+                    edad: values.pacienteEdad,
+                    telefono: values.pacienteTelefono,
+                    direccion: values.pacienteDireccion,
+                    cedula: values.pacienteCedula,
+                }
+                
+                pacienteId = await pacienteService.create(newPacienteData)
+                pacienteData = {
+                    nombre: newPacienteData.nombre,
+                    edad: newPacienteData.edad || 0
+                }
+            }
+            
             // Crear receta con datos del paciente
-            const recetaId = await recetaService.create(values, {
-                nombre: paciente.nombre,
-                edad: paciente.edad ?? 0
-            })
+            const recetaFormDataForService = {
+                pacienteId: pacienteId!,
+                pacienteNombre: pacienteData.nombre,
+                pacienteEdad: pacienteData.edad,
+                diagnostico: values.diagnostico,
+                medicamentos: values.medicamentos,
+                instrucciones: values.instrucciones
+            }
+            
+            const recetaId = await recetaService.create(
+                recetaFormDataForService,
+                pacienteData
+            )
 
             toast({
                 title: "Receta creada",
@@ -148,65 +226,94 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                 </div>
 
                 <div className="grid gap-6">
-                    {/* Selección de Paciente y Diagnóstico */}
+                    {/* Selección/Búsqueda de Paciente y Diagnóstico */}
                     <Card>
                         <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
-                            <FormField
-                                control={form.control}
-                                name="pacienteId"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Paciente *</FormLabel>
-                                        <div className="flex gap-2">
-                                            {preSelectedPacienteId ? (
-                                                <div className="flex-1 p-2 border rounded-md bg-muted text-muted-foreground">
-                                                    {pacientes.find(p => p.id === preSelectedPacienteId)?.nombre || "Cargando..."}
-                                                </div>
-                                            ) : (
-                                                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger className="flex-1">
-                                                            <SelectValue placeholder="Seleccionar paciente..." />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {pacientes.map((paciente) => (
-                                                            <SelectItem key={paciente.id} value={paciente.id}>
-                                                                {paciente.nombre}
-                                                            </SelectItem>
+                            {/* Búsqueda de Paciente */}
+                            <div className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="pacienteNombre"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Paciente *</FormLabel>
+                                            <div className="relative">
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Escriba el nombre del paciente..."
+                                                        value={searchQuery}
+                                                        onChange={(e) => handleSearchChange(e.target.value)}
+                                                        onFocus={() => {
+                                                            if (filteredPacientes.length > 0) {
+                                                                setShowSuggestions(true)
+                                                            }
+                                                        }}
+                                                        className={selectedPaciente ? "border-green-500" : ""}
+                                                        disabled={!!preSelectedPacienteId}
+                                                    />
+                                                </FormControl>
+                                                
+                                                {/* Lista de Sugerencias */}
+                                                {showSuggestions && filteredPacientes.length > 0 && !preSelectedPacienteId && (
+                                                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                                                        {filteredPacientes.map((paciente) => (
+                                                            <button
+                                                                key={paciente.id}
+                                                                type="button"
+                                                                className="w-full px-4 py-2 text-left hover:bg-slate-100 flex justify-between items-center"
+                                                                onClick={() => handleSelectPaciente(paciente)}
+                                                            >
+                                                                <span>{paciente.nombre}</span>
+                                                                <span className="text-sm text-slate-500">
+                                                                    {paciente.edad} años
+                                                                </span>
+                                                            </button>
                                                         ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Indicador de Paciente Seleccionado */}
+                                                {selectedPaciente && (
+                                                    <div className="absolute right-2 top-2 text-green-600">
+                                                        <Check className="h-5 w-5" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <FormMessage />
+                                            
+                                            {/* Información del Paciente Seleccionado */}
+                                            {selectedPaciente && (
+                                                <div className="text-sm text-slate-600 bg-green-50 p-2 rounded">
+                                                    ✓ Paciente existente: {selectedPaciente.nombre}, {selectedPaciente.edad} años
+                                                </div>
                                             )}
-
-                                            {!preSelectedPacienteId && (
-                                                <Dialog open={isPacienteModalOpen} onOpenChange={setIsPacienteModalOpen}>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="icon" type="button" title="Nuevo Paciente">
-                                                            <PlusCircle className="h-4 w-4" />
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                                                        <DialogHeader>
-                                                            <DialogTitle>Registrar Nuevo Paciente</DialogTitle>
-                                                            <DialogDescription>
-                                                                Complete los datos para registrar un paciente rápidamente.
-                                                            </DialogDescription>
-                                                        </DialogHeader>
-                                                        <div className="py-4">
-                                                            <PacienteForm
-                                                                afterSave={handlePacienteCreated}
-                                                                onCancel={() => setIsPacienteModalOpen(false)}
-                                                            />
-                                                        </div>
-                                                    </DialogContent>
-                                                </Dialog>
+                                            
+                                            {/* Mensaje si no existe */}
+                                            {searchQuery && !selectedPaciente && searchQuery.length > 2 && !preSelectedPacienteId && (
+                                                <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                                                    ⚠ Paciente no encontrado. {showFullRegistration ? "Complete los datos" : "Se creará con el nombre ingresado"}
+                                                </div>
                                             )}
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
+                                        </FormItem>
+                                    )}
+                                                />
+                                
+                                {/* Checkbox para Registro Completo */}
+                                {!selectedPaciente && searchQuery && !preSelectedPacienteId && (
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="fullRegistration"
+                                            checked={showFullRegistration}
+                                            onChange={(e) => setShowFullRegistration(e.target.checked)}
+                                            className="rounded border-gray-300 h-4 w-4"
+                                        />
+                                        <label htmlFor="fullRegistration" className="text-sm font-medium cursor-pointer">
+                                            Registrar datos completos del paciente
+                                        </label>
+                                    </div>
                                 )}
-                            />
+                            </div>
 
                             <FormField
                                 control={form.control}
@@ -224,14 +331,82 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                         </CardContent>
                     </Card>
 
-                    {/* Panel de Información del Paciente y Historial */}
-
+                    {/* Formulario Inline de Paciente (Condicional) */}
+                    {showFullRegistration && !selectedPaciente && (
+                        <Card>
+                            <CardContent className="pt-6">
+                                <h3 className="text-sm font-semibold mb-4 text-slate-700">Datos del Paciente</h3>
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <FormField
+                                        control={form.control}
+                                        name="pacienteEdad"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Edad</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Edad del paciente"
+                                                        value={field.value || ""}
+                                                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    
+                                    <FormField
+                                        control={form.control}
+                                        name="pacienteTelefono"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Teléfono</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Teléfono" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    
+                                    <FormField
+                                        control={form.control}
+                                        name="pacienteDireccion"
+                                        render={({ field }) => (
+                                            <FormItem className="md:col-span-2">
+                                                <FormLabel>Dirección</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Dirección" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    
+                                    <FormField
+                                        control={form.control}
+                                        name="pacienteCedula"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Cédula</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Cédula" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Medicamentos */}
                     <div className="space-y-4">
                         {fields.map((field, index) => (
                             <Card key={field.id} className="relative">
-                                <Button //boton para remover el medicamento
+                                <Button
                                     type="button"
                                     variant="ghost"
                                     size="icon"
@@ -311,7 +486,6 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                             </Card>
                         ))}
                         <div className="flex justify-between items-center">
-                            {/* <h3 className="text-lg font-medium">Medicamentos</h3> */}
                             <Button
                                 type="button"
                                 variant="outline"
