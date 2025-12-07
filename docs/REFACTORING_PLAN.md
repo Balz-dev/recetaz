@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Reestructurar la aplicación `receta-z` hacia una arquitectura escalar basada en características (inspirada en Feature-Sliced Design). Esto mejora la mantenibilidad, la colocación de lógica relacionada y la escalabilidad futura.
+Reestructurar la aplicación `recetaz` hacia una arquitectura escalar basada en características (inspirada en Feature-Sliced Design). Esto mejora la mantenibilidad, la colocación de lógica relacionada y la escalabilidad futura.
 
 ## Principios Fundamentales
 
