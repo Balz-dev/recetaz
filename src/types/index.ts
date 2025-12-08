@@ -91,5 +91,33 @@ export interface ConfiguracionFinanciera {
     updatedAt: Date;
 }
 
+
 export type MovimientoFinancieroFormData = Omit<MovimientoFinanciero, 'id' | 'createdAt'>;
+
+export interface CampoPlantilla {
+    id: string;             // Identificador único del campo (ej: "paciente_nombre")
+    etiqueta: string;       // Nombre visible (ej: "Nombre del Paciente")
+    x: number;              // Posición X en porcentajes (0-100)
+    y: number;              // Posición Y en porcentajes (0-100)
+    ancho: number;          // Ancho en px o %
+    alto?: number;          // Alto en px o % (opcional)
+    visible: boolean;       // Si se imprime o no
+    tipo: 'texto' | 'fecha' | 'lista'; // Tipo de dato
+    ejemplo?: string;       // Texto de ejemplo para previsualización
+}
+
+export interface PlantillaReceta {
+    id: string;
+    nombre: string;
+    tamanoPapel: 'carta' | 'media_carta';
+    imagenFondo?: string;   // Base64 de la imagen subida
+    campos: CampoPlantilla[];
+    activa: boolean;        // Solo una puede estar activa por defecto
+    imprimirFondo: boolean; // Si true, imprime la imagen. Si false, solo los datos
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export type PlantillaRecetaFormData = Omit<PlantillaReceta, 'id' | 'createdAt' | 'updatedAt'>;
+
 
