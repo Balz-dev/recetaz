@@ -105,6 +105,27 @@ export default function HomePage() {
 
             {/* Estadísticas */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+                {/* Acción Rápida */}
+                <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                            Acción Rápida
+                        </CardTitle>
+                        <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <Link href="/recetas/nueva">
+                            <Button className="w-full" size="sm">
+                                Nueva Receta
+                            </Button>
+                        </Link>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                            Crear una receta médica
+                        </p>
+                    </CardContent>
+                </Card>
+                
                 {/* Total Recetas */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -137,25 +158,7 @@ export default function HomePage() {
                     </CardContent>
                 </Card>
 
-                {/* Acción Rápida */}
-                <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                            Acción Rápida
-                        </CardTitle>
-                        <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <Link href="/recetas/nueva">
-                            <Button className="w-full" size="sm">
-                                Nueva Receta
-                            </Button>
-                        </Link>
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                            Crear una receta médica
-                        </p>
-                    </CardContent>
-                </Card>
+                
             </div>
 
             {/* Secciones Principales */}

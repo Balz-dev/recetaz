@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { recetaService } from "@/features/recetas/services/receta.service";
 import { medicoService } from "@/features/config-medico/services/medico.service";
-import { Receta, Paciente, MedicoConfig } from "@/types";
+import { plantillaService } from "@/features/recetas/services/plantilla.service";
+import { Receta, Paciente, MedicoConfig, PlantillaReceta } from "@/types";
 import { Loader2, Printer, ArrowLeft, FileText, Download } from "lucide-react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -14,6 +15,8 @@ import { es } from "date-fns/locale";
 import { pdf } from "@react-pdf/renderer";
 import { RecetaPDFTemplate } from "@/features/recetas/components/RecetaPdfTemplate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { Label } from "@/shared/components/ui/label";
 
 export default function DetalleRecetaPage() {
     const params = useParams();
@@ -24,6 +27,7 @@ export default function DetalleRecetaPage() {
     const [downloadingPDF, setDownloadingPDF] = useState(false);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+    const [plantillaActiva, setPlantillaActiva] = useState<PlantillaReceta | null>(null);
 
     useEffect(() => {
         return () => {
@@ -53,6 +57,14 @@ export default function DetalleRecetaPage() {
 
                         setPaciente(pacienteData);
                         setMedico(medicoData || null);
+
+                        // Cargar plantilla activa
+                        const plantilla = await plantillaService.getActive();
+                        setPlantillaActiva(plantilla || null);
+                        // Inicializar estado de imprimirFondo con la configuración de la plantilla
+                        if (plantilla) {
+                            setImprimirFondo(plantilla.imprimirFondo);
+                        }
                     }
                 } catch (error) {
                     console.error("Error cargando detalles:", error);
@@ -64,9 +76,33 @@ export default function DetalleRecetaPage() {
         loadData();
     }, [params.id]);
 
+    const [imprimirFondo, setImprimirFondo] = useState(false);
+
+    // Funcion para manejar el cambio de impresion de fondo con persistencia
+    const handleImprimirFondoChange = async (checked: boolean) => {
+        setImprimirFondo(checked);
+        if (plantillaActiva) {
+            try {
+                // Actualizamos la preferencia en la base de datos para que sea persistente
+                await plantillaService.update(plantillaActiva.id, { imprimirFondo: checked });
+                // Actualizamos estado local
+                setPlantillaActiva({ ...plantillaActiva, imprimirFondo: checked });
+            } catch (error) {
+                console.error("Error al guardar preferencia de impresión de fondo:", error);
+            }
+        }
+    };
+
     const generatePDFBlob = async () => {
         if (!receta || !paciente || !medico) return null;
-        return pdf(<RecetaPDFTemplate receta={receta} paciente={paciente} medico={medico} />).toBlob();
+        
+        // Crear una copia temporal de la plantilla con la preferencia de impresión de fondo actual
+        const plantillaParaImprimir = plantillaActiva ? {
+            ...plantillaActiva,
+            imprimirFondo: imprimirFondo
+        } : null;
+
+        return pdf(<RecetaPDFTemplate receta={receta} paciente={paciente} medico={medico} plantilla={plantillaParaImprimir} />).toBlob();
     };
 
     const handleDownloadPDF = async () => {
@@ -140,11 +176,18 @@ export default function DetalleRecetaPage() {
                         <DialogTitle>Vista Previa de Receta</DialogTitle>
                     </DialogHeader>
                     {pdfUrl && (
-                        <iframe
-                            src={pdfUrl}
-                            className="w-full flex-1 rounded-md border"
-                            title="Vista Previa PDF"
-                        />
+                        <>
+                            <div className="flex justify-end space-x-2">
+                                <Button variant="outline" onClick={() => setIsPdfModalOpen(false)}>
+                                    Cerrar
+                                </Button>
+                            </div>
+                            <iframe
+                                src={pdfUrl}
+                                className="w-full flex-1 rounded-md border"
+                                title="Vista Previa PDF"
+                            />
+                        </>
                     )}
                 </DialogContent>
             </Dialog>
@@ -166,7 +209,17 @@ export default function DetalleRecetaPage() {
                         </p>
                     </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                    {plantillaActiva && (
+                        <div className="flex items-center space-x-2 mr-2 bg-white px-3 py-2 rounded-md border shadow-sm">
+                            <Checkbox 
+                                id="print-bg-checkbox" 
+                                checked={imprimirFondo} 
+                                onCheckedChange={(checked) => handleImprimirFondoChange(checked as boolean)} 
+                            />
+                            <Label htmlFor="print-bg-checkbox" className="cursor-pointer font-medium text-slate-700">Imprimir fondo</Label>
+                        </div>
+                    )}
                     {medico && receta.fechaEmision && (
                         <Button
                             variant="outline"
