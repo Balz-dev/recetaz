@@ -9,7 +9,8 @@
     "start": "next start",
     "playwright:install": "npx playwright install --with-deps",
     "test:e2e": "node ./scripts/run-e2e.js",
-    "datos": "tsx scripts/seed-db.ts"
+    "datos": "tsx scripts/seed-db.ts",
+    "seed:medicamentos": "tsx scripts/seed-medicamentos.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

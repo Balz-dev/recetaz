@@ -16,7 +16,7 @@
  */
 
 import Dexie, { Table } from 'dexie';
-import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, PlantillaReceta } from '@/types';
+import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, PlantillaReceta, MedicamentoCatalogo } from '@/types';
 
 /**
  * Clase principal de la base de datos.
@@ -47,6 +47,9 @@ class RecetasDatabase extends Dexie {
 
     /** Tabla de plantillas de recetas personalizadas */
     plantillas!: Table<PlantillaReceta>;
+
+    /** Tabla de catálogo de medicamentos */
+    medicamentos!: Table<MedicamentoCatalogo>;
 
     constructor() {
         super('RecetasMedicasDB');
@@ -92,6 +95,16 @@ class RecetasDatabase extends Dexie {
             finanzas: 'id, tipo, fecha, categoria',
             configuracionFinanciera: 'id',
             plantillas: 'id, nombre, activa'
+        });
+        // Versión 5: Catálogo de Medicamentos
+        this.version(5).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, cedula',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: 'id, nombre'
         });
     }
 }
