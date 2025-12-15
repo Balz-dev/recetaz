@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -11,36 +12,66 @@ import {
     FileText,
     Settings,
     PlusCircle,
-    Pill
+    Pill,
+    Calendar,
+    FolderOpen,
+    DollarSign,
+    Lock,
+    FileType
 } from 'lucide-react';
+import { PremiumModal } from '@/shared/components/modals/PremiumModal';
 
 /**
  * Definición de las rutas de navegación del sidebar.
- * Cada objeto contiene:
- * - href: La ruta URL
- * - label: El texto a mostrar
- * - icon: El icono de Lucide React
  */
 const routes = [
     {
-        href: '/',
+        href: '/dashboard',
         label: 'Dashboard',
         icon: LayoutDashboard,
+        premium: false,
     },
     {
         href: '/pacientes',
         label: 'Pacientes',
         icon: Users,
+        premium: false,
     },
     {
         href: '/recetas',
         label: 'Recetas',
         icon: FileText,
+        premium: false,
     },
     {
         href: '/medicamentos',
         label: 'Medicamentos',
         icon: Pill,
+        premium: false,
+    },
+    {
+        href: '/agenda',
+        label: 'Agenda',
+        icon: Calendar,
+        premium: true,
+        description: 'Gestiona tus citas médicas y recordatorios de manera eficiente.',
+        landingUrl: 'https://ejemplo.com/agenda-premium' // TODO: Actualizar con URL real
+    },
+    {
+        href: '/expedientes',
+        label: 'Expedientes',
+        icon: FolderOpen,
+        premium: true,
+        description: 'Lleva un control detallado del historial clínico de tus pacientes.',
+        landingUrl: 'https://ejemplo.com/expedientes-premium' // TODO: Actualizar con URL real
+    },
+    {
+        href: '/finanzas',
+        label: 'Finanzas',
+        icon: DollarSign,
+        premium: true,
+        description: 'Controla tus ingresos y gastos de tu consultorio.',
+        landingUrl: 'https://ejemplo.com/finanzas-premium' // TODO: Actualizar con URL real
     },
 ];
 
@@ -51,6 +82,20 @@ const routes = [
  */
 export function Sidebar() {
     const pathname = usePathname();
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedFeature, setSelectedFeature] = useState<{ title: string, desc: string, url: string } | null>(null);
+
+    const handleNavigation = (e: React.MouseEvent, route: any) => {
+        if (route.premium) {
+            e.preventDefault();
+            setSelectedFeature({
+                title: route.label,
+                desc: route.description,
+                url: route.landingUrl
+            });
+            setModalOpen(true);
+        }
+    };
 
     return (
         <div className="flex flex-col h-full bg-slate-900 text-white w-64 border-r border-slate-800">
@@ -63,24 +108,37 @@ export function Sidebar() {
             </div>
 
             {/* Navegación Principal */}
-            <nav className="flex-1 px-4 space-y-2">
+            <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
                 {routes.map((route) => {
                     const Icon = route.icon;
                     const isActive = pathname === route.href;
 
                     return (
-                        <Link key={route.href} href={route.href}>
+                        <Link
+                            key={route.href}
+                            href={route.href}
+                            onClick={(e) => handleNavigation(e, route)}
+                        >
                             <Button
                                 variant="ghost"
                                 className={cn(
-                                    "w-full justify-start gap-3 mb-1",
+                                    "w-full justify-start gap-3 mb-1 relative group",
                                     isActive
                                         ? "bg-slate-800 text-blue-400 hover:bg-slate-800 hover:text-blue-400"
                                         : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                                 )}
                             >
                                 <Icon size={20} />
-                                {route.label}
+                                <span className={cn(route.premium && "mr-auto")}>{route.label}</span>
+
+                                {route.premium && (
+                                    <div className="flex items-center">
+                                        <div className="bg-amber-500/10 text-amber-500 text-[10px] px-1.5 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
+                                            <Lock size={10} />
+                                            <span>PRO</span>
+                                        </div>
+                                    </div>
+                                )}
                             </Button>
                         </Link>
                     );
@@ -95,6 +153,12 @@ export function Sidebar() {
                         Nueva Receta
                     </Button>
                 </Link>
+                <Link href="/recetas/plantillas/nueva">
+                    <Button variant="outline" className="w-full gap-2 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/50">
+                        <FileType size={20} />
+                        Plantilla Receta
+                    </Button>
+                </Link>
                 <Link href="/configuracion">
                     <Button variant="ghost" className="w-full gap-2 text-slate-400 hover:text-white hover:bg-slate-800/50 mt-2">
                         <Settings size={20} />
@@ -102,6 +166,17 @@ export function Sidebar() {
                     </Button>
                 </Link>
             </div>
+
+            {/* Modal Premium */}
+            {selectedFeature && (
+                <PremiumModal
+                    isOpen={modalOpen}
+                    onClose={() => setModalOpen(false)}
+                    featureTitle={selectedFeature.title}
+                    featureDescription={selectedFeature.desc}
+                    landingPageUrl={selectedFeature.url}
+                />
+            )}
         </div>
     );
 }

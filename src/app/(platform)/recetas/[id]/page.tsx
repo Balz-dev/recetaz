@@ -15,7 +15,7 @@ import { es } from "date-fns/locale";
 import { pdf } from "@react-pdf/renderer";
 import { RecetaPDFTemplate } from "@/features/recetas/components/RecetaPdfTemplate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
-import { Checkbox } from "@/shared/components/ui/checkbox";
+import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
 
 export default function DetalleRecetaPage() {
@@ -28,6 +28,8 @@ export default function DetalleRecetaPage() {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [plantillaActiva, setPlantillaActiva] = useState<PlantillaReceta | null>(null);
+    const [imprimirFondo, setImprimirFondo] = useState(false);
+    const [regeneratingPDF, setRegeneratingPDF] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -76,8 +78,6 @@ export default function DetalleRecetaPage() {
         loadData();
     }, [params.id]);
 
-    const [imprimirFondo, setImprimirFondo] = useState(false);
-
     // Funcion para manejar el cambio de impresion de fondo con persistencia
     const handleImprimirFondoChange = async (checked: boolean) => {
         setImprimirFondo(checked);
@@ -87,6 +87,32 @@ export default function DetalleRecetaPage() {
                 await plantillaService.update(plantillaActiva.id, { imprimirFondo: checked });
                 // Actualizamos estado local
                 setPlantillaActiva({ ...plantillaActiva, imprimirFondo: checked });
+
+                // Si el modal de PDF está abierto, regenerar el PDF automáticamente
+                if (isPdfModalOpen) {
+                    setRegeneratingPDF(true);
+
+                    // Limpiar el URL anterior
+                    if (pdfUrl) {
+                        URL.revokeObjectURL(pdfUrl);
+                        setPdfUrl(null);
+                    }
+
+                    // Regenerar el PDF con el nuevo estado
+                    setTimeout(async () => {
+                        try {
+                            const blob = await generatePDFBlob();
+                            if (blob) {
+                                const url = URL.createObjectURL(blob);
+                                setPdfUrl(url);
+                            }
+                        } catch (error) {
+                            console.error("Error regenerando PDF:", error);
+                        } finally {
+                            setRegeneratingPDF(false);
+                        }
+                    }, 100);
+                }
             } catch (error) {
                 console.error("Error al guardar preferencia de impresión de fondo:", error);
             }
@@ -95,7 +121,7 @@ export default function DetalleRecetaPage() {
 
     const generatePDFBlob = async () => {
         if (!receta || !paciente || !medico) return null;
-        
+
         // Crear una copia temporal de la plantilla con la preferencia de impresión de fondo actual
         const plantillaParaImprimir = plantillaActiva ? {
             ...plantillaActiva,
@@ -175,7 +201,14 @@ export default function DetalleRecetaPage() {
                     <DialogHeader>
                         <DialogTitle>Vista Previa de Receta</DialogTitle>
                     </DialogHeader>
-                    {pdfUrl && (
+                    {regeneratingPDF ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <div className="text-center space-y-3">
+                                <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
+                                <p className="text-sm text-slate-600">Regenerando PDF...</p>
+                            </div>
+                        </div>
+                    ) : pdfUrl ? (
                         <>
                             <div className="flex justify-end space-x-2">
                                 <Button variant="outline" onClick={() => setIsPdfModalOpen(false)}>
@@ -188,7 +221,7 @@ export default function DetalleRecetaPage() {
                                 title="Vista Previa PDF"
                             />
                         </>
-                    )}
+                    ) : null}
                 </DialogContent>
             </Dialog>
 
@@ -211,13 +244,13 @@ export default function DetalleRecetaPage() {
                 </div>
                 <div className="flex gap-2 items-center">
                     {plantillaActiva && (
-                        <div className="flex items-center space-x-2 mr-2 bg-white px-3 py-2 rounded-md border shadow-sm">
-                            <Checkbox 
-                                id="print-bg-checkbox" 
-                                checked={imprimirFondo} 
-                                onCheckedChange={(checked) => handleImprimirFondoChange(checked as boolean)} 
+                        <div className="flex items-center space-x-3 mr-2 bg-white px-4 py-2.5 rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                            <Label htmlFor="print-bg-toggle" className="font-medium text-slate-700 text-sm">Imprimir fondo</Label>
+                            <Switch
+                                id="print-bg-toggle"
+                                checked={imprimirFondo}
+                                onCheckedChange={(checked) => handleImprimirFondoChange(checked)}
                             />
-                            <Label htmlFor="print-bg-checkbox" className="cursor-pointer font-medium text-slate-700">Imprimir fondo</Label>
                         </div>
                     )}
                     {medico && receta.fechaEmision && (

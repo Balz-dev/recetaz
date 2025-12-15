@@ -62,7 +62,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])
     const [filteredPacientes, setFilteredPacientes] = useState<Paciente[]>([])
-    
+
     // Estados para autocompletado de medicamentos
     const [medicamentoSuggestions, setMedicamentoSuggestions] = useState<MedicamentoCatalogo[]>([])
     const [activeMedicamentoIndex, setActiveMedicamentoIndex] = useState<number | null>(null)
@@ -81,7 +81,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
             pacienteEdad: undefined,
             pacienteTelefono: "",
             pacienteDireccion: "",
-           // pacienteCedula: "",
+            // pacienteCedula: "",
             diagnostico: "",
             medicamentos: [{ nombre: "", presentacion: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
             instrucciones: "",
@@ -118,27 +118,27 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
     const handleSearchChange = (value: string) => {
         setSearchQuery(value)
         form.setValue("pacienteNombre", value)
-        
+
         if (value.trim().length === 0) {
             setFilteredPacientes([])
             setShowSuggestions(false)
             setSelectedPaciente(null)
             return
         }
-        
+
         // Buscar pacientes que coincidan
-        const matches = pacientes.filter(p => 
+        const matches = pacientes.filter(p =>
             p.nombre.toLowerCase().includes(value.toLowerCase())
         )
-        
+
         setFilteredPacientes(matches)
         setShowSuggestions(matches.length > 0)
-        
+
         // Si hay coincidencia exacta, seleccionar automáticamente
-        const exactMatch = matches.find(p => 
+        const exactMatch = matches.find(p =>
             p.nombre.toLowerCase() === value.toLowerCase()
         )
-        
+
         if (exactMatch) {
             setSelectedPaciente(exactMatch)
             form.setValue("pacienteId", exactMatch.id)
@@ -162,7 +162,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
 
     const handleMedicamentoSearch = async (query: string, index: number) => {
         form.setValue(`medicamentos.${index}.nombre`, query)
-        
+
         if (query.trim().length < 2) {
             setMedicamentoSuggestions([])
             setActiveMedicamentoIndex(null)
@@ -196,7 +196,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                 nombre: values.pacienteNombre,
                 edad: values.pacienteEdad || 0
             }
-            
+
             // Si no hay paciente seleccionado, crear uno nuevo
             if (!pacienteId) {
                 const newPacienteData = {
@@ -204,16 +204,24 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                     edad: values.pacienteEdad,
                     telefono: values.pacienteTelefono,
                     direccion: values.pacienteDireccion
-                  
+
                 }
-                
+
                 pacienteId = await pacienteService.create(newPacienteData)
                 pacienteData = {
                     nombre: newPacienteData.nombre,
                     edad: newPacienteData.edad || 0
                 }
+
+                // Recargar lista de pacientes y seleccionar el recién creado
+                await loadPacientes()
+                const newPaciente = await pacienteService.getById(pacienteId)
+                if (newPaciente) {
+                    setSelectedPaciente(newPaciente)
+                    setSearchQuery(newPaciente.nombre)
+                }
             }
-            
+
             // Crear receta con datos del paciente
             const recetaFormDataForService = {
                 pacienteId: pacienteId!,
@@ -223,7 +231,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                 medicamentos: values.medicamentos,
                 instrucciones: values.instrucciones
             }
-            
+
             const recetaId = await recetaService.create(
                 recetaFormDataForService,
                 pacienteData
@@ -287,7 +295,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                                         disabled={!!preSelectedPacienteId}
                                                     />
                                                 </FormControl>
-                                                
+
                                                 {/* Lista de Sugerencias */}
                                                 {showSuggestions && filteredPacientes.length > 0 && !preSelectedPacienteId && (
                                                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
@@ -306,7 +314,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                                         ))}
                                                     </div>
                                                 )}
-                                                
+
                                                 {/* Indicador de Paciente Seleccionado */}
                                                 {selectedPaciente && (
                                                     <div className="absolute right-2 top-2 text-green-600">
@@ -315,14 +323,14 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                                 )}
                                             </div>
                                             <FormMessage />
-                                            
+
                                             {/* Información del Paciente Seleccionado */}
                                             {selectedPaciente && (
                                                 <div className="text-sm text-slate-600 bg-green-50 p-2 rounded">
                                                     ✓ Paciente existente: {selectedPaciente.nombre}, {selectedPaciente.edad} años
                                                 </div>
                                             )}
-                                            
+
                                             {/* Mensaje si no existe */}
                                             {searchQuery && !selectedPaciente && searchQuery.length > 2 && !preSelectedPacienteId && (
                                                 <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
@@ -331,8 +339,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                             )}
                                         </FormItem>
                                     )}
-                                                />
-                                
+                                />
+
                                 {/* Checkbox para Registro Completo */}
                                 {!selectedPaciente && searchQuery && !preSelectedPacienteId && (
                                     <div className="flex items-center space-x-2">
@@ -390,7 +398,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                             </FormItem>
                                         )}
                                     />
-                                    
+
                                     <FormField
                                         control={form.control}
                                         name="pacienteTelefono"
@@ -404,7 +412,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                             </FormItem>
                                         )}
                                     />
-                                    
+
                                     <FormField
                                         control={form.control}
                                         name="pacienteDireccion"
@@ -418,8 +426,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                             </FormItem>
                                         )}
                                     />
-                                    
-                                    
+
+
                                 </div>
                             </CardContent>
                         </Card>
@@ -447,9 +455,9 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                             <FormItem className="lg:col-span-2 relative">
                                                 <FormLabel>Medicamento {index + 1} *</FormLabel>
                                                 <FormControl>
-                                                    <Input 
-                                                        placeholder="Nombre comercial / Genérico" 
-                                                        {...field} 
+                                                    <Input
+                                                        placeholder="Nombre comercial / Genérico"
+                                                        {...field}
                                                         onChange={(e) => handleMedicamentoSearch(e.target.value, index)}
                                                         onBlur={() => {
                                                             // Pequeño delay para permitir click en sugerencia

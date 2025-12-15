@@ -64,21 +64,24 @@ Esto generará:
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── page.tsx           # Dashboard
-│   ├── configuracion/     # Configuración del médico
-│   ├── pacientes/         # Gestión de pacientes
-│   ├── recetas/           # Gestión de recetas
-│   └── dev-utils/         # Herramientas de desarrollo
+│   ├── (marketing)/       # Landing Page y Sitio Público
+│   │   ├── layout.tsx     # Layout SEO optimizado
+│   │   └── page.tsx       # Homepage (/)
+│   ├── (platform)/        # Aplicación SaaS (Requiere Auth)
+│   │   ├── layout.tsx     # Layout con Sidebar y Auth
+│   │   ├── dashboard/     # Dashboard principal
+│   │   ├── recetas/       # Gestión de recetas
+│   │   └── pacientes/     # Gestión de pacientes
+│   ├── demo/              # Módulo de Demo y Testing
+│   │   └── page.tsx       # Inicialización de fixtures
+│   ├── globals.css        # Estilos globales
+│   └── layout.tsx         # (Eliminado en favor de layouts agrupados)
 ├── features/              # Lógica de negocio por característica
 │   ├── config-medico/
 │   ├── pacientes/
 │   ├── recetas/
 │   └── finanzas/
 ├── shared/                # Componentes y utilidades compartidas
-│   ├── components/
-│   ├── db/
-│   └── utils/
-└── types/                 # Tipos globales
 ```
 
 ## 📚 Documentación

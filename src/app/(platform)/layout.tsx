@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
+import "../globals.css";
 import { Sidebar } from "@/shared/components/layout/sidebar";
 import { Header } from "@/shared/components/layout/header";
 import { Toaster } from "@/shared/components/ui/toaster";
@@ -25,7 +25,7 @@ export const viewport: Viewport = {
     maximumScale: 1,
 };
 
-export default function RootLayout({
+export default function PlatformLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
@@ -51,11 +51,10 @@ export default function RootLayout({
                 <Toaster />
                 <OnlineStatusIndicator />
                 <ServiceWorkerRegister />
-                    {/* Fallback: ensure SW registration runs after interactive. This helps tests/CI
-                        where the client component might not mount fast enough. */}
-                    <Script id="sw-register" strategy="afterInteractive">
-                        {`if(typeof navigator !== 'undefined' && 'serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(()=>{}); }`}
-                    </Script>
+                {/* Fallback: ensure SW registration runs after interactive. */}
+                <Script id="sw-register" strategy="afterInteractive">
+                    {`if(typeof navigator !== 'undefined' && 'serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(()=>{}); }`}
+                </Script>
             </body>
         </html>
     );
