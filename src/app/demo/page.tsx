@@ -2,18 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-// TODO: Import from @packages/fixtures when monorepo is ready
-const fixtures = {
-    medicamentos: [
-        { id: "1", nombre: "Paracetamol", dosis: "500 mg" },
-        { id: "2", nombre: "Ibuprofeno", dosis: "400 mg" }
-    ],
-    pacientes: [
-        { id: "1", nombre: "Juan Pérez", edad: 30 },
-        { id: "2", nombre: "María García", edad: 25 }
-    ]
-};
+import { seedDatabase } from "@/shared/utils/seed";
 
 export default function DemoPage() {
     const router = useRouter();
@@ -22,17 +11,22 @@ export default function DemoPage() {
     useEffect(() => {
         const initDemo = async () => {
             try {
-                // Aquí iría la lógica de seed real usando Dexie
-                console.log("Seeding database with:", fixtures);
+                setStatus("Limpiando y poblando base de datos...");
 
-                // Simular delay
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Ejecutar ssemilla real
+                await seedDatabase();
 
-                setStatus("Datos cargados. Redirigiendo...");
-                router.push("/dashboard");
+                setStatus("Datos cargados exitosamente.");
+
+                // Breve pausa para que el usuario vea que terminó
+                setTimeout(() => {
+                    setStatus("Redirigiendo al Dashboard...");
+                    router.push("/dashboard");
+                }, 1000);
+
             } catch (error) {
                 console.error("Error en demo:", error);
-                setStatus("Error al cargar la demo.");
+                setStatus("Error al cargar la demo. Revisa la consola.");
             }
         };
 
@@ -40,9 +34,12 @@ export default function DemoPage() {
     }, [router]);
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-slate-600 font-medium">{status}</p>
+        <div className="flex flex-col items-center justify-center h-screen space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="text-center">
+                <h2 className="text-xl font-semibold text-slate-800">Preparando Entorno de Demo</h2>
+                <p className="text-slate-600 mt-2">{status}</p>
+            </div>
         </div>
     );
 }
