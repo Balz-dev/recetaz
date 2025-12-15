@@ -10,7 +10,8 @@ import {
     Users,
     FileText,
     Settings,
-    PlusCircle
+    PlusCircle,
+    Pill
 } from 'lucide-react';
 
 /**
@@ -36,7 +37,13 @@ const routes = [
         label: 'Recetas',
         icon: FileText,
     },
+    {
+        href: '/medicamentos',
+        label: 'Medicamentos',
+        icon: Pill,
+    },
 ];
+
 
 /**
  * Componente Sidebar para la navegación principal.

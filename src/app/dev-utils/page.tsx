@@ -11,6 +11,7 @@
 
 import { useState } from 'react';
 import { seedDatabase } from '@/shared/utils/seed';
+import { seederService } from '@/features/medicamentos/services/seeder.service';
 import { Button } from '@/shared/components/ui/button';
 
 export default function DevUtilsPage() {
@@ -42,6 +43,28 @@ export default function DevUtilsPage() {
         }
     };
 
+    const handleMedicamentosSeed = async () => {
+        setIsSeeding(true);
+        setMessage('');
+        setLogs([]);
+
+        const originalLog = console.log;
+        console.log = (...args) => {
+            setLogs(prev => [...prev, args.join(' ')]);
+            originalLog(...args);
+        };
+
+        try {
+            const count = await seederService.seedMedicamentos();
+            setMessage(`✅ Catálogo de medicamentos actualizado. Se agregaron ${count} medicamentos.`);
+        } catch (error) {
+            setMessage(`❌ Error al poblar medicamentos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+        } finally {
+            console.log = originalLog;
+            setIsSeeding(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-4xl mx-auto">
@@ -60,13 +83,6 @@ export default function DevUtilsPage() {
                         <p className="text-gray-600 mb-4">
                             Esta acción llenará la base de datos con datos de ejemplo:
                         </p>
-                        <ul className="list-disc list-inside text-gray-600 mb-6 space-y-1">
-                            <li>1 configuración de médico</li>
-                            <li>8 pacientes con datos variados</li>
-                            <li>12 recetas médicas</li>
-                            <li>10 movimientos financieros</li>
-                            <li>Configuración financiera</li>
-                        </ul>
 
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                             <p className="text-yellow-800 font-medium">
@@ -77,14 +93,26 @@ export default function DevUtilsPage() {
                             </p>
                         </div>
 
-                        <Button
-                            onClick={handleSeed}
-                            disabled={isSeeding}
-                            className="w-full sm:w-auto"
-                            size="lg"
-                        >
-                            {isSeeding ? '⏳ Poblando base de datos...' : '🌱 Poblar Base de Datos'}
-                        </Button>
+                        <div className="flex flex-wrap gap-4">
+                            <Button
+                                onClick={handleSeed}
+                                disabled={isSeeding}
+                                className="w-full sm:w-auto"
+                                size="lg"
+                            >
+                                {isSeeding ? '⏳ Poblando...' : '🌱 Poblar Todo (Reset)'}
+                            </Button>
+
+                            <Button
+                                onClick={handleMedicamentosSeed}
+                                disabled={isSeeding}
+                                variant="secondary"
+                                className="w-full sm:w-auto"
+                                size="lg"
+                            >
+                                💊 Poblar Solo Medicamentos
+                            </Button>
+                        </div>
 
                         {message && (
                             <div className={`mt-6 p-4 rounded-lg ${

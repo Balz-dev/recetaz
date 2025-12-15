@@ -16,7 +16,8 @@ import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { recetaService } from "@/features/recetas/services/receta.service"
 import { pacienteService } from "@/features/pacientes/services/paciente.service"
-import { RecetaFormData, Paciente } from "@/types"
+import { medicamentoService } from "@/features/medicamentos/services/medicamento.service"
+import { RecetaFormData, Paciente, MedicamentoCatalogo } from "@/types"
 import { useState, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { Loader2, Save, ArrowLeft, Plus, Trash2, Check } from "lucide-react"
@@ -26,6 +27,7 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
+    presentacion: z.string().optional(),
     dosis: z.string().min(1, "La dosis es requerida"),
     frecuencia: z.string().min(1, "La frecuencia es requerida"),
     duracion: z.string().min(1, "La duración es requerida"),
@@ -60,6 +62,10 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])
     const [filteredPacientes, setFilteredPacientes] = useState<Paciente[]>([])
+    
+    // Estados para autocompletado de medicamentos
+    const [medicamentoSuggestions, setMedicamentoSuggestions] = useState<MedicamentoCatalogo[]>([])
+    const [activeMedicamentoIndex, setActiveMedicamentoIndex] = useState<number | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null)
@@ -77,7 +83,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
             pacienteDireccion: "",
            // pacienteCedula: "",
             diagnostico: "",
-            medicamentos: [{ nombre: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
+            medicamentos: [{ nombre: "", presentacion: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
             instrucciones: "",
         },
     })
@@ -151,11 +157,40 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
         form.setValue("pacienteEdad", paciente.edad)
         setShowSuggestions(false)
         setShowFullRegistration(false)
+        setShowFullRegistration(false)
+    }
+
+    const handleMedicamentoSearch = async (query: string, index: number) => {
+        form.setValue(`medicamentos.${index}.nombre`, query)
+        
+        if (query.trim().length < 2) {
+            setMedicamentoSuggestions([])
+            setActiveMedicamentoIndex(null)
+            return
+        }
+
+        const results = await medicamentoService.search(query)
+        setMedicamentoSuggestions(results)
+        setActiveMedicamentoIndex(index)
+    }
+
+    const selectMedicamentoSuggestion = (medicamento: MedicamentoCatalogo, index: number) => {
+        form.setValue(`medicamentos.${index}.nombre`, medicamento.nombre)
+        if (medicamento.presentacion) {
+            form.setValue(`medicamentos.${index}.presentacion`, medicamento.presentacion)
+        }
+        setMedicamentoSuggestions([])
+        setActiveMedicamentoIndex(null)
     }
 
     async function onSubmit(values: RecetaFormData) {
         setIsLoading(true)
         try {
+            // 1. Guardar nuevos medicamentos en el catálogo
+            for (const med of values.medicamentos) {
+                await medicamentoService.findOrCreateByName(med.nombre)
+            }
+
             let pacienteId = values.pacienteId
             let pacienteData = {
                 nombre: values.pacienteNombre,
@@ -409,10 +444,54 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                         control={form.control}
                                         name={`medicamentos.${index}.nombre`}
                                         render={({ field }) => (
-                                            <FormItem className="lg:col-span-2">
+                                            <FormItem className="lg:col-span-2 relative">
                                                 <FormLabel>Medicamento {index + 1} *</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Nombre comercial / Genérico" {...field} />
+                                                    <Input 
+                                                        placeholder="Nombre comercial / Genérico" 
+                                                        {...field} 
+                                                        onChange={(e) => handleMedicamentoSearch(e.target.value, index)}
+                                                        onBlur={() => {
+                                                            // Pequeño delay para permitir click en sugerencia
+                                                            setTimeout(() => {
+                                                                if (activeMedicamentoIndex === index) {
+                                                                    setMedicamentoSuggestions([])
+                                                                    setActiveMedicamentoIndex(null)
+                                                                }
+                                                            }, 200)
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                {/* Sugerencias de Medicamentos */}
+                                                {activeMedicamentoIndex === index && medicamentoSuggestions.length > 0 && (
+                                                    <div className="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-lg max-h-40 overflow-auto">
+                                                        {medicamentoSuggestions.map((med) => (
+                                                            <button
+                                                                key={med.id}
+                                                                type="button"
+                                                                className="w-full px-4 py-2 text-left hover:bg-slate-100 flex flex-col"
+                                                                onClick={() => selectMedicamentoSuggestion(med, index)}
+                                                            >
+                                                                <span className="font-medium">{med.nombre}</span>
+                                                                {med.presentacion && (
+                                                                    <span className="text-xs text-slate-500">{med.presentacion}</span>
+                                                                )}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name={`medicamentos.${index}.presentacion`}
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Presentación</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Ej: Tabs 500mg" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -478,7 +557,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => append({ nombre: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" })}
+                                onClick={() => append({ nombre: "", presentacion: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" })}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
                                 Agregar Medicamento

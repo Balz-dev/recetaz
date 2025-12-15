@@ -26,6 +26,7 @@ export interface MedicoConfig {
 export interface Medicamento {
     id: string;
     nombre: string;
+    presentacion?: string;
     dosis: string;
     frecuencia: string;
     duracion: string;
@@ -119,5 +120,15 @@ export interface PlantillaReceta {
 }
 
 export type PlantillaRecetaFormData = Omit<PlantillaReceta, 'id' | 'createdAt' | 'updatedAt'>;
+
+export interface MedicamentoCatalogo {
+    id: string;
+    nombre: string;
+    presentacion?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export type MedicamentoCatalogoFormData = Omit<MedicamentoCatalogo, 'id' | 'createdAt' | 'updatedAt'>;
 
 
