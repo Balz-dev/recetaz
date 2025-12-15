@@ -26,7 +26,7 @@ import { PremiumModal } from '@/shared/components/modals/PremiumModal';
  */
 const routes = [
     {
-        href: '/',
+        href: '/dashboard',
         label: 'Dashboard',
         icon: LayoutDashboard,
         premium: false,
