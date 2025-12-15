@@ -16,7 +16,8 @@ import {
     Calendar,
     FolderOpen,
     DollarSign,
-    Lock
+    Lock,
+    FileType
 } from 'lucide-react';
 import { PremiumModal } from '@/shared/components/modals/PremiumModal';
 
@@ -82,7 +83,7 @@ const routes = [
 export function Sidebar() {
     const pathname = usePathname();
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedFeature, setSelectedFeature] = useState<{title: string, desc: string, url: string} | null>(null);
+    const [selectedFeature, setSelectedFeature] = useState<{ title: string, desc: string, url: string } | null>(null);
 
     const handleNavigation = (e: React.MouseEvent, route: any) => {
         if (route.premium) {
@@ -113,8 +114,8 @@ export function Sidebar() {
                     const isActive = pathname === route.href;
 
                     return (
-                        <Link 
-                            key={route.href} 
+                        <Link
+                            key={route.href}
                             href={route.href}
                             onClick={(e) => handleNavigation(e, route)}
                         >
@@ -129,7 +130,7 @@ export function Sidebar() {
                             >
                                 <Icon size={20} />
                                 <span className={cn(route.premium && "mr-auto")}>{route.label}</span>
-                                
+
                                 {route.premium && (
                                     <div className="flex items-center">
                                         <div className="bg-amber-500/10 text-amber-500 text-[10px] px-1.5 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
@@ -150,6 +151,12 @@ export function Sidebar() {
                     <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white">
                         <PlusCircle size={20} />
                         Nueva Receta
+                    </Button>
+                </Link>
+                <Link href="/recetas/plantillas/nueva">
+                    <Button variant="outline" className="w-full gap-2 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/50">
+                        <FileType size={20} />
+                        Plantilla Receta
                     </Button>
                 </Link>
                 <Link href="/configuracion">
