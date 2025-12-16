@@ -22,39 +22,39 @@ import { cn } from "@/lib/utils"
 // Tipos de campos disponibles para agregar
 const AVAILABLE_FIELDS_DEF = [
     // Datos del Médico
-    { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', defaultW: 40, defaultH: 5 },
-    { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', defaultW: 40, defaultH: 5 },
-    { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', defaultW: 40, defaultH: 5 },
-    { id: 'medico_cedula_gral', etiqueta: 'Cédula (Gral)', tipo: 'texto', defaultW: 20, defaultH: 5 },
-    { id: 'medico_institucion_esp', etiqueta: 'Institución (Esp)', tipo: 'texto', defaultW: 40, defaultH: 5 },
-    { id: 'medico_cedula_esp', etiqueta: 'Cédula (Esp)', tipo: 'texto', defaultW: 20, defaultH: 5 },
-    { id: 'medico_domicilio', etiqueta: 'Domicilio Consultorio', tipo: 'texto', defaultW: 60, defaultH: 5 },
-    { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', defaultW: 30, defaultH: 5 },
-    { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', defaultW: 30, defaultH: 5 },
-    { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', defaultW: 30, defaultH: 5 },
+    { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
+    { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
+    { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
+    { id: 'medico_cedula_gral', etiqueta: 'Cédula (Gral)', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
+    { id: 'medico_institucion_esp', etiqueta: 'Institución (Esp)', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
+    { id: 'medico_cedula_esp', etiqueta: 'Cédula (Esp)', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
+    { id: 'medico_domicilio', etiqueta: 'Domicilio Consultorio', tipo: 'texto', defaultW: 60, defaultH: 2.5 },
+    { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
+    { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
+    { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
     { id: 'medico_logo', etiqueta: 'Logo / Imagen', tipo: 'imagen', defaultW: 20, defaultH: 15 },
 
     // Datos del Paciente
-    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'fecha', defaultW: 20, defaultH: 5 },
-    { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', defaultW: 50, defaultH: 5 },
-    { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', defaultW: 10, defaultH: 5 },
-    { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', defaultW: 10, defaultH: 5 },
-    { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', defaultW: 10, defaultH: 5 },
+    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'fecha', defaultW: 20, defaultH: 2.5 },
+    { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', defaultW: 50, defaultH: 2.5 },
+    { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', defaultW: 10, defaultH: 2.5 },
+    { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', defaultW: 10, defaultH: 2.5 },
+    { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', defaultW: 10, defaultH: 2.5 },
     { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', defaultW: 80, defaultH: 5 },
-    { id: 'alergias', etiqueta: 'Alergias', tipo: 'texto', defaultW: 40, defaultH: 5 },
+    { id: 'alergias', etiqueta: 'Alergias', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
 
     // Datos de la Receta
-    { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', defaultW: 20, defaultH: 5 },
-    { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
+    { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
 
     // Cuerpo de la Receta
-    { id: 'medicamento_nombre', etiqueta: 'Medicamento', tipo: 'texto', defaultW: 30, defaultH: 5 },
-    { id: 'medicamento_generico', etiqueta: 'Denominación Genérica', tipo: 'texto', defaultW: 30, defaultH: 5 },
-    { id: 'medicamento_marca', etiqueta: 'Marca Comercial', tipo: 'texto', defaultW: 30, defaultH: 5 },
-    { id: 'medicamento_forma', etiqueta: 'Forma Farmacéutica', tipo: 'texto', defaultW: 20, defaultH: 5 },
-    { id: 'medicamento_dosis', etiqueta: 'Dosis/Concentración', tipo: 'texto', defaultW: 20, defaultH: 5 },
-    { id: 'medicamento_presentacion', etiqueta: 'Presentación', tipo: 'texto', defaultW: 20, defaultH: 5 },
-    { id: 'medicamento_via', etiqueta: 'Vía de Admin.', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'medicamento_nombre', etiqueta: 'Medicamento', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
+    { id: 'medicamento_generico', etiqueta: 'Denominación Genérica', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
+    { id: 'medicamento_marca', etiqueta: 'Marca Comercial', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
+    { id: 'medicamento_forma', etiqueta: 'Forma Farmacéutica', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
+    { id: 'medicamento_dosis', etiqueta: 'Dosis/Concentración', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
+    { id: 'medicamento_presentacion', etiqueta: 'Presentación', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
+    { id: 'medicamento_via', etiqueta: 'Vía de Admin.', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
     { id: 'medicamento_posologia', etiqueta: 'Posología (Instrucciones)', tipo: 'texto', defaultW: 60, defaultH: 10 },
 
     // Legacy / Composites
@@ -123,6 +123,23 @@ function getExampleText(id: string): string {
     return examples[id] || "Texto de ejemplo";
 }
 
+// Helper para saber si un campo debe permitir redimensionar alto
+function canResizeHeight(field: CampoPlantilla): boolean {
+    if (field.tipo === 'imagen') return true;
+    if (field.tipo === 'lista') return true;
+
+    // Lista explícita de campos multilinea
+    const MULTILINE_IDS = [
+        'diagnostico',
+        'medicamento_posologia',
+        'instrucciones_lista',
+        'sugerencias',
+        'medico_domicilio'
+    ];
+
+    return MULTILINE_IDS.includes(field.id);
+}
+
 // Componente de Campo Arrastrable en Canvas
 function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef }: {
     field: CampoPlantilla,
@@ -138,6 +155,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
     });
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const allowHeight = canResizeHeight(field);
 
     const handleResize = (e: React.SyntheticEvent, data: ResizeCallbackData) => {
         if (!containerRef.current) return;
@@ -185,29 +203,54 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
         <div
             ref={setNodeRef}
             style={style}
+            // Aplicamos listeners al contenedor principal para facilitar el agarre
+            {...listeners}
+            {...attributes}
             onClick={(e) => {
                 e.stopPropagation();
                 onSelect();
             }}
-            className="absolute"
+            className={cn(
+                "absolute cursor-grab active:cursor-grabbing hover:z-20",
+                isSelected && "z-50"
+            )}
         >
             <ResizableBox
                 width={dims.width}
                 height={dims.height}
+                axis={allowHeight ? 'both' : 'x'}
                 onResizeStop={handleResize}
                 draggableOpts={{ enableUserSelectHack: false }}
                 minConstraints={[50, 20]}
                 maxConstraints={[800, 600]}
-                // Manijas
+                // Manijas personalizadas según el eje permitido
                 handle={
                     isSelected ? (
-                        <div
-                            className="react-resizable-handle react-resizable-handle-se absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-50 flex items-center justify-center p-1 bg-transparent"
-                            onMouseDown={(e) => e.stopPropagation()}
-                            onTouchStart={(e) => e.stopPropagation()}
-                        >
-                            <div className="w-full h-full bg-blue-500 rounded-tl-lg shadow-sm border border-white" />
-                        </div>
+                        <>
+                            {/* Handle SE (Corner) - Visible si se permite altura o ancho */}
+                            <div
+                                className={cn(
+                                    "react-resizable-handle absolute bottom-0 right-0 w-5 h-5 z-50 flex items-center justify-center p-0.5 bg-transparent",
+                                    allowHeight ? "cursor-se-resize" : "cursor-e-resize"
+                                )}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
+                            >
+                                <div className={cn(
+                                    "w-full h-full bg-blue-500 shadow-sm border border-white",
+                                    allowHeight ? "rounded-tl-lg" : "rounded-none w-1.5 h-full ml-auto"
+                                )} />
+                            </div>
+
+                            {/* Handle E (Right Edge) - Para facilitar solo ancho */}
+                            {!allowHeight && (
+                                <div
+                                    className="react-resizable-handle react-resizable-handle-e absolute top-0 right-0 bottom-5 w-2 cursor-e-resize z-40 hover:bg-blue-200/50"
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onTouchStart={(e) => e.stopPropagation()}
+                                />
+                            )}
+                        </>
                     ) : <span />
                 }
                 className={cn(
@@ -217,27 +260,21 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                     isSelected ? 'border border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-slate-50/50 hover:border hover:border-dashed hover:border-slate-300'
                 )}
             >
-                {/* Visual Anchor Point (Esquina superior izquierda, donde empieza a renderizar el PDF) */}
+                {/* Visual Anchor Point (Esquina INFERIOR izquierda - Baseline) */}
                 <div className={cn(
-                    "absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-red-500 z-50 -translate-x-[1px] -translate-y-[1px]",
+                    "absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-red-600 z-50 -translate-x-[1px] translate-y-[1px]",
                     !isSelected && "opacity-0 group-hover:opacity-50"
                 )} />
+
+                {/* Etiqueta flotante */}
                 <div className={cn(
-                    "absolute -top-3 -left-1 text-[8px] text-red-500 bg-white px-1 rounded shadow-sm pointer-events-none whitespace-nowrap",
+                    "absolute -top-4 -left-1 text-[9px] font-bold text-white bg-blue-600/90 px-1.5 py-0.5 rounded shadow-sm pointer-events-none whitespace-nowrap z-50",
                     !isSelected && "hidden"
                 )}>
                     {field.etiqueta}
                 </div>
 
                 <div className="flex w-full h-full overflow-hidden relative">
-                    {/* Grip handle solo visible en hover/selection para no ensuciar la vista */}
-                    <div {...listeners} {...attributes} className={cn(
-                        "cursor-move absolute top-0 right-0 p-1 touch-none z-20 opacity-0 group-hover:opacity-100 transition-opacity",
-                        isSelected && "opacity-100"
-                    )}>
-                        <GripVertical className="h-4 w-4 text-slate-400 bg-white/80 rounded" />
-                    </div>
-
                     {field.tipo === 'imagen' ? (
                         <div className="flex-grow h-full flex items-center justify-center border border-dashed border-slate-300 m-1 bg-slate-50/50">
                             {field.src ? (
@@ -252,6 +289,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                             {isSelected && (
                                 <div
                                     className="absolute inset-0 bg-blue-500/10 cursor-pointer flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                                    onMouseDown={(e) => e.stopPropagation()} // Stop drag to allow click
                                     onClick={() => fileInputRef.current?.click()}
                                 >
                                     <span className="bg-white text-xs px-2 py-1 rounded shadow text-blue-600 font-medium">Cambiar Imagen</span>
@@ -266,15 +304,20 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                             />
                         </div>
                     ) : (
-                        <div className="w-full h-full p-[2px]">
+                        <div className={cn(
+                            "w-full h-full",
+                            // Ajustes para campos de texto (input vs textarea visual)
+                            allowHeight ? "p-[2px]" : "flex items-end pb-[1px] px-[2px]" // Para una linea, alineamos al 'baseline' visualmente
+                        )}>
                             {/* Renderizado simulado de texto tipo PDF */}
                             <span
                                 style={{
                                     fontFamily: 'Helvetica, Arial, sans-serif',
-                                    fontSize: '10px', // Aproximando el tamaño 10pt del PDF
-                                    lineHeight: '1.2',
+                                    fontSize: '10px',
+                                    lineHeight: '1.1',
                                     color: '#000',
-                                    whiteSpace: 'pre-wrap'
+                                    whiteSpace: allowHeight ? 'pre-wrap' : 'nowrap',
+                                    overflow: 'hidden'
                                 }}
                                 className="pointer-events-none block"
                             >
@@ -288,13 +331,39 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
     );
 }
 
-// Draggable Overlay para visualización mientras se arrastra
+// Draggable Overlay Minimalista para evitar obstrucción visual
 function DragItemOverlay({ field }: { field: any }) {
     if (!field) return null;
+
+    const text = getExampleText(field.id);
+    const textShort = text.length > 25 ? text.substring(0, 25) + "..." : text;
+
     return (
-        <div className="bg-white/90 border-2 border-primary shadow-xl rounded p-2 px-4 flex items-center gap-2 w-[200px] cursor-grabbing z-[999] pointer-events-none">
-            <GripVertical className="h-4 w-4 text-slate-400" />
-            <span className="font-medium text-sm truncate">{field.etiqueta}</span>
+        // El DragOverlay de dnd-kit coloca el (0,0) del componente en la posición del puntero (o activator).
+        // Queremos que la ESQUINA INFERIOR IZQUIERDA coincida con el puntero.
+        // Por lo tanto, desplazamos el contenido hacia arriba el 100% de su altura (translate-y-full negativo).
+        <div className="flex flex-col items-start justify-end pointer-events-none opacity-90 origin-bottom-left"
+            style={{ transform: 'translate(0, -100%)' }}
+        >
+            <div className="relative">
+                {/* Contenido (Tamaño fuente reducido en lugar de scale para evitar lio de coordenadas) */}
+                <div
+                    style={{
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                        fontSize: '10px',
+                        lineHeight: '1',
+                        color: '#000',
+                        whiteSpace: 'nowrap',
+                    }}
+                    className="bg-white/90 border border-slate-300 px-1 py-0.5 rounded shadow-sm mb-0.5"
+                >
+                    {textShort}
+                </div>
+
+                {/* Anchor - Justo en la esquina inferior izquierda del contenedor, que está en el cursor */}
+                {/* Ajuste fino: -left-1 para centrar el cuadro del punto en el cursor */}
+                <div className="w-3 h-3 border-l-2 border-b-2 border-red-600 absolute -bottom-1 -left-1 z-50 rounded-bl-sm bg-transparent" />
+            </div>
         </div>
     )
 }
@@ -422,6 +491,48 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         };
     }, [pendingResizeFieldId, campos]); // deps updated
 
+
+    // Teclado para movimiento preciso
+    useEffect(() => {
+        if (!selectedFieldId) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                setCampos(prev => prev.map(f => {
+                    if (f.id === selectedFieldId) {
+                        const step = e.shiftKey ? 1.0 : 0.1; // Shift para mover más rápido
+                        let { x, y } = f;
+
+                        // Ajustamos x/y
+                        if (e.key === 'ArrowUp') y -= step;
+                        if (e.key === 'ArrowDown') y += step;
+                        if (e.key === 'ArrowLeft') x -= step;
+                        if (e.key === 'ArrowRight') x += step;
+
+                        // Límites
+                        x = Math.max(0, Math.min(100 - f.ancho, x));
+                        y = Math.max(0, Math.min(100 - (f.alto || 5), y));
+
+                        return { ...f, x, y };
+                    }
+                    return f;
+                }));
+            }
+
+            // Delete key to remove field
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                // Confirmación podría ser molesta si es accidental, pero es estándar en editores
+                setCampos(prev => prev.filter(f => f.id !== selectedFieldId));
+                setSelectedFieldId(null);
+                toast({ title: "Campo eliminado" });
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedFieldId]);
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
@@ -442,11 +553,12 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
         // Identificar qué se está arrastrando para el Overlay visual
+        // SOLO MOSTRAR OVERLAY PARA ITEMS DEL SIDEBAR
+        // Para items del canvas, dejamos que el propio componente useDraggable maneje la visualización (evita offset)
         if (String(active.id).startsWith('sidebar-')) {
             setActiveDragItem(active.data.current?.field);
         } else {
-            // Es un campo del canvas
-            setActiveDragItem(active.data.current?.field);
+            setActiveDragItem(null);
         }
     };
 
@@ -461,59 +573,64 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
         // CASO 1: Nuevo Item desde Sidebar
         if (String(active.id).startsWith('sidebar-')) {
-            // Si no detectamos 'over', pero el mouse está geométricamente dentro del canvas, lo aceptamos manual.
-            const isOverCanvas = over && over.id === 'canvas-drop-area';
+            // Usamos la posición FINAL del elemento arrastrado (Overlay) para evitar saltos.
+            // visualmente el usuario colocó el Overlay donde quería.
+            const dropRect = active.rect.current?.translated;
 
-            if (!isOverCanvas) {
-                // Check geometry fallback
-                // active.rect.current.translated es la posición final del elemento DRAGGED
-                const finalRect = active.rect.current?.translated;
-                if (!finalRect) return;
+            if (!dropRect) return;
 
-                // Verificar intersección simple con el canvas
-                const isInsideX = finalRect.left + finalRect.width / 2 >= containerRect.left && finalRect.left + finalRect.width / 2 <= containerRect.right;
-                const isInsideY = finalRect.top + finalRect.height / 2 >= containerRect.top && finalRect.top + finalRect.height / 2 <= containerRect.bottom;
+            // Coordenadas relativas al canvas
+            // dropRect.top es la parte SUPERIOR del Wrapper del Overlay.
+            // Dado que el Overlay tiene 'transform: translate(0, -100%)', su parte VISUAL INFERIOR (Baseline) está en dropRect.top.
+            // Queremos que el nuevo campo tenga su LINEA DE BASE en dropRect.top.
 
-                if (!isInsideX || !isInsideY) return;
-            }
+            // Calculamos relY como la posición de la línea de base deseada
+            const baselineY = dropRect.top - containerRect.top;
+            const baselineX = dropRect.left - containerRect.left;
+
+            // Validar límites básicos
+            const isInside =
+                baselineX >= -50 && baselineX <= containerRect.width + 50 &&
+                baselineY >= -50 && baselineY <= containerRect.height + 50;
+
+            /* Permitimos soltar un poco fuera para flexibilidad, luego clampeamos */
 
             const fieldDef = active.data.current?.field;
             if (!fieldDef) return;
 
-            // Calcular posición de dropeo relativa al canvas
-            const dropRect = active.rect.current?.translated;
+            // Altura por defecto del campo (importante para calcular el Top)
+            // Si el campo es de 1 linea, usamos una altura ajustada si no está definida
+            // Nota: defaultH viene en %.
+            const targetHPercent = fieldDef.defaultH || (canResizeHeight({ ...fieldDef, id: fieldDef.id } as any) ? 10 : 2.5);
+            const fieldHeightPx = (targetHPercent / 100) * containerRect.height;
 
-            if (dropRect) {
-                const relativeX = dropRect.left - containerRect.left;
-                const relativeY = dropRect.top - containerRect.top;
+            // Field.y (Top) = BaselineY - Height
+            const topPx = baselineY - fieldHeightPx;
 
-                // Convertir a %
-                let xPercent = (relativeX / containerRect.width) * 100;
-                let yPercent = (relativeY / containerRect.height) * 100;
+            // Convertir a %
+            let xPercent = (baselineX / containerRect.width) * 100;
+            let yPercent = (topPx / containerRect.height) * 100;
 
-                xPercent = Math.max(0, Math.min(95, xPercent));
-                yPercent = Math.max(0, Math.min(95, yPercent));
+            xPercent = Math.max(0, Math.min(100 - (fieldDef.defaultW || 10), xPercent));
+            yPercent = Math.max(0, Math.min(100 - targetHPercent, yPercent));
 
-                // Crear el nuevo campo
-                const newField: CampoPlantilla = {
-                    id: fieldDef.id, // Allow multiple logos? No, ID must be unique but fieldDef.id for logo isn't unique if we want multiples. But logic says replace if exists. For logo, let's treat it as Singleton for now or standard. Standard logic replaces by ID. User might want only one logo. Logic below: "fields.filter(c => c.id !== fieldDef.id)". So singleton.
-                    etiqueta: fieldDef.etiqueta,
-                    tipo: fieldDef.tipo,
-                    visible: true,
-                    x: xPercent,
-                    y: yPercent,
-                    ancho: fieldDef.defaultW || 15,
-                    alto: fieldDef.defaultH || 5,
-                    src: fieldDef.src // Inherit if any
-                };
+            const newField: CampoPlantilla = {
+                id: fieldDef.id,
+                etiqueta: fieldDef.etiqueta,
+                tipo: fieldDef.tipo,
+                visible: true,
+                x: xPercent,
+                y: yPercent,
+                ancho: fieldDef.defaultW || 15,
+                alto: targetHPercent,
+                src: fieldDef.src
+            };
 
-                // Si ya existe, lo reemplazamos
-                const filtered = campos.filter(c => c.id !== fieldDef.id);
-                setCampos([...filtered, newField]);
+            const filtered = campos.filter(c => c.id !== fieldDef.id);
+            setCampos([...filtered, newField]);
 
-                // Activar modo Resize
-                setPendingResizeFieldId(newField.id);
-            }
+            // Activar modo Resize
+            setPendingResizeFieldId(newField.id);
             return;
         }
 

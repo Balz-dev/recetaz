@@ -11,6 +11,7 @@ import { Search, FileText, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { RecetaCard } from "@/features/recetas/components/RecetaCard"
 import { RecetaDialog } from "./RecetaDialog"
+import { useSearchParams, useRouter } from "next/navigation"
 
 export function RecetaList() {
     const [recetas, setRecetas] = useState<Receta[]>([])
@@ -18,10 +19,15 @@ export function RecetaList() {
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const searchParams = useSearchParams()
+    const router = useRouter()
 
     useEffect(() => {
         loadData()
-    }, [])
+        if (searchParams.get("create") === "true") {
+            setIsDialogOpen(true)
+        }
+    }, []) // Run once on mount, check params
 
     useEffect(() => {
         const search = async () => {
@@ -64,6 +70,22 @@ export function RecetaList() {
     const handleSuccess = () => {
         loadData()
         setIsDialogOpen(false)
+        removeCreateParam()
+    }
+
+    const handleOpenChange = (open: boolean) => {
+        setIsDialogOpen(open)
+        if (!open) {
+            removeCreateParam()
+        }
+    }
+
+    const removeCreateParam = () => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (params.has("create")) {
+            params.delete("create")
+            router.replace(`/recetas?${params.toString()}`)
+        }
     }
 
     return (
@@ -85,7 +107,7 @@ export function RecetaList() {
 
                 <RecetaDialog
                     open={isDialogOpen}
-                    onOpenChange={setIsDialogOpen}
+                    onOpenChange={handleOpenChange}
                     onSuccess={handleSuccess}
                 />
             </div>

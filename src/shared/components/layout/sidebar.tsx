@@ -147,7 +147,7 @@ export function Sidebar() {
 
             {/* Acciones Rápidas */}
             <div className="p-4 border-t border-slate-800 flex flex-col gap-2">
-                <Link href="/recetas/nueva">
+                <Link href="/recetas?create=true">
                     <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white">
                         <PlusCircle size={20} />
                         Nueva Receta
