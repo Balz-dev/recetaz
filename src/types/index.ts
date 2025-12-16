@@ -2,11 +2,11 @@ export interface Paciente {
     id: string;
     nombre: string;
     edad?: number;
-    telefono?: string;
-    email?: string;
     direccion?: string;
     alergias?: string;
     antecedentes?: string;
+    peso?: string; // Permitir "70 kg" o solo "70"
+    talla?: string; // Permitir "1.75 m" o "175 cm"
     createdAt: Date;
     updatedAt: Date;
 }
@@ -39,6 +39,8 @@ export interface Receta {
     pacienteId: string;
     pacienteNombre: string; // Desnormalizado para búsquedas rápidas y persistencia histórica
     pacienteEdad: number;   // Desnormalizado
+    peso?: string;          // Desnormalizado (Snapshot)
+    talla?: string;         // Desnormalizado (Snapshot)
     diagnostico: string;
     medicamentos: Medicamento[];
     instrucciones?: string;
@@ -55,11 +57,11 @@ export type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfigFormData, 'logo'>
 export type PacienteFormData = {
     nombre: string;
     edad?: number;
-    telefono?: string;
-    email?: string;
     direccion?: string;
     alergias?: string;
     antecedentes?: string;
+    peso?: string;
+    talla?: string;
     //cedula?: string;
 };
 export type RecetaFormData = {
@@ -67,9 +69,10 @@ export type RecetaFormData = {
     pacienteId?: string;
     pacienteNombre: string;
     pacienteEdad?: number;
-    pacienteTelefono?: string;
     pacienteDireccion?: string;
     pacienteCedula?: string;
+    pacientePeso?: string;
+    pacienteTalla?: string;
     // Datos de la receta
     diagnostico: string;
     medicamentos: Omit<Medicamento, 'id'>[];
@@ -103,8 +106,9 @@ export interface CampoPlantilla {
     ancho: number;          // Ancho en px o %
     alto?: number;          // Alto en px o % (opcional)
     visible: boolean;       // Si se imprime o no
-    tipo: 'texto' | 'fecha' | 'lista'; // Tipo de dato
+    tipo: 'texto' | 'fecha' | 'lista' | 'imagen'; // Tipo de dato
     ejemplo?: string;       // Texto de ejemplo para previsualización
+    src?: string;           // Base64 para imagenes (Logo)
 }
 
 export interface PlantillaReceta {

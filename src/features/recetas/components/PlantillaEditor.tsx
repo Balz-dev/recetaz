@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
-import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft } from "lucide-react"
+import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -32,6 +32,7 @@ const AVAILABLE_FIELDS_DEF = [
     { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', defaultW: 30, defaultH: 5 },
     { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', defaultW: 30, defaultH: 5 },
     { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', defaultW: 30, defaultH: 5 },
+    { id: 'medico_logo', etiqueta: 'Logo / Imagen', tipo: 'imagen', defaultW: 20, defaultH: 15 },
 
     // Datos del Paciente
     { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'fecha', defaultW: 20, defaultH: 5 },
@@ -41,6 +42,10 @@ const AVAILABLE_FIELDS_DEF = [
     { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', defaultW: 10, defaultH: 5 },
     { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', defaultW: 80, defaultH: 5 },
     { id: 'alergias', etiqueta: 'Alergias', tipo: 'texto', defaultW: 40, defaultH: 5 },
+
+    // Datos de la Receta
+    { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', defaultW: 20, defaultH: 5 },
 
     // Cuerpo de la Receta
     { id: 'medicamento_nombre', etiqueta: 'Medicamento', tipo: 'texto', defaultW: 30, defaultH: 5 },
@@ -55,6 +60,7 @@ const AVAILABLE_FIELDS_DEF = [
     // Legacy / Composites
     { id: 'medicamentos_lista', etiqueta: 'Lista Completa (Tabla)', tipo: 'lista', defaultW: 90, defaultH: 40 },
     { id: 'instrucciones_lista', etiqueta: 'Instrucciones (Bloque)', tipo: 'texto', defaultW: 90, defaultH: 20 },
+    { id: 'sugerencias', etiqueta: 'Sugerencias / Notas', tipo: 'texto', defaultW: 90, defaultH: 10 },
 ] as const;
 
 // Componente Sidebar Draggable
@@ -81,17 +87,20 @@ function SidebarDraggableItem({ field, isAdded }: { field: typeof AVAILABLE_FIEL
 }
 
 // Componente de Campo Arrastrable en Canvas
-function CanvasDraggableField({ field, isSelected, onSelect, onResize, containerRef }: {
+function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef }: {
     field: CampoPlantilla,
     isSelected: boolean,
     onSelect: () => void,
     onResize: (id: string, widthPercent: number, heightPercent: number) => void
+    onUpdate: (id: string, updates: Partial<CampoPlantilla>) => void
     containerRef: React.RefObject<HTMLDivElement | null>
 }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: field.id,
         data: { type: 'canvas', field }
     });
+
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const handleResize = (e: React.SyntheticEvent, data: ResizeCallbackData) => {
         if (!containerRef.current) return;
@@ -102,6 +111,17 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, container
         const newHeightPercent = (data.size.height / containerHeight) * 100;
 
         onResize(field.id, newWidthPercent, newHeightPercent);
+    };
+
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                onUpdate(field.id, { src: reader.result as string });
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     // Convertir porcentajes a pixeles
@@ -159,13 +179,44 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, container
                     isSelected ? 'border-primary bg-primary/10 ring-2 ring-offset-1 ring-primary/50' : 'border-dashed border-slate-400 bg-white/80 hover:border-slate-600'
                 )}
             >
-                <div className="flex items-center w-full h-full overflow-hidden p-2">
-                    <div {...listeners} {...attributes} className="cursor-move mr-2 touch-none flex-shrink-0">
+                <div className="flex items-center w-full h-full overflow-hidden p-2 relative group">
+                    <div {...listeners} {...attributes} className="cursor-move mr-2 touch-none flex-shrink-0 z-10">
                         <GripVertical className="h-4 w-4 text-slate-400 hover:text-slate-600" />
                     </div>
-                    <span className="text-xs font-medium truncate flex-grow text-slate-900 pointer-events-none select-none">
-                        {field.etiqueta}
-                    </span>
+
+                    {field.tipo === 'imagen' ? (
+                        <div className="flex-grow h-full flex items-center justify-center">
+                            {field.src ? (
+                                <img src={field.src} alt="Logo" className="max-w-full max-h-full object-contain pointer-events-none" />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center text-slate-400">
+                                    <ImageIcon className="h-6 w-6 mb-1" />
+                                    <span className="text-[10px] text-center leading-tight">Clic para subir logo</span>
+                                </div>
+                            )}
+
+                            {/* Overlay para click de upload */}
+                            {isSelected && (
+                                <div
+                                    className="absolute inset-0 bg-blue-500/10 cursor-pointer flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <span className="bg-white text-xs px-2 py-1 rounded shadow text-blue-600 font-medium">Cambiar Imagen</span>
+                                </div>
+                            )}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleLogoUpload}
+                            />
+                        </div>
+                    ) : (
+                        <span className="text-xs font-medium truncate flex-grow text-slate-900 pointer-events-none select-none">
+                            {field.etiqueta}
+                        </span>
+                    )}
                 </div>
             </ResizableBox>
         </div>
@@ -319,6 +370,10 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         setCampos(prev => prev.map(f => f.id === id ? { ...f, ancho: widthPercent, alto: heightPercent } : f));
     }
 
+    const handleFieldUpdate = (id: string, updates: Partial<CampoPlantilla>) => {
+        setCampos(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
+    }
+
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
         // Identificar qué se está arrastrando para el Overlay visual
@@ -376,14 +431,15 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                 // Crear el nuevo campo
                 const newField: CampoPlantilla = {
-                    id: fieldDef.id,
+                    id: fieldDef.id, // Allow multiple logos? No, ID must be unique but fieldDef.id for logo isn't unique if we want multiples. But logic says replace if exists. For logo, let's treat it as Singleton for now or standard. Standard logic replaces by ID. User might want only one logo. Logic below: "fields.filter(c => c.id !== fieldDef.id)". So singleton.
                     etiqueta: fieldDef.etiqueta,
                     tipo: fieldDef.tipo,
                     visible: true,
                     x: xPercent,
                     y: yPercent,
-                    ancho: 15,
-                    alto: 5,
+                    ancho: fieldDef.defaultW || 15,
+                    alto: fieldDef.defaultH || 5,
+                    src: fieldDef.src // Inherit if any
                 };
 
                 // Si ya existe, lo reemplazamos
@@ -505,20 +561,47 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             <CardContent className="pt-6 space-y-4">
                                 <h3 className="font-semibold flex items-center"><Layout className="mr-2 h-4 w-4" /> Imagen de Fondo</h3>
                                 <div className="space-y-2">
-                                    <Label>Subir imagen</Label>
-                                    <Input type="file" accept="image/*" onChange={handleImageUpload} />
+                                    <Label>Imagen de la Plantilla</Label>
+                                    <div className="flex flex-col gap-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-auto py-4 border-dashed border-2 flex flex-col gap-2 items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-400 bg-slate-50 hover:bg-blue-50 transition-colors"
+                                            onClick={() => document.getElementById('bg-image-upload')?.click()}
+                                        >
+                                            <Upload className="h-8 w-8 mb-1" />
+                                            <span className="text-sm font-medium">Seleccionar imagen de fondo</span>
+                                            <span className="text-xs text-slate-400">Clic para subir (JPG, PNG)</span>
+                                        </Button>
+                                        <Input
+                                            id="bg-image-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageUpload}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="flex items-center justify-between border p-2 rounded">
+                                <div className="flex items-center justify-between border p-2 rounded bg-slate-50">
                                     <div className="flex flex-col">
-                                        <Label htmlFor="print-bg">Imprimir Fondo</Label>
-                                        <span className="text-xs text-muted-foreground">{imprimirFondo ? "Se imprimirá" : "Solo guía visual"}</span>
+                                        <Label htmlFor="print-bg" className="text-sm font-medium">Imprimir Fondo</Label>
+                                        <span className="text-[10px] text-muted-foreground">{imprimirFondo ? "Se imprimirá en el PDF final" : "Solo visible en editor"}</span>
                                     </div>
                                     <Switch id="print-bg" checked={imprimirFondo} onCheckedChange={setImprimirFondo} />
                                 </div>
                                 {imagenFondo && (
-                                    <div className="mt-2 relative group">
-                                        <img src={imagenFondo} alt="Fondo" className="w-full h-32 object-cover rounded border" />
-                                        <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => setImagenFondo(undefined)}><Trash className="h-3 w-3" /></Button>
+                                    <div className="mt-2 relative group rounded-md overflow-hidden border shadow-sm">
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                            <span className="text-white text-xs font-medium">Vista Previa</span>
+                                        </div>
+                                        <img src={imagenFondo} alt="Fondo" className="w-full h-32 object-cover bg-white" />
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-7 w-7 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={() => setImagenFondo(undefined)}
+                                        >
+                                            <Trash className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 )}
                             </CardContent>
@@ -526,9 +609,27 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                         <Card>
                             <CardContent className="pt-6 space-y-2">
-                                <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Campos Disponibles</h3>
+                                <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Datos Paciente y Tratamiento</h3>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {AVAILABLE_FIELDS_DEF.map(def => {
+                                    {AVAILABLE_FIELDS_DEF.filter(f =>
+                                        f.id.startsWith('paciente_') ||
+                                        ['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id)
+                                    ).map(def => {
+                                        const isAdded = campos.some(c => c.id === def.id);
+                                        return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="pt-6 space-y-2">
+                                <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Datos Médico y Receta</h3>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {AVAILABLE_FIELDS_DEF.filter(f =>
+                                        !f.id.startsWith('paciente_') &&
+                                        !['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id)
+                                    ).map(def => {
                                         const isAdded = campos.some(c => c.id === def.id);
                                         return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
                                     })}
@@ -576,6 +677,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     isSelected={selectedFieldId === field.id || pendingResizeFieldId === field.id}
                                     onSelect={() => setSelectedFieldId(field.id)}
                                     onResize={handleResize}
+                                    onUpdate={handleFieldUpdate}
                                     containerRef={containerRef}
                                 />
                             ))}

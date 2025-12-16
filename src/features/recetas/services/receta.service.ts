@@ -78,6 +78,7 @@ export const recetaService = {
      */
     // Accept form data without the desnormalized patient fields —
     // `pacienteNombre` and `pacienteEdad` will be provided via `pacienteData`.
+    // Updated to optionally accept peso and talla in the form data or use the patient data if available
     async create(data: Omit<RecetaFormData, 'pacienteNombre' | 'pacienteEdad'>, pacienteData: { nombre: string, edad: number }): Promise<string> {
         const numeroReceta = await this.getNextNumeroReceta();
 
@@ -87,6 +88,8 @@ export const recetaService = {
             pacienteId: (data as RecetaFormData).pacienteId!,
             pacienteNombre: pacienteData.nombre,
             pacienteEdad: pacienteData.edad,
+            peso: data.pacientePeso, // Guardar snapshot
+            talla: data.pacienteTalla, // Guardar snapshot
             diagnostico: data.diagnostico,
             medicamentos: data.medicamentos.map(m => ({ ...m, id: uuidv4() })),
             instrucciones: data.instrucciones,

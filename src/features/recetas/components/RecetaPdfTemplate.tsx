@@ -184,29 +184,29 @@ interface RecetaPDFTemplateProps {
 }
 
 export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: RecetaPDFTemplateProps) => {
-    
+
     // Si hay una plantilla activa, usar el renderizado dinámico
     if (plantilla) {
         // Dimensiones basadas en selección. 
         // Carta: 612x792 (Portrait)
         // Media Carta: 612x396 (Horizontal/Landscape) que es el estándar actual del sistema
-        const pageSize: [number, number] = plantilla.tamanoPapel === 'carta' ? [612, 792] : [612, 396]; 
+        const pageSize: [number, number] = plantilla.tamanoPapel === 'carta' ? [612, 792] : [612, 396];
 
         return (
             <Document>
                 <Page size={pageSize} style={{ position: 'relative' }}>
                     {/* Imagen de fondo opcional */}
                     {plantilla.imprimirFondo && plantilla.imagenFondo && (
-                        <Image 
-                            src={plantilla.imagenFondo} 
-                            style={{ 
-                                position: 'absolute', 
-                                top: 0, 
-                                left: 0, 
-                                width: '100%', 
+                        <Image
+                            src={plantilla.imagenFondo}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
                                 height: '100%',
                                 objectFit: 'fill'
-                            }} 
+                            }}
                         />
                     )}
 
@@ -217,8 +217,13 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                         // Mapeo de datos
                         switch (campo.id) {
                             case 'fecha':
-                                content = receta.fechaEmision 
-                                    ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es }) 
+                                content = receta.fechaEmision
+                                    ? format(new Date(receta.fechaEmision), "dd MMM yyyy", { locale: es })
+                                    : "";
+                                break;
+                            case 'receta_fecha':
+                                content = receta.fechaEmision
+                                    ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es })
                                     : "";
                                 break;
                             case 'paciente_nombre':
@@ -231,9 +236,12 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                                 content = receta.diagnostico;
                                 break;
                             case 'instrucciones':
+                            case 'instrucciones_lista':
+                            case 'sugerencias':
                                 content = receta.instrucciones;
                                 break;
                             case 'medicamentos':
+                            case 'medicamentos_lista':
                                 // Renderizado especial para lista
                                 content = (
                                     <View>
@@ -245,6 +253,15 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                                     </View>
                                 );
                                 break;
+                            case 'paciente_peso':
+                                content = receta.peso || paciente.peso || "";
+                                break;
+                            case 'paciente_talla':
+                                content = receta.talla || paciente.talla || "";
+                                break;
+                            case 'receta_folio':
+                                content = receta.numeroReceta;
+                                break;
                             default:
                                 content = "";
                         }
@@ -255,7 +272,7 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                             left: `${campo.x}%`,
                             top: `${campo.y}%`,
                             width: `${campo.ancho}%`,
-                             // Si es lista y tiene alto definido
+                            // Si es lista y tiene alto definido
                             ...(campo.alto ? { height: `${campo.alto}%` } : {}),
                         };
 
