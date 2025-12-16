@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors, Modifier } from "@dnd-kit/core"
+import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, pointerWithin } from "@dnd-kit/core"
 import { restrictToParentElement } from "@dnd-kit/modifiers"
 import { PlantillaReceta, CampoPlantilla, PlantillaRecetaFormData } from "@/types"
 import { plantillaService } from "@/features/recetas/services/plantilla.service"
@@ -14,45 +14,97 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
-import { Loader2, Save, Upload, Layout, Type, GripVertical, Trash, ArrowLeft } from "lucide-react"
+import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 // Tipos de campos disponibles para agregar
 const AVAILABLE_FIELDS_DEF = [
-    { id: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', defaultW: 20, defaultH: 5 },
+    // Datos del Médico
+    { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', defaultW: 40, defaultH: 5 },
+    { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', defaultW: 40, defaultH: 5 },
+    { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', defaultW: 40, defaultH: 5 },
+    { id: 'medico_cedula_gral', etiqueta: 'Cédula (Gral)', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'medico_institucion_esp', etiqueta: 'Institución (Esp)', tipo: 'texto', defaultW: 40, defaultH: 5 },
+    { id: 'medico_cedula_esp', etiqueta: 'Cédula (Esp)', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'medico_domicilio', etiqueta: 'Domicilio Consultorio', tipo: 'texto', defaultW: 60, defaultH: 5 },
+    { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', defaultW: 30, defaultH: 5 },
+    { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', defaultW: 30, defaultH: 5 },
+    { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', defaultW: 30, defaultH: 5 },
+
+    // Datos del Paciente
+    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'fecha', defaultW: 20, defaultH: 5 },
     { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', defaultW: 50, defaultH: 5 },
     { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', defaultW: 10, defaultH: 5 },
+    { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', defaultW: 10, defaultH: 5 },
+    { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', defaultW: 10, defaultH: 5 },
     { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', defaultW: 80, defaultH: 5 },
-    { id: 'medicamentos', etiqueta: 'Lista de Medicamentos', tipo: 'lista', defaultW: 80, defaultH: 40 },
-    { id: 'instrucciones', etiqueta: 'Instrucciones', tipo: 'texto', defaultW: 80, defaultH: 15 },
+    { id: 'alergias', etiqueta: 'Alergias', tipo: 'texto', defaultW: 40, defaultH: 5 },
+
+    // Cuerpo de la Receta
+    { id: 'medicamento_nombre', etiqueta: 'Medicamento', tipo: 'texto', defaultW: 30, defaultH: 5 },
+    { id: 'medicamento_generico', etiqueta: 'Denominación Genérica', tipo: 'texto', defaultW: 30, defaultH: 5 },
+    { id: 'medicamento_marca', etiqueta: 'Marca Comercial', tipo: 'texto', defaultW: 30, defaultH: 5 },
+    { id: 'medicamento_forma', etiqueta: 'Forma Farmacéutica', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'medicamento_dosis', etiqueta: 'Dosis/Concentración', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'medicamento_presentacion', etiqueta: 'Presentación', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'medicamento_via', etiqueta: 'Vía de Admin.', tipo: 'texto', defaultW: 20, defaultH: 5 },
+    { id: 'medicamento_posologia', etiqueta: 'Posología (Instrucciones)', tipo: 'texto', defaultW: 60, defaultH: 10 },
+
+    // Legacy / Composites
+    { id: 'medicamentos_lista', etiqueta: 'Lista Completa (Tabla)', tipo: 'lista', defaultW: 90, defaultH: 40 },
+    { id: 'instrucciones_lista', etiqueta: 'Instrucciones (Bloque)', tipo: 'texto', defaultW: 90, defaultH: 20 },
 ] as const;
 
-// Componente de Campo Arrastrable y Redimensionable
-function DraggableField({ field, isSelected, onSelect, onResize, containerRef }: { 
-    field: CampoPlantilla, 
-    isSelected: boolean, 
+// Componente Sidebar Draggable
+function SidebarDraggableItem({ field, isAdded }: { field: typeof AVAILABLE_FIELDS_DEF[number], isAdded: boolean }) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+        id: `sidebar-${field.id}`,
+        data: { type: 'sidebar', field }
+    });
+
+    return (
+        <div ref={setNodeRef} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50")}>
+            <Button
+                variant={isAdded ? "secondary" : "outline"}
+                className={cn(
+                    "w-full justify-start cursor-grab active:cursor-grabbing",
+                    isAdded && 'bg-blue-50 border-blue-200 text-blue-700'
+                )}
+            >
+                {isAdded ? <Layout className="mr-2 h-4 w-4" /> : <Type className="mr-2 h-4 w-4" />}
+                {field.etiqueta}
+            </Button>
+        </div>
+    )
+}
+
+// Componente de Campo Arrastrable en Canvas
+function CanvasDraggableField({ field, isSelected, onSelect, onResize, containerRef }: {
+    field: CampoPlantilla,
+    isSelected: boolean,
     onSelect: () => void,
     onResize: (id: string, widthPercent: number, heightPercent: number) => void
     containerRef: React.RefObject<HTMLDivElement | null>
 }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: field.id,
-        data: field
+        data: { type: 'canvas', field }
     });
 
     const handleResize = (e: React.SyntheticEvent, data: ResizeCallbackData) => {
         if (!containerRef.current) return;
         const containerWidth = containerRef.current.offsetWidth;
         const containerHeight = containerRef.current.offsetHeight;
-        
+
         const newWidthPercent = (data.size.width / containerWidth) * 100;
         const newHeightPercent = (data.size.height / containerHeight) * 100;
-        
+
         onResize(field.id, newWidthPercent, newHeightPercent);
     };
 
-    // Convertir porcentajes a pixeles para visualización inicial en ResizableBox
+    // Convertir porcentajes a pixeles
     const getPixelDimensions = () => {
         if (!containerRef.current) return { width: 100, height: 30 };
         return {
@@ -60,8 +112,7 @@ function DraggableField({ field, isSelected, onSelect, onResize, containerRef }:
             height: ((field.alto || 5) / 100) * containerRef.current.offsetHeight
         };
     };
-    
-    // Si el contenedor no está listo, usamos valores por defecto seguros
+
     const dims = getPixelDimensions();
 
     const style: React.CSSProperties = {
@@ -77,9 +128,8 @@ function DraggableField({ field, isSelected, onSelect, onResize, containerRef }:
         <div
             ref={setNodeRef}
             style={style}
-            // NO aplicar listeners/attributes al contenedor principal, solo al grip
             onClick={(e) => {
-                e.stopPropagation(); 
+                e.stopPropagation();
                 onSelect();
             }}
             className="absolute"
@@ -91,37 +141,28 @@ function DraggableField({ field, isSelected, onSelect, onResize, containerRef }:
                 draggableOpts={{ enableUserSelectHack: false }}
                 minConstraints={[50, 20]}
                 maxConstraints={[800, 600]}
-                // Manijas de redimensionamiento
+                // Manijas
                 handle={
                     isSelected ? (
-                        <div 
+                        <div
                             className="react-resizable-handle react-resizable-handle-se absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-50 flex items-center justify-center p-1 bg-transparent"
-                            // Detener propagación para evitar iniciar drag al intentar resize
-                            onMouseDown={(e) => e.stopPropagation()} 
+                            onMouseDown={(e) => e.stopPropagation()}
                             onTouchStart={(e) => e.stopPropagation()}
                         >
                             <div className="w-full h-full bg-blue-500 rounded-tl-lg shadow-sm border border-white" />
                         </div>
                     ) : <span />
                 }
-                className={`
-                    flex items-center p-0 rounded 
-                    border-2 select-none overflow-hidden h-full w-full relative
-                    ${isDragging ? 'opacity-80 shadow-2xl scale-105 border-blue-500 bg-blue-50' : ''}
-                    ${isSelected ? 'border-primary bg-primary/10 ring-2 ring-offset-1 ring-primary/50' : 'border-dashed border-slate-400 bg-white/80 hover:border-slate-600'}
-                `}
+                className={cn(
+                    "flex items-center p-0 rounded border-2 select-none overflow-hidden h-full w-full relative transition-colors duration-200",
+                    isDragging ? 'opacity-80 shadow-2xl scale-105 border-blue-500 bg-blue-50' : '',
+                    isSelected ? 'border-primary bg-primary/10 ring-2 ring-offset-1 ring-primary/50' : 'border-dashed border-slate-400 bg-white/80 hover:border-slate-600'
+                )}
             >
-                {/* Zona de contenido y Drag Handle */}
                 <div className="flex items-center w-full h-full overflow-hidden p-2">
-                    {/* El Icono es el Activador del Drag */}
-                    <div 
-                        {...listeners} 
-                        {...attributes} 
-                        className="cursor-move mr-2 touch-none flex-shrink-0"
-                    >
+                    <div {...listeners} {...attributes} className="cursor-move mr-2 touch-none flex-shrink-0">
                         <GripVertical className="h-4 w-4 text-slate-400 hover:text-slate-600" />
                     </div>
-                    
                     <span className="text-xs font-medium truncate flex-grow text-slate-900 pointer-events-none select-none">
                         {field.etiqueta}
                     </span>
@@ -129,6 +170,17 @@ function DraggableField({ field, isSelected, onSelect, onResize, containerRef }:
             </ResizableBox>
         </div>
     );
+}
+
+// Draggable Overlay para visualización mientras se arrastra
+function DragItemOverlay({ field }: { field: any }) {
+    if (!field) return null;
+    return (
+        <div className="bg-white/90 border-2 border-primary shadow-xl rounded p-2 px-4 flex items-center gap-2 w-[200px] cursor-grabbing z-[999] pointer-events-none">
+            <GripVertical className="h-4 w-4 text-slate-400" />
+            <span className="font-medium text-sm truncate">{field.etiqueta}</span>
+        </div>
+    )
 }
 
 interface PlantillaEditorProps {
@@ -147,19 +199,26 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const [imagenFondo, setImagenFondo] = useState<string | undefined>(undefined)
     const [activa, setActiva] = useState(false)
     const [imprimirFondo, setImprimirFondo] = useState(false)
-    
+
     // Estado del Editor
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
     const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
+    const [pendingResizeFieldId, setPendingResizeFieldId] = useState<string | null>(null)
+    const [activeDragItem, setActiveDragItem] = useState<any>(null) // Para el Overlay
+
     const containerRef = useRef<HTMLDivElement>(null)
 
-    // Configuración de Sensores DnD
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
         useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
     )
 
-    // Cargar datos si es edición
+    // Droppable para el canvas (para recibir los items del sidebar)
+    const { setNodeRef: setDroppableRef } = useDroppable({
+        id: 'canvas-drop-area'
+    });
+
+    // Cargar datos
     useEffect(() => {
         if (plantillaId) {
             const loadData = async () => {
@@ -187,81 +246,170 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         }
     }, [plantillaId, router, toast])
 
-    // Manejo de Imagen
+    // Lógica "Drop-to-Resize" (Move & Second Click)
+    useEffect(() => {
+        if (!pendingResizeFieldId) return;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!containerRef.current) return;
+            const fieldIndex = campos.findIndex(c => c.id === pendingResizeFieldId);
+            if (fieldIndex === -1) return;
+            const field = campos[fieldIndex];
+
+            const containerRect = containerRef.current.getBoundingClientRect();
+
+            // Posición Top-Left del campo en pixeles absolutos
+            const fieldLeftPx = (field.x / 100) * containerRect.width;
+            const fieldTopPx = (field.y / 100) * containerRect.height;
+
+            // Posición del mouse relativa al contenedor
+            const mouseRelX = e.clientX - containerRect.left;
+            const mouseRelY = e.clientY - containerRect.top;
+
+            // Calcular nuevo ancho/alto asegurando mínimos
+            // Permitimos "estirar" hacia derecha y abajo por simplicidad
+            const newWidthPx = Math.max(30, mouseRelX - fieldLeftPx);
+            const newHeightPx = Math.max(20, mouseRelY - fieldTopPx);
+
+            // Convertir a porcentajes
+            const newWidthPercent = (newWidthPx / containerRect.width) * 100;
+            const newHeightPercent = (newHeightPx / containerRect.height) * 100;
+
+            // Actualizar estado (sin disparar re-render de todo si es posible, pero React necesita state update)
+            setCampos(prev => prev.map(f => {
+                if (f.id === pendingResizeFieldId) {
+                    return { ...f, ancho: newWidthPercent, alto: newHeightPercent };
+                }
+                return f;
+            }));
+        };
+
+        const handleClick = (e: MouseEvent) => {
+            // El segundo click finaliza el redimensionado
+            e.stopPropagation();
+            setPendingResizeFieldId(null);
+            setSelectedFieldId(pendingResizeFieldId); // Dejarlo seleccionado
+            toast({ title: "Campo colocado", description: "Puede ajustar la posición o tamaño manualmente ahora.", duration: 2000 });
+        };
+
+        // Delay para evitar que el 'MouseUp' del drop dispare inmediatamente el click (aunque click es MouseDown+Up)
+        // Agregamos listeners con un pequeño timeout
+        const timer = setTimeout(() => {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('click', handleClick, { capture: true, once: true });
+        }, 100);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('click', handleClick, { capture: true });
+        };
+    }, [pendingResizeFieldId, campos]); // deps updated
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
             const reader = new FileReader()
-            reader.onloadend = () => {
-                setImagenFondo(reader.result as string)
-            }
+            reader.onloadend = () => setImagenFondo(reader.result as string)
             reader.readAsDataURL(file)
         }
     }
 
-    // Manejo de Campos
-    const toggleField = (fieldDefId: string) => {
-        const existingIndex = campos.findIndex(c => c.id === fieldDefId)
-        
-        if (existingIndex >= 0) {
-            // Eliminar campo
-            const newCampos = [...campos]
-            newCampos.splice(existingIndex, 1)
-            setCampos(newCampos)
-            if (selectedFieldId === fieldDefId) setSelectedFieldId(null)
-        } else {
-            // Agregar campo
-            const def = AVAILABLE_FIELDS_DEF.find(f => f.id === fieldDefId)
-            if (def) {
-                setCampos([...campos, {
-                    id: def.id,
-                    etiqueta: def.etiqueta,
-                    tipo: def.tipo as any,
-                    visible: true,
-                    x: 10, // Posición inicial por defecto
-                    y: 10 + (campos.length * 10),
-                    ancho: def.defaultW,
-                    alto: def.defaultH
-                }])
-            }
-        }
+    const handleResize = (id: string, widthPercent: number, heightPercent: number) => {
+        setCampos(prev => prev.map(f => f.id === id ? { ...f, ancho: widthPercent, alto: heightPercent } : f));
     }
 
-    // Manejo de Resizing
-    const handleResize = (id: string, widthPercent: number, heightPercent: number) => {
-        setCampos(prev => prev.map(f => {
-            if (f.id === id) {
-                return { ...f, ancho: widthPercent, alto: heightPercent };
-            }
-            return f;
-        }));
+    const handleDragStart = (event: DragStartEvent) => {
+        const { active } = event;
+        // Identificar qué se está arrastrando para el Overlay visual
+        if (String(active.id).startsWith('sidebar-')) {
+            setActiveDragItem(active.data.current?.field);
+        } else {
+            // Es un campo del canvas
+            setActiveDragItem(active.data.current?.field);
+        }
     };
 
-    // Manejo de Drag End
     const handleDragEnd = (event: DragEndEvent) => {
-        const { active, delta } = event;
-        
+        const { active, delta, over } = event;
+        setActiveDragItem(null);
+
+        // Si soltamos fuera del contexto válido, verificar si estamos sobre el canvas
         if (!containerRef.current) return;
-        
+
         const containerRect = containerRef.current.getBoundingClientRect();
-        
-        // Convertir delta (px) a porcentaje relativo al contenedor
+
+        // CASO 1: Nuevo Item desde Sidebar
+        if (String(active.id).startsWith('sidebar-')) {
+            // Si no detectamos 'over', pero el mouse está geométricamente dentro del canvas, lo aceptamos manual.
+            const isOverCanvas = over && over.id === 'canvas-drop-area';
+
+            if (!isOverCanvas) {
+                // Check geometry fallback
+                // active.rect.current.translated es la posición final del elemento DRAGGED
+                const finalRect = active.rect.current?.translated;
+                if (!finalRect) return;
+
+                // Verificar intersección simple con el canvas
+                const isInsideX = finalRect.left + finalRect.width / 2 >= containerRect.left && finalRect.left + finalRect.width / 2 <= containerRect.right;
+                const isInsideY = finalRect.top + finalRect.height / 2 >= containerRect.top && finalRect.top + finalRect.height / 2 <= containerRect.bottom;
+
+                if (!isInsideX || !isInsideY) return;
+            }
+
+            const fieldDef = active.data.current?.field;
+            if (!fieldDef) return;
+
+            // Calcular posición de dropeo relativa al canvas
+            const dropRect = active.rect.current?.translated;
+
+            if (dropRect) {
+                const relativeX = dropRect.left - containerRect.left;
+                const relativeY = dropRect.top - containerRect.top;
+
+                // Convertir a %
+                let xPercent = (relativeX / containerRect.width) * 100;
+                let yPercent = (relativeY / containerRect.height) * 100;
+
+                xPercent = Math.max(0, Math.min(95, xPercent));
+                yPercent = Math.max(0, Math.min(95, yPercent));
+
+                // Crear el nuevo campo
+                const newField: CampoPlantilla = {
+                    id: fieldDef.id,
+                    etiqueta: fieldDef.etiqueta,
+                    tipo: fieldDef.tipo,
+                    visible: true,
+                    x: xPercent,
+                    y: yPercent,
+                    ancho: 15,
+                    alto: 5,
+                };
+
+                // Si ya existe, lo reemplazamos
+                const filtered = campos.filter(c => c.id !== fieldDef.id);
+                setCampos([...filtered, newField]);
+
+                // Activar modo Resize
+                setPendingResizeFieldId(newField.id);
+            }
+            return;
+        }
+
+        // CASO 2: Mover Item Existente en Canvas
         const deltaXPercent = (delta.x / containerRect.width) * 100;
         const deltaYPercent = (delta.y / containerRect.height) * 100;
 
         setCampos(prev => prev.map(field => {
             if (field.id === active.id) {
-                // Calcular nueva posición limitando entre 0 y 100 (aprox)
                 let newX = Math.max(0, Math.min(100 - field.ancho, field.x + deltaXPercent));
                 let newY = Math.max(0, Math.min(100 - (field.alto || 5), field.y + deltaYPercent));
-                
                 return { ...field, x: newX, y: newY };
             }
             return field;
         }));
     };
 
-    // Guardar
     const handleSave = async () => {
         if (!nombre.trim()) {
             toast({ title: "Falta nombre", description: "Por favor asigne un nombre a la plantilla", variant: "destructive" })
@@ -271,18 +419,11 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             toast({ title: "Sin campos", description: "Agregue al menos un campo a la plantilla", variant: "destructive" })
             return
         }
-
         setIsSaving(true)
         try {
             const formData: PlantillaRecetaFormData = {
-                nombre,
-                tamanoPapel,
-                imagenFondo,
-                activa,
-                imprimirFondo,
-                campos
+                nombre, tamanoPapel, imagenFondo, activa, imprimirFondo, campos
             }
-
             if (plantillaId) {
                 await plantillaService.update(plantillaId, formData)
                 toast({ title: "Actualizado", description: "Plantilla actualizada correctamente" })
@@ -299,166 +440,140 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         }
     }
 
-    // Dimensiones del papel (Relación de aspecto)
-    // Carta: 8.5 x 11 (0.77), Media Carta: 5.5 x 8.5 (0.647)
-    // Usamos style inline para mayor precisión y compatibilidad
-
-
     if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin h-8 w-8" /></div>;
 
+    const paperAspect = tamanoPapel === 'carta' ? '8.5/11' : '8.5/5.5';
+
     return (
-        <div className="h-[calc(100vh-100px)] flex flex-col gap-4">
-            {/* Header de Acciones */}
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-4">
-                    <Link href="/recetas/plantillas">
-                        <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
-                    </Link>
-                    <div>
-                        <h2 className="text-xl font-bold">{plantillaId ? "Editar Plantilla" : "Diseñar Nueva Plantilla"}</h2>
-                        <div className="text-sm text-slate-500">Arrastre los campos para coincidir con su papel membretado</div>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={pointerWithin} // Usa detección simple por puntero
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+        >
+            <div className="h-[calc(100vh-100px)] flex flex-col gap-4">
+                <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border">
+                    <div className="flex items-center gap-4">
+                        <Link href="/recetas/plantillas">
+                            <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
+                        </Link>
+                        <div>
+                            <h2 className="text-xl font-bold">{plantillaId ? "Editar Plantilla" : "Diseñar Nueva Plantilla"}</h2>
+                            <div className="text-sm text-slate-500">
+                                Drag & Drop: Suelte el campo y mueva el mouse para ajustar tamaño. Click para fijar.
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Link href="/recetas/plantillas">
+                            <Button variant="outline">Cancelar</Button>
+                        </Link>
+                        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600">
+                            {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+                            Guardar Plantilla
+                        </Button>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Link href="/recetas/plantillas">
-                        <Button variant="outline">Cancelar</Button>
-                    </Link>
-                    <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600">
-                        {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-                        Guardar Plantilla
-                    </Button>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
-                {/* Panel Izquierdo: Configuración */}
-                <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 pb-10">
-                    <Card>
-                        <CardContent className="pt-6 space-y-4">
-                            <div className="space-y-2">
-                                <Label>Nombre de Plantilla</Label>
-                                <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Receta Privada 2024" />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Tamaño de Papel</Label>
-                                <Select value={tamanoPapel} onValueChange={(v: any) => setTamanoPapel(v)}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="carta">Carta (8.5 x 11 in)</SelectItem>
-                                        <SelectItem value="media_carta">Media Carta - Horizontal (8.5 x 5.5 in)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="flex items-center justify-between space-x-2 border p-2 rounded">
-                                <div className="flex flex-col">
-                                    <Label className="cursor-pointer" htmlFor="active-mode">Plantilla Activa</Label>
-                                    <span className="text-xs text-muted-foreground">Usar por defecto</span>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
+                    <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 pb-10">
+                        {/* Config Panels */}
+                        <Card>
+                            <CardContent className="pt-6 space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Nombre de Plantilla</Label>
+                                    <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Receta Privada" />
                                 </div>
-                                <Switch id="active-mode" checked={activa} onCheckedChange={setActiva} />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="pt-6 space-y-4">
-                            <h3 className="font-semibold flex items-center"><Layout className="mr-2 h-4 w-4" /> Imagen de Fondo</h3>
-                            
-                            <div className="space-y-2">
-                                <Label>Subir imagen (escaneo de receta)</Label>
-                                <Input type="file" accept="image/*" onChange={handleImageUpload} />
-                                <p className="text-xs text-muted-foreground">Suba una foto o escaneo de su hoja pre-impresa.</p>
-                            </div>
-
-                            <div className="flex items-center justify-between space-x-2 border p-2 rounded">
-                                <div className="flex flex-col">
-                                    <Label className="cursor-pointer" htmlFor="print-bg">Imprimir Fondo</Label>
-                                    <span className="text-xs text-muted-foreground">
-                                        {imprimirFondo ? "Se imprimirá la imagen" : "Solo guía visual (hoja pre-impresa)"}
-                                    </span>
+                                <div className="space-y-2">
+                                    <Label>Tamaño de Papel</Label>
+                                    <Select value={tamanoPapel} onValueChange={(v: any) => setTamanoPapel(v)}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="carta">Carta (8.5 x 11 in)</SelectItem>
+                                            <SelectItem value="media_carta">Media Carta (8.5 x 5.5 in)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <Switch id="print-bg" checked={imprimirFondo} onCheckedChange={setImprimirFondo} />
-                            </div>
-
-                            {imagenFondo && (
-                                <div className="mt-2 relative group">
-                                    <img src={imagenFondo} alt="Fondo" className="w-full h-32 object-cover rounded border" />
-                                    <Button 
-                                        variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        onClick={() => setImagenFondo(undefined)}
-                                    >
-                                        <Trash className="h-3 w-3" />
-                                    </Button>
+                                <div className="flex items-center justify-between border p-2 rounded">
+                                    <Label htmlFor="active" className="cursor-pointer">Plantilla Activa</Label>
+                                    <Switch id="active" checked={activa} onCheckedChange={setActiva} />
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    <Card>
-                        <CardContent className="pt-6 space-y-2">
-                            <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Campos Disponibles</h3>
-                            <div className="grid grid-cols-1 gap-2">
-                                {AVAILABLE_FIELDS_DEF.map(def => {
-                                    const isAdded = campos.some(c => c.id === def.id);
-                                    return (
-                                        <Button
-                                            key={def.id}
-                                            variant={isAdded ? "secondary" : "outline"}
-                                            className={`justify-start ${isAdded ? 'bg-blue-50 border-blue-200 text-blue-700' : ''}`}
-                                            onClick={() => toggleField(def.id)}
-                                        >
-                                            {isAdded ? <Layout className="mr-2 h-4 w-4" /> : <Type className="mr-2 h-4 w-4" />}
-                                            {def.etiqueta}
-                                            {isAdded && <span className="ml-auto text-xs text-blue-500">Agregado</span>}
-                                        </Button>
-                                    );
-                                })}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                        <Card>
+                            <CardContent className="pt-6 space-y-4">
+                                <h3 className="font-semibold flex items-center"><Layout className="mr-2 h-4 w-4" /> Imagen de Fondo</h3>
+                                <div className="space-y-2">
+                                    <Label>Subir imagen</Label>
+                                    <Input type="file" accept="image/*" onChange={handleImageUpload} />
+                                </div>
+                                <div className="flex items-center justify-between border p-2 rounded">
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="print-bg">Imprimir Fondo</Label>
+                                        <span className="text-xs text-muted-foreground">{imprimirFondo ? "Se imprimirá" : "Solo guía visual"}</span>
+                                    </div>
+                                    <Switch id="print-bg" checked={imprimirFondo} onCheckedChange={setImprimirFondo} />
+                                </div>
+                                {imagenFondo && (
+                                    <div className="mt-2 relative group">
+                                        <img src={imagenFondo} alt="Fondo" className="w-full h-32 object-cover rounded border" />
+                                        <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => setImagenFondo(undefined)}><Trash className="h-3 w-3" /></Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
 
-                {/* Área Central: Canvas */}
-                <div className="lg:col-span-2 bg-slate-100 rounded-lg border shadow-inner overflow-auto p-8 flex items-start justify-center relative">
-                    <DndContext 
-                        sensors={sensors}
-                        modifiers={[restrictToParentElement]}
-                        onDragEnd={handleDragEnd}
+                        <Card>
+                            <CardContent className="pt-6 space-y-2">
+                                <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Campos Disponibles</h3>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {AVAILABLE_FIELDS_DEF.map(def => {
+                                        const isAdded = campos.some(c => c.id === def.id);
+                                        return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Canvas Area */}
+                    <div
+                        className="lg:col-span-2 bg-slate-100 rounded-lg border shadow-inner overflow-auto p-8 flex items-start justify-center relative touch-none"
                     >
-                        <div 
-                            ref={containerRef}
-                            className="relative bg-white shadow-lg transition-all duration-300"
-                            style={{ 
-                                width: '100%', 
-                                maxWidth: '800px', 
-                                aspectRatio: tamanoPapel === 'carta' ? '8.5/11' : '8.5/5.5'
+                        {/* Wrapper for Droppable */}
+                        <div
+                            ref={(node) => {
+                                containerRef.current = node;
+                                setDroppableRef(node);
                             }}
-                            onClick={() => setSelectedFieldId(null)}
-                        >
-                            {/* Imagen de Fondo */}
-                            {imagenFondo && (
-                                <img 
-                                    src={imagenFondo} 
-                                    className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-50" 
-                                    alt="Guía de fondo"
-                                />
+                            className={cn(
+                                "relative bg-white shadow-lg transition-all duration-300",
+                                pendingResizeFieldId && "cursor-crosshair ring-2 ring-blue-400 ring-offset-4" // Visual cue for resizing
                             )}
-                            
-                            {/* Grid / Guías (Opcional) */}
+                            style={{
+                                width: '100%',
+                                maxWidth: '800px',
+                                aspectRatio: paperAspect
+                            }}
+                            onClick={() => {
+                                if (!pendingResizeFieldId) setSelectedFieldId(null)
+                            }}
+                        >
+                            {imagenFondo && (
+                                <img src={imagenFondo} className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-50" alt="Guía" />
+                            )}
+
                             <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 pointer-events-none opacity-10">
                                 {[...Array(10)].map((_, i) => <div key={`v-${i}`} className="border-r border-black h-full" />)}
                                 {[...Array(10)].map((_, i) => <div key={`h-${i}`} className="border-b border-black w-full" />)}
                             </div>
 
-                            {/* Campos Draggable */}
                             {campos.map(field => (
-                                <DraggableField 
-                                    key={field.id} 
-                                    field={field} 
-                                    isSelected={selectedFieldId === field.id}
+                                <CanvasDraggableField
+                                    key={field.id}
+                                    field={field}
+                                    isSelected={selectedFieldId === field.id || pendingResizeFieldId === field.id}
                                     onSelect={() => setSelectedFieldId(field.id)}
                                     onResize={handleResize}
                                     containerRef={containerRef}
@@ -469,14 +584,19 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 <div className="absolute inset-0 flex items-center justify-center text-slate-300 pointer-events-none">
                                     <div className="text-center">
                                         <Layout className="h-16 w-16 mx-auto mb-2" />
-                                        <p>Agregue campos desde el panel izquierdo</p>
+                                        <p>Arrastre campos aquí</p>
                                     </div>
                                 </div>
                             )}
                         </div>
-                    </DndContext>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {/* Overlay para arrastre visual suave */}
+            <DragOverlay>
+                {activeDragItem ? <DragItemOverlay field={activeDragItem} /> : null}
+            </DragOverlay>
+        </DndContext>
     )
 }
