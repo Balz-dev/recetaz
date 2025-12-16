@@ -197,7 +197,7 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
                                 checked={imprimirFondo}
                                 onCheckedChange={handleImprimirFondoChange}
                             />
-                            <Label htmlFor="preview-bg-toggle" className="text-sm cursor-pointer">Fondo</Label>
+                            <Label htmlFor="preview-bg-toggle" className="text-sm cursor-pointer">Imprimir en hoja membretada</Label>
                         </div>
                     )}
                 </div>

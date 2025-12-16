@@ -86,6 +86,43 @@ function SidebarDraggableItem({ field, isAdded }: { field: typeof AVAILABLE_FIEL
     )
 }
 
+// Helper para texto de ejemplo
+function getExampleText(id: string): string {
+    const examples: Record<string, string> = {
+        medico_nombre: "Dr. Juan Pérez",
+        medico_especialidad: "Cardiología Clínica",
+        medico_institucion_gral: "Universidad Nacional",
+        medico_cedula_gral: "12345678",
+        medico_institucion_esp: "Hospital General",
+        medico_cedula_esp: "87654321",
+        medico_domicilio: "Av. Reforma 123, Col. Centro, CDMX",
+        medico_contacto: "55 1234 5678",
+        medico_correo: "dr.juan@email.com",
+        medico_web: "www.drjuan.com",
+        fecha: "16 Oct 2025",
+        paciente_nombre: "María González López",
+        paciente_edad: "34 años",
+        paciente_peso: "68 kg",
+        paciente_talla: "1.65 m",
+        diagnostico: "Infección Respiratoria Aguda",
+        alergias: "Penicilina, Sulfa",
+        receta_folio: "12345",
+        receta_fecha: "16/10/2025",
+        medicamento_nombre: "Amoxicilina",
+        medicamento_generico: "Amoxicilina",
+        medicamento_marca: "Amoxil",
+        medicamento_forma: "Cápsulas",
+        medicamento_dosis: "500 mg",
+        medicamento_presentacion: "Caja con 12",
+        medicamento_via: "Oral",
+        medicamento_posologia: "Tomar 1 cápsula cada 8 horas por 7 días...",
+        medicamentos_lista: "• Amoxicilina - 500mg\n• Paracetamol - 500mg",
+        instrucciones_lista: "Beber abundantes líquidos.\nReposo relativo.",
+        sugerencias: "Evitar cambios bruscos de temperatura."
+    };
+    return examples[id] || "Texto de ejemplo";
+}
+
 // Componente de Campo Arrastrable en Canvas
 function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef }: {
     field: CampoPlantilla,
@@ -174,28 +211,44 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                     ) : <span />
                 }
                 className={cn(
-                    "flex items-center p-0 rounded border-2 select-none overflow-hidden h-full w-full relative transition-colors duration-200",
-                    isDragging ? 'opacity-80 shadow-2xl scale-105 border-blue-500 bg-blue-50' : '',
-                    isSelected ? 'border-primary bg-primary/10 ring-2 ring-offset-1 ring-primary/50' : 'border-dashed border-slate-400 bg-white/80 hover:border-slate-600'
+                    "flex items-start p-0 select-none overflow-hidden h-full w-full relative transition-colors duration-200 group",
+                    // Solo mostramos borde si está seleccionado o arrastrando, o hover suave
+                    isDragging ? 'opacity-80 shadow-2xl scale-105 border border-blue-500 bg-blue-50/50' : '',
+                    isSelected ? 'border border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-slate-50/50 hover:border hover:border-dashed hover:border-slate-300'
                 )}
             >
-                <div className="flex items-center w-full h-full overflow-hidden p-2 relative group">
-                    <div {...listeners} {...attributes} className="cursor-move mr-2 touch-none flex-shrink-0 z-10">
-                        <GripVertical className="h-4 w-4 text-slate-400 hover:text-slate-600" />
+                {/* Visual Anchor Point (Esquina superior izquierda, donde empieza a renderizar el PDF) */}
+                <div className={cn(
+                    "absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-red-500 z-50 -translate-x-[1px] -translate-y-[1px]",
+                    !isSelected && "opacity-0 group-hover:opacity-50"
+                )} />
+                <div className={cn(
+                    "absolute -top-3 -left-1 text-[8px] text-red-500 bg-white px-1 rounded shadow-sm pointer-events-none whitespace-nowrap",
+                    !isSelected && "hidden"
+                )}>
+                    {field.etiqueta}
+                </div>
+
+                <div className="flex w-full h-full overflow-hidden relative">
+                    {/* Grip handle solo visible en hover/selection para no ensuciar la vista */}
+                    <div {...listeners} {...attributes} className={cn(
+                        "cursor-move absolute top-0 right-0 p-1 touch-none z-20 opacity-0 group-hover:opacity-100 transition-opacity",
+                        isSelected && "opacity-100"
+                    )}>
+                        <GripVertical className="h-4 w-4 text-slate-400 bg-white/80 rounded" />
                     </div>
 
                     {field.tipo === 'imagen' ? (
-                        <div className="flex-grow h-full flex items-center justify-center">
+                        <div className="flex-grow h-full flex items-center justify-center border border-dashed border-slate-300 m-1 bg-slate-50/50">
                             {field.src ? (
                                 <img src={field.src} alt="Logo" className="max-w-full max-h-full object-contain pointer-events-none" />
                             ) : (
                                 <div className="flex flex-col items-center justify-center text-slate-400">
                                     <ImageIcon className="h-6 w-6 mb-1" />
-                                    <span className="text-[10px] text-center leading-tight">Clic para subir logo</span>
+                                    <span className="text-[10px] text-center leading-tight">Logo</span>
                                 </div>
                             )}
 
-                            {/* Overlay para click de upload */}
                             {isSelected && (
                                 <div
                                     className="absolute inset-0 bg-blue-500/10 cursor-pointer flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
@@ -213,9 +266,21 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                             />
                         </div>
                     ) : (
-                        <span className="text-xs font-medium truncate flex-grow text-slate-900 pointer-events-none select-none">
-                            {field.etiqueta}
-                        </span>
+                        <div className="w-full h-full p-[2px]">
+                            {/* Renderizado simulado de texto tipo PDF */}
+                            <span
+                                style={{
+                                    fontFamily: 'Helvetica, Arial, sans-serif',
+                                    fontSize: '10px', // Aproximando el tamaño 10pt del PDF
+                                    lineHeight: '1.2',
+                                    color: '#000',
+                                    whiteSpace: 'pre-wrap'
+                                }}
+                                className="pointer-events-none block"
+                            >
+                                {getExampleText(field.id)}
+                            </span>
+                        </div>
                     )}
                 </div>
             </ResizableBox>
