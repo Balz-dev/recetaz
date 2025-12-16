@@ -46,3 +46,4 @@ Para completar la migración a Monorepo real, se requiere acceso al directorio r
 1. Crear la carpeta `packages/` al mismo nivel que `apps/`.
 2. Mover `ui`, `database`, y `fixtures` a paquetes compartidos.
 3. Configurar `turbo.json` para orquestar las tareas de compilación.
+opciuon

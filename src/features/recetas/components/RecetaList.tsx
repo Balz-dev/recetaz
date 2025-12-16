@@ -10,12 +10,14 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { Search, FileText, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { RecetaCard } from "@/features/recetas/components/RecetaCard"
+import { RecetaDialog } from "./RecetaDialog"
 
 export function RecetaList() {
     const [recetas, setRecetas] = useState<Receta[]>([])
     const [pacientes, setPacientes] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
 
     useEffect(() => {
         loadData()
@@ -59,6 +61,11 @@ export function RecetaList() {
         }
     }
 
+    const handleSuccess = () => {
+        loadData()
+        setIsDialogOpen(false)
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
@@ -71,12 +78,16 @@ export function RecetaList() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Link href="/recetas/nueva" className="w-full sm:w-auto">
-                    <Button className="w-full gap-2">
-                        <PlusCircle size={18} />
-                        Nueva Receta
-                    </Button>
-                </Link>
+                <Button className="w-full gap-2" onClick={() => setIsDialogOpen(true)}>
+                    <PlusCircle size={18} />
+                    Nueva Receta
+                </Button>
+
+                <RecetaDialog
+                    open={isDialogOpen}
+                    onOpenChange={setIsDialogOpen}
+                    onSuccess={handleSuccess}
+                />
             </div>
 
             {loading ? (
@@ -93,9 +104,7 @@ export function RecetaList() {
                                 Crea tu primera receta médica para un paciente registrado.
                             </p>
                         </div>
-                        <Link href="/recetas/nueva">
-                            <Button variant="outline">Crear Receta</Button>
-                        </Link>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(true)}>Crear Receta</Button>
                     </CardContent>
                 </Card>
             ) : (

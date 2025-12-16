@@ -51,6 +51,7 @@ const recetaFormSchema = z.object({
 interface RecetaFormProps {
     preSelectedPacienteId?: string;
     onCancel?: () => void;
+    onSuccess?: (recetaId: string) => void;
 }
 
 /**
@@ -59,8 +60,9 @@ interface RecetaFormProps {
  * Búsqueda en tiempo real mientras escribe.
  * @param props.preSelectedPacienteId ID opcional para pre-cargar un paciente
  * @param props.onCancel Callback para cancelar la operación
+ * @param props.onSuccess Callback ejecutado al crear la receta con éxito (evita redirección automática)
  */
-export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps) {
+export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: RecetaFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])
     const [filteredPacientes, setFilteredPacientes] = useState<Paciente[]>([])
@@ -262,8 +264,12 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
                 description: `Receta guardada correctamente.`,
             })
 
-            // Redirigir a la receta creada
-            router.push(`/recetas/${recetaId}`)
+            if (onSuccess) {
+                onSuccess(recetaId)
+            } else {
+                // Redirigir a la receta creada si no hay callback
+                router.push(`/recetas/${recetaId}`)
+            }
         } catch (error) {
             console.error(error)
             toast({
@@ -279,14 +285,16 @@ export function RecetaForm({ preSelectedPacienteId, onCancel }: RecetaFormProps)
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="flex items-center gap-4 mb-6">
-                    <Link href="/recetas">
-                        <Button variant="ghost" size="icon" type="button">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                    </Link>
-                    <h2 className="text-xl font-semibold">Nueva Receta Médica</h2>
-                </div>
+                {!onCancel && (
+                    <div className="flex items-center gap-4 mb-6">
+                        <Link href="/recetas">
+                            <Button variant="ghost" size="icon" type="button">
+                                <ArrowLeft className="h-5 w-5" />
+                            </Button>
+                        </Link>
+                        <h2 className="text-xl font-semibold">Nueva Receta Médica</h2>
+                    </div>
+                )}
 
                 <div className="grid gap-6">
                     {/* Selección/Búsqueda de Paciente y Diagnóstico */}
