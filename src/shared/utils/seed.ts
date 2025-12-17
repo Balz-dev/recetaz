@@ -552,7 +552,7 @@ function generarPlantillas(): PlantillaReceta[] {
     const now = new Date();
 
     // Imagen base64 simplificada para demo (usar URL relativa en producción real si se prefiere)
-    // Para este caso, asumimos que obtendrá la imagen de /membrete-demo.jpg    // NOTA: En una implementación real de Dexie con imágenes de fondo, 
+    // Para este caso, asumimos que obtendrá la imagen de /membrete-demo.png    // NOTA: En una implementación real de Dexie con imágenes de fondo, 
     // idealmente convertimos la imagen a Base64. 
     // Como esto es un seed síncrono/rápido, dejaremos el campo imagenFondo vacío
     // o con un placeholder, ya que la lógica de impresión suele requerir Base64.
@@ -566,7 +566,7 @@ function generarPlantillas(): PlantillaReceta[] {
             tamanoPapel: 'carta',
             activa: true,
             imprimirFondo: true,
-            imagenFondo: '/membrete-demo.jpg', // Referencia a la imagen en public
+            imagenFondo: '/membrete-demo.png', // Referencia a la imagen en public
             createdAt: now,
             updatedAt: now,
             campos: [
@@ -583,7 +583,7 @@ function generarPlantillas(): PlantillaReceta[] {
             tamanoPapel: 'media_carta',
             activa: false,
             imprimirFondo: true,
-            imagenFondo: '/membrete-demo.jpg',
+            imagenFondo: '/membrete-demo.png',
             createdAt: now,
             updatedAt: now,
             campos: [
