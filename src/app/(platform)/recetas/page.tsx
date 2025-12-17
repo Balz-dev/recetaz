@@ -2,6 +2,7 @@ import { RecetaList } from "@/features/recetas/components/RecetaList";
 import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
 import { Settings } from "lucide-react";
+import { Suspense } from "react";
 
 export default function RecetasPage() {
     return (
@@ -21,7 +22,9 @@ export default function RecetasPage() {
                 </Link>
             </div>
 
-            <RecetaList />
+            <Suspense fallback={<div>Cargando listado...</div>}>
+                <RecetaList />
+            </Suspense>
         </div>
     );
 }
