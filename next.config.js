@@ -2,7 +2,7 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: false, // Enable in development for testing offline support as per plan
+  disable: false,
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
@@ -130,16 +130,15 @@ const withPWA = require('next-pwa')({
       },
     },
     {
-        urlPattern: ({ url }) => url.pathname.startsWith('/'),
-        handler: 'NetworkFirst', // Prefer network for latest data, fallback to cache for offline
-        options: {
-            cacheName: 'pages',
-            expiration: {
-                maxEntries: 32,
-                maxAgeSeconds: 24 * 60 * 60, // 24 hours
-            },
-            networkTimeoutSeconds: 10, // Wait 10s for network then fallback to cache
-        }
+      urlPattern: ({ url }) => url.pathname.startsWith('/'),
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'pages',
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
     }
   ],
 });
