@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, pointerWithin } from "@dnd-kit/core"
+import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, pointerWithin, Modifier } from "@dnd-kit/core"
 import { restrictToParentElement } from "@dnd-kit/modifiers"
 import { PlantillaReceta, CampoPlantilla, PlantillaRecetaFormData } from "@/types"
 import { plantillaService } from "@/features/recetas/services/plantilla.service"
@@ -350,7 +350,7 @@ function DragItemOverlay({ field }: { field: any }) {
                 <div
                     style={{
                         fontFamily: 'Helvetica, Arial, sans-serif',
-                        fontSize: '10px',
+                        fontSize: '14px',
                         lineHeight: '1',
                         color: '#000',
                         whiteSpace: 'nowrap',
@@ -388,7 +388,6 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     // Estado del Editor
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
     const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
-    const [pendingResizeFieldId, setPendingResizeFieldId] = useState<string | null>(null)
     const [activeDragItem, setActiveDragItem] = useState<any>(null) // Para el Overlay
 
     const containerRef = useRef<HTMLDivElement>(null)
@@ -431,65 +430,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         }
     }, [plantillaId, router, toast])
 
-    // Lógica "Drop-to-Resize" (Move & Second Click)
-    useEffect(() => {
-        if (!pendingResizeFieldId) return;
 
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!containerRef.current) return;
-            const fieldIndex = campos.findIndex(c => c.id === pendingResizeFieldId);
-            if (fieldIndex === -1) return;
-            const field = campos[fieldIndex];
-
-            const containerRect = containerRef.current.getBoundingClientRect();
-
-            // Posición Top-Left del campo en pixeles absolutos
-            const fieldLeftPx = (field.x / 100) * containerRect.width;
-            const fieldTopPx = (field.y / 100) * containerRect.height;
-
-            // Posición del mouse relativa al contenedor
-            const mouseRelX = e.clientX - containerRect.left;
-            const mouseRelY = e.clientY - containerRect.top;
-
-            // Calcular nuevo ancho/alto asegurando mínimos
-            // Permitimos "estirar" hacia derecha y abajo por simplicidad
-            const newWidthPx = Math.max(30, mouseRelX - fieldLeftPx);
-            const newHeightPx = Math.max(20, mouseRelY - fieldTopPx);
-
-            // Convertir a porcentajes
-            const newWidthPercent = (newWidthPx / containerRect.width) * 100;
-            const newHeightPercent = (newHeightPx / containerRect.height) * 100;
-
-            // Actualizar estado (sin disparar re-render de todo si es posible, pero React necesita state update)
-            setCampos(prev => prev.map(f => {
-                if (f.id === pendingResizeFieldId) {
-                    return { ...f, ancho: newWidthPercent, alto: newHeightPercent };
-                }
-                return f;
-            }));
-        };
-
-        const handleClick = (e: MouseEvent) => {
-            // El segundo click finaliza el redimensionado
-            e.stopPropagation();
-            setPendingResizeFieldId(null);
-            setSelectedFieldId(pendingResizeFieldId); // Dejarlo seleccionado
-            toast({ title: "Campo colocado", description: "Puede ajustar la posición o tamaño manualmente ahora.", duration: 2000 });
-        };
-
-        // Delay para evitar que el 'MouseUp' del drop dispare inmediatamente el click (aunque click es MouseDown+Up)
-        // Agregamos listeners con un pequeño timeout
-        const timer = setTimeout(() => {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('click', handleClick, { capture: true, once: true });
-        }, 100);
-
-        return () => {
-            clearTimeout(timer);
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('click', handleClick, { capture: true });
-        };
-    }, [pendingResizeFieldId, campos]); // deps updated
 
 
     // Teclado para movimiento preciso
@@ -545,16 +486,83 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const handleResize = (id: string, widthPercent: number, heightPercent: number) => {
         setCampos(prev => prev.map(f => f.id === id ? { ...f, ancho: widthPercent, alto: heightPercent } : f));
     }
-
     const handleFieldUpdate = (id: string, updates: Partial<CampoPlantilla>) => {
         setCampos(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
     }
 
+    const cursorStartRef = useRef<{ x: number, y: number } | null>(null);
+
+    // Modificador para alinear la esquina inferior izquierda al cursor
+    // ESTRATEGIA: Calcular el offset constante entre el cursor y el elemento al inicio.
+    // Sumar ese offset al delta normal.
+    // Transform Final = Delta + (CursorInicio - ElementoInicioTopLeft)
+    // Resultado: El TopLeft visual del overlay viaja "con el cursor" pero desplazado por el offset para que parezca que el cursor está en la esquina inf-izq. (Esto depende del CSS translate(0, -100%)) 
+    // WAIT: Si queremos que el cursor este en la esquina INFERIOR IZQUIERDA del elemento.
+    // Overlay tiene translate(0, -100%). O sea, visualmente "sube". Su pivote visual es su esquina inferior izquierda.
+    // Entonces queremos que el pivote visual (Overlay 0,0) esté en el Cursor.
+    // Por defecto, Overlay 0,0 está en ElementoInicioTopLeft.
+    // Queremos mover Overlay 0,0 a Cursor.
+    // Cursor = ElementoInicioTopLeft + OffsetAlHacerClick + Delta.
+    // Entonces el Transform debe ser: (Cursor - ElementoInicioTopLeft).
+    // = (ElementoInicioTopLeft + OffsetAlHacerClick + Delta) - ElementoInicioTopLeft
+    // = OffsetAlHacerClick + Delta.
+    // Dnd-kit nos da Delta en `transform`.
+    // Solo necesitamos sumar `OffsetAlHacerClick`.
+    // `OffsetAlHacerClick` lo calculamos en el modifier usando `activatorEvent` (que es el Start Event).
+
+    const snapToCursor = React.useCallback<Modifier>(({ transform, activatorEvent, draggingNodeRect }) => {
+        if (activatorEvent && draggingNodeRect) {
+            // Unificar eventos de mouse y touch (del evento INICIAL)
+            let startClientX = 0;
+            let startClientY = 0;
+
+            if ('clientX' in activatorEvent) {
+                startClientX = (activatorEvent as MouseEvent).clientX;
+                startClientY = (activatorEvent as MouseEvent).clientY;
+            } else if ('touches' in activatorEvent && (activatorEvent as TouchEvent).touches.length > 0) {
+                startClientX = (activatorEvent as TouchEvent).touches[0].clientX;
+                startClientY = (activatorEvent as TouchEvent).touches[0].clientY;
+            } else {
+                return transform;
+            }
+
+            // Offset constante = CursorInicio - ElementoInicio
+            const offsetX = startClientX - draggingNodeRect.left;
+            const offsetY = startClientY - draggingNodeRect.top;
+
+            // Retornamos Delta + OffsetConstante
+            return {
+                ...transform,
+                x: transform.x + offsetX,
+                y: transform.y + offsetY,
+            };
+        }
+        return transform;
+    }, []);
+
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
+
+        // Capturar posición inicial del cursor es complicado obtener directamente del evento DragStartEvent de dnd-kit limpio
+        // pero podemos inferirla si fuera necesario. Sin embargo, para Drop logic:
+        // DropPos = StartCursor + Delta.
+        // Necesitamos StartCursor.
+        // Lo podemos obtener del `activatorEvent` dentro del evento, si es PointerEvent.
+
+        let startX = 0;
+        let startY = 0;
+        if (event.activatorEvent) {
+            if ('clientX' in event.activatorEvent) {
+                startX = (event.activatorEvent as MouseEvent).clientX;
+                startY = (event.activatorEvent as MouseEvent).clientY;
+            } else if ('touches' in event.activatorEvent && (event.activatorEvent as TouchEvent).touches.length > 0) {
+                startX = (event.activatorEvent as TouchEvent).touches[0].clientX;
+                startY = (event.activatorEvent as TouchEvent).touches[0].clientY;
+            }
+        }
+        cursorStartRef.current = { x: startX, y: startY };
+
         // Identificar qué se está arrastrando para el Overlay visual
-        // SOLO MOSTRAR OVERLAY PARA ITEMS DEL SIDEBAR
-        // Para items del canvas, dejamos que el propio componente useDraggable maneje la visualización (evita offset)
         if (String(active.id).startsWith('sidebar-')) {
             setActiveDragItem(active.data.current?.field);
         } else {
@@ -563,44 +571,31 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
-        const { active, delta, over } = event;
+        const { active, delta } = event;
         setActiveDragItem(null);
 
-        // Si soltamos fuera del contexto válido, verificar si estamos sobre el canvas
+        // Si soltamos fuera del contexto válido
         if (!containerRef.current) return;
 
         const containerRect = containerRef.current.getBoundingClientRect();
 
         // CASO 1: Nuevo Item desde Sidebar
         if (String(active.id).startsWith('sidebar-')) {
-            // Usamos la posición FINAL del elemento arrastrado (Overlay) para evitar saltos.
-            // visualmente el usuario colocó el Overlay donde quería.
-            const dropRect = active.rect.current?.translated;
+            // Calcular posición de soltado usando CursorInicio + Delta
+            if (!cursorStartRef.current) return;
 
-            if (!dropRect) return;
+            const dropX = cursorStartRef.current.x + delta.x;
+            const dropY = cursorStartRef.current.y + delta.y;
 
-            // Coordenadas relativas al canvas
-            // dropRect.top es la parte SUPERIOR del Wrapper del Overlay.
-            // Dado que el Overlay tiene 'transform: translate(0, -100%)', su parte VISUAL INFERIOR (Baseline) está en dropRect.top.
-            // Queremos que el nuevo campo tenga su LINEA DE BASE en dropRect.top.
-
-            // Calculamos relY como la posición de la línea de base deseada
-            const baselineY = dropRect.top - containerRect.top;
-            const baselineX = dropRect.left - containerRect.left;
-
-            // Validar límites básicos
-            const isInside =
-                baselineX >= -50 && baselineX <= containerRect.width + 50 &&
-                baselineY >= -50 && baselineY <= containerRect.height + 50;
-
-            /* Permitimos soltar un poco fuera para flexibilidad, luego clampeamos */
+            // Coordenadas relativas al canvas.
+            // El dropX, dropY corresponden a la posición del cursor (que es la esquina inferior izquierda visual)
+            const baselineY = dropY - containerRect.top;
+            const baselineX = dropX - containerRect.left;
 
             const fieldDef = active.data.current?.field;
             if (!fieldDef) return;
 
-            // Altura por defecto del campo (importante para calcular el Top)
-            // Si el campo es de 1 linea, usamos una altura ajustada si no está definida
-            // Nota: defaultH viene en %.
+            // Altura por defecto del campo
             const targetHPercent = fieldDef.defaultH || (canResizeHeight({ ...fieldDef, id: fieldDef.id } as any) ? 10 : 2.5);
             const fieldHeightPx = (targetHPercent / 100) * containerRect.height;
 
@@ -628,9 +623,8 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
             const filtered = campos.filter(c => c.id !== fieldDef.id);
             setCampos([...filtered, newField]);
-
-            // Activar modo Resize
-            setPendingResizeFieldId(newField.id);
+            // Seleccionar el campo recién agregado
+            setSelectedFieldId(newField.id);
             return;
         }
 
@@ -832,7 +826,6 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             }}
                             className={cn(
                                 "relative bg-white shadow-lg transition-all duration-300",
-                                pendingResizeFieldId && "cursor-crosshair ring-2 ring-blue-400 ring-offset-4" // Visual cue for resizing
                             )}
                             style={{
                                 width: '100%',
@@ -840,7 +833,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 aspectRatio: paperAspect
                             }}
                             onClick={() => {
-                                if (!pendingResizeFieldId) setSelectedFieldId(null)
+                                setSelectedFieldId(null)
                             }}
                         >
                             {imagenFondo && (
@@ -856,7 +849,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 <CanvasDraggableField
                                     key={field.id}
                                     field={field}
-                                    isSelected={selectedFieldId === field.id || pendingResizeFieldId === field.id}
+                                    isSelected={selectedFieldId === field.id}
                                     onSelect={() => setSelectedFieldId(field.id)}
                                     onResize={handleResize}
                                     onUpdate={handleFieldUpdate}
@@ -878,7 +871,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             </div>
 
             {/* Overlay para arrastre visual suave */}
-            <DragOverlay>
+            <DragOverlay modifiers={[snapToCursor]} style={{ zIndex: 9999 }} dropAnimation={null}>
                 {activeDragItem ? <DragItemOverlay field={activeDragItem} /> : null}
             </DragOverlay>
         </DndContext>
