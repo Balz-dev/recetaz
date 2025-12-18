@@ -184,29 +184,29 @@ interface RecetaPDFTemplateProps {
 }
 
 export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: RecetaPDFTemplateProps) => {
-    
+
     // Si hay una plantilla activa, usar el renderizado dinámico
     if (plantilla) {
         // Dimensiones basadas en selección. 
         // Carta: 612x792 (Portrait)
         // Media Carta: 612x396 (Horizontal/Landscape) que es el estándar actual del sistema
-        const pageSize: [number, number] = plantilla.tamanoPapel === 'carta' ? [612, 792] : [612, 396]; 
+        const pageSize: [number, number] = plantilla.tamanoPapel === 'carta' ? [612, 792] : [612, 396];
 
         return (
             <Document>
                 <Page size={pageSize} style={{ position: 'relative' }}>
                     {/* Imagen de fondo opcional */}
                     {plantilla.imprimirFondo && plantilla.imagenFondo && (
-                        <Image 
-                            src={plantilla.imagenFondo} 
-                            style={{ 
-                                position: 'absolute', 
-                                top: 0, 
-                                left: 0, 
-                                width: '100%', 
+                        <Image
+                            src={plantilla.imagenFondo}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
                                 height: '100%',
                                 objectFit: 'fill'
-                            }} 
+                            }}
                         />
                     )}
 
@@ -216,25 +216,48 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
 
                         // Mapeo de datos
                         switch (campo.id) {
+                            // Fechas
                             case 'fecha':
-                                content = receta.fechaEmision 
-                                    ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es }) 
+                                content = receta.fechaEmision
+                                    ? format(new Date(receta.fechaEmision), "dd MMM yyyy", { locale: es })
                                     : "";
                                 break;
+                            case 'receta_fecha':
+                                content = receta.fechaEmision
+                                    ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es })
+                                    : "";
+                                break;
+
+                            // Datos del Paciente
                             case 'paciente_nombre':
-                                content = paciente.nombre;
+                                content = paciente.nombre || "";
                                 break;
                             case 'paciente_edad':
-                                content = `${paciente.edad} años`;
+                                content = paciente.edad ? `${paciente.edad} años` : "";
                                 break;
+                            case 'paciente_peso':
+                                content = receta.peso || paciente.peso || "";
+                                break;
+                            case 'paciente_talla':
+                                content = receta.talla || paciente.talla || "";
+                                break;
+                            case 'alergias':
+                                content = paciente.alergias || "";
+                                break;
+
+                            // Diagnóstico y tratamiento
                             case 'diagnostico':
-                                content = receta.diagnostico;
+                                content = receta.diagnostico || "";
                                 break;
                             case 'instrucciones':
-                                content = receta.instrucciones;
+                            case 'instrucciones_lista':
+                            case 'sugerencias':
+                                content = receta.instrucciones || "";
                                 break;
+
+                            // Lista de medicamentos
                             case 'medicamentos':
-                                // Renderizado especial para lista
+                            case 'medicamentos_lista':
                                 content = (
                                     <View>
                                         {receta.medicamentos.map((med, idx) => (
@@ -245,8 +268,77 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                                     </View>
                                 );
                                 break;
+
+                            // Campos individuales de medicamento (primer medicamento)
+                            case 'medicamento_nombre':
+                                content = receta.medicamentos[0]?.nombre || "";
+                                break;
+                            case 'medicamento_generico':
+                                content = receta.medicamentos[0]?.nombre || ""; // No hay campo genérico en modelo
+                                break;
+                            case 'medicamento_marca':
+                                content = ""; // No hay campo marca en modelo
+                                break;
+                            case 'medicamento_forma':
+                                content = ""; // No hay campo forma en modelo
+                                break;
+                            case 'medicamento_dosis':
+                                content = receta.medicamentos[0]?.dosis || "";
+                                break;
+                            case 'medicamento_presentacion':
+                                content = receta.medicamentos[0]?.presentacion || "";
+                                break;
+                            case 'medicamento_via':
+                                content = ""; // No hay campo vía en modelo
+                                break;
+                            case 'medicamento_posologia':
+                                content = receta.medicamentos[0]?.indicaciones || "";
+                                break;
+
+                            // Folio
+                            case 'receta_folio':
+                                content = receta.numeroReceta || "";
+                                break;
+
+                            // Campos de médico
+                            case 'medico_nombre':
+                                content = medico.nombre || "";
+                                break;
+                            case 'medico_especialidad':
+                                content = medico.especialidad || "";
+                                break;
+                            case 'medico_cedula_gral':
+                            case 'medico_cedula_esp':
+                                content = medico.cedula || "";
+                                break;
+                            case 'medico_institucion_gral':
+                            case 'medico_institucion_esp':
+                                content = medico.direccion || "";
+                                break;
+                            case 'medico_domicilio':
+                                content = medico.direccion || "";
+                                break;
+                            case 'medico_contacto':
+                                content = medico.telefono || "";
+                                break;
+                            case 'medico_correo':
+                                content = ""; // No disponible en MedicoConfig
+                                break;
+                            case 'medico_web':
+                                content = ""; // No disponible en MedicoConfig
+                                break;
+                            case 'medico_logo':
+                                content = campo.src ? (
+                                    <Image src={campo.src} style={{ width: '100%', height: '100%' }} />
+                                ) : null;
+                                break;
+
                             default:
                                 content = "";
+                        }
+                        // Renderizar imágenes si el tipo es 'imagen' y no se manejó antes
+                        if (campo.tipo === 'imagen' && campo.src) {
+                            content = <Image src={campo.src} style={{ width: '100%', height: '100%' }} />;
                         }
 
                         // Estilo posicional absoluto
@@ -255,15 +347,26 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                             left: `${campo.x}%`,
                             top: `${campo.y}%`,
                             width: `${campo.ancho}%`,
-                             // Si es lista y tiene alto definido
+                            // Si es lista y tiene alto definido
                             ...(campo.alto ? { height: `${campo.alto}%` } : {}),
                         };
 
+                        // Renderizado según tipo de contenido
+                        let renderedContent: React.ReactNode;
+                        if (campo.tipo === 'imagen' || campo.id === 'medico_logo') {
+                            // Imágenes se renderizan directamente
+                            renderedContent = content;
+                        } else if (campo.id === 'medicamentos' || campo.id === 'medicamentos_lista') {
+                            // Listas se renderizan directamente (ya son View con Text)
+                            renderedContent = content;
+                        } else {
+                            // Texto normal
+                            renderedContent = <Text style={styles.dynamicText}>{content as string}</Text>;
+                        }
+
                         return (
                             <View key={campo.id} style={fieldStyle}>
-                                {campo.id === 'medicamentos' ? content : (
-                                    <Text style={styles.dynamicText}>{content as string}</Text>
-                                )}
+                                {renderedContent}
                             </View>
                         );
                     })}

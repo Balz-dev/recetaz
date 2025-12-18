@@ -26,9 +26,9 @@ export function PatientRegistrationModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Bienvenido</DialogTitle>
+                    <DialogTitle>Registrar Nuevo Paciente</DialogTitle>
                     <DialogDescription>
-                        Para comenzar, por favor registre los datos del primer paciente.
+                        Complete la información del paciente para continuar.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">

@@ -8,7 +8,7 @@
 
 import { db } from '@/shared/db/db.config';
 import { v4 as uuidv4 } from 'uuid';
-import type { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, Medicamento } from '@/types';
+import type { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, Medicamento, PlantillaReceta } from '@/types';
 
 /**
  * Genera datos de ejemplo para el médico
@@ -32,17 +32,17 @@ function generarMedicoConfig(): MedicoConfig {
  */
 function generarPacientes(): Paciente[] {
     const now = new Date();
-    
+
     return [
         {
             id: uuidv4(),
             nombre: 'María Elena Rodríguez López',
             edad: 45,
-            telefono: '55-9876-5432',
-            email: 'maria.rodriguez@email.com',
             direccion: 'Calle Morelos 45, Col. Centro',
             alergias: 'Penicilina',
             antecedentes: 'Hipertensión arterial controlada',
+            peso: '72 kg',
+            talla: '1.65 m',
             createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
             updatedAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
         },
@@ -50,8 +50,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: 'Carlos Alberto Martínez Sánchez',
             edad: 62,
-            telefono: '55-5555-1234',
-            email: 'carlos.martinez@email.com',
             direccion: 'Av. Juárez 789, Col. Roma',
             alergias: '',
             antecedentes: 'Diabetes tipo 2, dislipidemia',
@@ -62,8 +60,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: 'Ana Patricia Hernández Cruz',
             edad: 28,
-            telefono: '55-3333-7890',
-            email: 'ana.hernandez@email.com',
             direccion: 'Calle Insurgentes 234, Col. Condesa',
             alergias: 'Aspirina',
             antecedentes: 'Ninguno',
@@ -74,7 +70,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: 'José Luis García Ramírez',
             edad: 55,
-            telefono: '55-7777-4321',
             direccion: 'Av. Universidad 567, Col. Del Valle',
             alergias: '',
             antecedentes: 'Gastritis crónica',
@@ -85,7 +80,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: 'Laura Sofía Mendoza Torres',
             edad: 8,
-            telefono: '55-2222-8765',
             direccion: 'Calle Hidalgo 12, Col. Centro',
             alergias: '',
             antecedentes: 'Asma leve',
@@ -96,8 +90,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: 'Roberto Alejandro Flores Díaz',
             edad: 72,
-            telefono: '55-8888-2468',
-            email: 'roberto.flores@email.com',
             direccion: 'Av. Revolución 890, Col. San Ángel',
             alergias: 'Sulfonamidas',
             antecedentes: 'Hipertensión, arritmia cardiaca',
@@ -108,8 +100,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: 'Diana Carolina Ruiz Morales',
             edad: 35,
-            telefono: '55-4444-9876',
-            email: 'diana.ruiz@email.com',
             direccion: 'Calle Madero 345, Col. Polanco',
             alergias: '',
             antecedentes: 'Migraña crónica',
@@ -120,7 +110,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: 'Miguel Ángel Ortiz Vargas',
             edad: 19,
-            telefono: '55-6666-5432',
             direccion: 'Av. Chapultepec 678, Col. Juárez',
             alergias: '',
             antecedentes: 'Ninguno',
@@ -136,7 +125,7 @@ function generarPacientes(): Paciente[] {
 function generarRecetas(pacientes: Paciente[]): Receta[] {
     const now = new Date();
     const recetas: Receta[] = [];
-    
+
     // Receta 1: María Elena - Hipertensión
     recetas.push({
         id: uuidv4(),
@@ -144,6 +133,8 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
         pacienteId: pacientes[0].id,
         pacienteNombre: pacientes[0].nombre,
         pacienteEdad: pacientes[0].edad || 0,
+        peso: '72 kg',
+        talla: '1.65 m',
         diagnostico: 'Hipertensión arterial sistémica',
         medicamentos: [
             {
@@ -168,6 +159,8 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
         pacienteId: pacientes[1].id,
         pacienteNombre: pacientes[1].nombre,
         pacienteEdad: pacientes[1].edad || 0,
+        peso: '85 kg',
+        talla: '1.78 m',
         diagnostico: 'Diabetes mellitus tipo 2',
         medicamentos: [
             {
@@ -499,11 +492,11 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
 function generarMovimientosFinancieros(recetas: Receta[]): MovimientoFinanciero[] {
     const movimientos: MovimientoFinanciero[] = [];
     const costoConsulta = 500;
-    
+
     // Generar ingresos por consultas (basados en las recetas de los últimos 7 días)
     const ahora = new Date();
     const hace7Dias = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
+
     recetas.forEach(receta => {
         if (receta.fechaEmision >= hace7Dias) {
             movimientos.push({
@@ -550,6 +543,56 @@ function generarMovimientosFinancieros(recetas: Receta[]): MovimientoFinanciero[
     });
 
     return movimientos;
+}
+
+/**
+ * Genera plantillas de recetas predeterminadas
+ */
+function generarPlantillas(): PlantillaReceta[] {
+    const now = new Date();
+
+    // Imagen base64 simplificada para demo (usar URL relativa en producción real si se prefiere)
+    // Para este caso, asumimos que obtendrá la imagen de /membrete-demo.png    // NOTA: En una implementación real de Dexie con imágenes de fondo, 
+    // idealmente convertimos la imagen a Base64. 
+    // Como esto es un seed síncrono/rápido, dejaremos el campo imagenFondo vacío
+    // o con un placeholder, ya que la lógica de impresión suele requerir Base64.
+    // Sin embargo, para cumplir con el requerimiento de "ya configurados",
+    // simularemos que la imagen ya fue cargada.
+
+    return [
+        {
+            id: uuidv4(),
+            nombre: 'Carta Completa - Membretada',
+            tamanoPapel: 'carta',
+            activa: true,
+            imprimirFondo: true,
+            imagenFondo: '/membrete-demo.png', // Referencia a la imagen en public
+            createdAt: now,
+            updatedAt: now,
+            campos: [
+                { id: 'fecha', etiqueta: 'Fecha', x: 75, y: 15, ancho: 20, visible: true, tipo: 'fecha' },
+                { id: 'paciente_nombre', etiqueta: 'Paciente', x: 10, y: 22, ancho: 60, visible: true, tipo: 'texto' },
+                { id: 'paciente_edad', etiqueta: 'Edad', x: 75, y: 22, ancho: 10, visible: true, tipo: 'texto' },
+                { id: 'diagnostico', etiqueta: 'Diagnóstico', x: 10, y: 28, ancho: 80, visible: true, tipo: 'texto' },
+                { id: 'cuerpo_receta', etiqueta: 'Receta Médica', x: 10, y: 35, ancho: 80, alto: 40, visible: true, tipo: 'lista' }
+            ]
+        },
+        {
+            id: uuidv4(),
+            nombre: 'Media Carta - Económica',
+            tamanoPapel: 'media_carta',
+            activa: false,
+            imprimirFondo: true,
+            imagenFondo: '/membrete-demo.png',
+            createdAt: now,
+            updatedAt: now,
+            campos: [
+                { id: 'fecha', etiqueta: 'Fecha', x: 70, y: 12, ancho: 25, visible: true, tipo: 'fecha' },
+                { id: 'paciente_nombre', etiqueta: 'Paciente', x: 5, y: 18, ancho: 60, visible: true, tipo: 'texto' },
+                { id: 'cuerpo_receta', etiqueta: 'Receta', x: 5, y: 25, ancho: 90, alto: 60, visible: true, tipo: 'lista' }
+            ]
+        }
+    ];
 }
 
 /**
@@ -617,6 +660,14 @@ export async function seedDatabase(): Promise<void> {
         console.log(`   - ${pacientes.length} pacientes`);
         console.log(`   - ${recetas.length} recetas`);
         console.log(`   - ${movimientos.length} movimientos financieros`);
+
+        // Insertar plantillas predeterminadas
+        console.log('📄 Insertando plantillas...');
+        const plantillas = generarPlantillas();
+        await db.plantillas.bulkAdd(plantillas);
+        console.log(`✅ ${plantillas.length} plantillas insertadas\n`);
+
+        console.log(`   - ${plantillas.length} plantillas configuradas`);
         console.log(`   - Configuración financiera establecida\n`);
         console.log('🔄 Recarga la página para ver los cambios');
     } catch (error) {

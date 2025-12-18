@@ -1,0 +1,1 @@
+src/app/(platform)/test-receta/page.tsx(20,17): error TS2353: Object literal may only specify known properties, and 'telefono' does not exist in type 'PacienteFormData'.

@@ -27,8 +27,8 @@ const pacienteFormSchema = z.object({
         message: "El nombre es requerido.",
     }),
     edad: z.number().optional(),
-    telefono: z.string().optional(),
-    email: z.string().email({ message: "Email inválido" }).optional().or(z.literal("")),
+    peso: z.string().optional(),
+    talla: z.string().optional(),
     direccion: z.string().optional(),
     alergias: z.string().optional(),
     antecedentes: z.string().optional(),
@@ -60,8 +60,8 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
         defaultValues: {
             nombre: initialData?.nombre || "",
             edad: initialData?.edad, // Undefined by default to avoid 0
-            telefono: initialData?.telefono || "",
-            email: initialData?.email || "",
+            peso: initialData?.peso || "",
+            talla: initialData?.talla || "",
             direccion: initialData?.direccion || "",
             alergias: initialData?.alergias || "",
             antecedentes: initialData?.antecedentes || "",
@@ -108,16 +108,18 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="flex items-center gap-4 mb-6">
-                    <Link href="/pacientes">
-                        <Button variant="ghost" size="icon" type="button">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                    </Link>
-                    <h2 className="text-xl font-semibold">
-                        {isEditing ? "Editar Paciente" : "Nuevo Paciente"}
-                    </h2>
-                </div>
+                {!onCancel && (
+                    <div className="flex items-center gap-4 mb-6">
+                        <Link href="/pacientes">
+                            <Button variant="ghost" size="icon" type="button">
+                                <ArrowLeft className="h-5 w-5" />
+                            </Button>
+                        </Link>
+                        <h2 className="text-xl font-semibold">
+                            {isEditing ? "Editar Paciente" : "Nuevo Paciente"}
+                        </h2>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
@@ -157,15 +159,14 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                         )}
                     />
 
-
                     <FormField
                         control={form.control}
-                        name="telefono"
+                        name="peso"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Teléfono</FormLabel>
+                                <FormLabel>Peso (kg)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Número de contacto" {...field} />
+                                    <Input placeholder="Ej: 75" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -174,17 +175,19 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
 
                     <FormField
                         control={form.control}
-                        name="email"
+                        name="talla"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Email</FormLabel>
+                                <FormLabel>Talla (cm/m)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="correo@ejemplo.com" {...field} />
+                                    <Input placeholder="Ej: 1.75" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+
+
                 </div>
 
                 <FormField

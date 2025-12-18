@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Calendar, ExternalLink } from "lucide-react";
+import { Calendar, Eye } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -61,9 +61,9 @@ export function RecetaCard({ receta, patientName }: RecetaCardProps) {
                 </div>
 
                 <div className="w-full mt-auto pt-2 border-t">
-                    <Link href={`/recetas/${receta.id}`} target="_blank" className="w-full">
+                    <Link href={`/recetas/${receta.id}`} className="w-full">
                         <Button variant="ghost" size="sm" className="w-full h-8 text-xs gap-2">
-                            <ExternalLink className="h-3 w-3" />
+                            <Eye className="h-3 w-3" />
                             Ver Receta
                         </Button>
                     </Link>

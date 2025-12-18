@@ -4,6 +4,14 @@ Este documento establece las reglas y mejores prácticas para trabajar con agent
 
 ## 🤖 Reglas Generales de Trabajo con IA
 
+### 0. Idioma y Localización
+
+> [!IMPORTANT]
+> **Regla de Idioma**
+> - **Planes y Documentación**: Todos los planes de implementación, walkthroughs, y documentación generada deben redactarse estrictamente en **ESPAÑOL**.
+> - **Comunicación**: Las explicaciones y respuestas en el chat deben ser en español.
+> - **Código**: Los comentarios en el código deben ser descriptivos y en español.
+
 ### 1. Gestión de Puertos y Procesos
 
 > [!IMPORTANT]

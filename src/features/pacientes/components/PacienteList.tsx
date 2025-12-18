@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Paciente } from "@/types"
 import { pacienteService } from "@/features/pacientes/services/paciente.service"
 import { Input } from "@/shared/components/ui/input"
+import { PacienteDialog } from "./PacienteDialog"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Search, UserPlus, User, Calendar, Phone } from "lucide-react"
@@ -15,6 +16,7 @@ export function PacienteList() {
     const [pacientes, setPacientes] = useState<Paciente[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
 
     // Cargar pacientes
     useEffect(() => {
@@ -50,6 +52,11 @@ export function PacienteList() {
         }
     }
 
+    const handleSuccess = () => {
+        loadPacientes()
+        // Toast is handled by the form
+    }
+
     return (
         <div className="space-y-6">
             {/* Barra de búsqueda y botón de nuevo */}
@@ -63,12 +70,16 @@ export function PacienteList() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Link href="/pacientes/nuevo" className="w-full sm:w-auto">
-                    <Button className="w-full gap-2">
-                        <UserPlus size={18} />
-                        Nuevo Paciente
-                    </Button>
-                </Link>
+                <Button className="w-full gap-2" onClick={() => setIsDialogOpen(true)}>
+                    <UserPlus size={18} />
+                    Nuevo Paciente
+                </Button>
+
+                <PacienteDialog
+                    open={isDialogOpen}
+                    onOpenChange={setIsDialogOpen}
+                    onSuccess={handleSuccess}
+                />
             </div>
 
             {/* Lista de Pacientes */}
@@ -86,9 +97,7 @@ export function PacienteList() {
                                 Comienza agregando tu primer paciente para gestionar sus recetas e historial médico.
                             </p>
                         </div>
-                        <Link href="/pacientes/nuevo">
-                            <Button variant="outline">Registrar Paciente</Button>
-                        </Link>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(true)}>Registrar Paciente</Button>
                     </CardContent>
                 </Card>
             ) : (
@@ -108,12 +117,6 @@ export function PacienteList() {
                                             <span className="font-medium text-foreground">Edad:</span>
                                             {paciente.edad} años
                                         </div>
-                                        {paciente.telefono && (
-                                            <div className="flex items-center gap-2">
-                                                <Phone className="h-3 w-3" />
-                                                {paciente.telefono}
-                                            </div>
-                                        )}
                                         <div className="flex items-center gap-2 text-xs pt-2">
                                             <Calendar className="h-3 w-3" />
                                             Registrado: {format(paciente.createdAt, "d MMM yyyy", { locale: es })}

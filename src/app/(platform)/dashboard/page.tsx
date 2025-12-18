@@ -26,6 +26,7 @@ import { FileText, Users, Activity, Plus } from "lucide-react";
 import Link from "next/link";
 import { ConfiguracionModal } from "@/features/config-medico/components/ConfiguracionModal";
 import { PanelGanancias } from "@/features/finanzas/components/PanelGanancias";
+import { RecetaDialog } from "@/features/recetas/components/RecetaDialog";
 
 /**
  * Componente de la página principal del sistema.
@@ -43,6 +44,7 @@ export default function HomePage() {
         loading: true
     });
     const [showConfigModal, setShowConfigModal] = useState(false);
+    const [showRecetaDialog, setShowRecetaDialog] = useState(false);
 
     useEffect(() => {
         const checkConfig = async () => {
@@ -78,6 +80,12 @@ export default function HomePage() {
         // Could trigger a reload or just let them continue
     };
 
+    const handleRecetaSuccess = () => {
+        // Receta created successfully
+        setStats(prev => ({ ...prev, totalRecetas: prev.totalRecetas + 1 }))
+        setShowRecetaDialog(false)
+    }
+
     if (stats.loading) {
         return (
             <div className="flex h-64 items-center justify-center">
@@ -93,6 +101,12 @@ export default function HomePage() {
                 onOpenChange={setShowConfigModal}
                 onSuccess={handleConfigSuccess}
                 preventClose={true}
+            />
+
+            <RecetaDialog
+                open={showRecetaDialog}
+                onOpenChange={setShowRecetaDialog}
+                onSuccess={handleRecetaSuccess}
             />
 
             {/* Header */}
@@ -115,17 +129,15 @@ export default function HomePage() {
                         <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </CardHeader>
                     <CardContent>
-                        <Link href="/recetas/nueva">
-                            <Button className="w-full" size="sm">
-                                Nueva Receta
-                            </Button>
-                        </Link>
+                        <Button className="w-full" size="sm" onClick={() => setShowRecetaDialog(true)}>
+                            Nueva Receta
+                        </Button>
                         <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
                             Crear una receta médica
                         </p>
                     </CardContent>
                 </Card>
-                
+
                 {/* Total Recetas */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -158,7 +170,7 @@ export default function HomePage() {
                     </CardContent>
                 </Card>
 
-                
+
             </div>
 
             {/* Secciones Principales */}

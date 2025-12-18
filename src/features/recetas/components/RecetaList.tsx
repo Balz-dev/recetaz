@@ -10,16 +10,24 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { Search, FileText, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { RecetaCard } from "@/features/recetas/components/RecetaCard"
+import { RecetaDialog } from "./RecetaDialog"
+import { useSearchParams, useRouter } from "next/navigation"
 
 export function RecetaList() {
     const [recetas, setRecetas] = useState<Receta[]>([])
     const [pacientes, setPacientes] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const searchParams = useSearchParams()
+    const router = useRouter()
 
     useEffect(() => {
         loadData()
-    }, [])
+        if (searchParams.get("create") === "true") {
+            setIsDialogOpen(true)
+        }
+    }, []) // Run once on mount, check params
 
     useEffect(() => {
         const search = async () => {
@@ -59,6 +67,27 @@ export function RecetaList() {
         }
     }
 
+    const handleSuccess = () => {
+        loadData()
+        setIsDialogOpen(false)
+        removeCreateParam()
+    }
+
+    const handleOpenChange = (open: boolean) => {
+        setIsDialogOpen(open)
+        if (!open) {
+            removeCreateParam()
+        }
+    }
+
+    const removeCreateParam = () => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (params.has("create")) {
+            params.delete("create")
+            router.replace(`/recetas?${params.toString()}`)
+        }
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
@@ -71,12 +100,16 @@ export function RecetaList() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Link href="/recetas/nueva" className="w-full sm:w-auto">
-                    <Button className="w-full gap-2">
-                        <PlusCircle size={18} />
-                        Nueva Receta
-                    </Button>
-                </Link>
+                <Button className="w-full gap-2" onClick={() => setIsDialogOpen(true)}>
+                    <PlusCircle size={18} />
+                    Nueva Receta
+                </Button>
+
+                <RecetaDialog
+                    open={isDialogOpen}
+                    onOpenChange={handleOpenChange}
+                    onSuccess={handleSuccess}
+                />
             </div>
 
             {loading ? (
@@ -93,9 +126,7 @@ export function RecetaList() {
                                 Crea tu primera receta médica para un paciente registrado.
                             </p>
                         </div>
-                        <Link href="/recetas/nueva">
-                            <Button variant="outline">Crear Receta</Button>
-                        </Link>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(true)}>Crear Receta</Button>
                     </CardContent>
                 </Card>
             ) : (
