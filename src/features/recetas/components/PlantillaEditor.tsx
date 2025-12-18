@@ -1,5 +1,12 @@
 "use client"
 
+/**
+ * Editor de Plantillas de Recetas Médicas
+ * 
+ * Permite al usuario diseñar plantillas personalizadas mediante drag & drop,
+ * configurando posición y tamaño de campos de datos médicos, de paciente y de receta.
+ */
+
 import React, { useState, useEffect, useRef } from "react"
 import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, pointerWithin, Modifier } from "@dnd-kit/core"
 import { restrictToParentElement } from "@dnd-kit/modifiers"
@@ -19,74 +26,12 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-// Tipos de campos disponibles para agregar
-const AVAILABLE_FIELDS_DEF = [
-    // Datos del Médico
-    { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
-    { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
-    { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
-    { id: 'medico_cedula_gral', etiqueta: 'Cédula (Gral)', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-    { id: 'medico_institucion_esp', etiqueta: 'Institución (Esp)', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
-    { id: 'medico_cedula_esp', etiqueta: 'Cédula (Esp)', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-    { id: 'medico_domicilio', etiqueta: 'Domicilio Consultorio', tipo: 'texto', defaultW: 60, defaultH: 2.5 },
-    { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
-    { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
-    { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
-    { id: 'medico_logo', etiqueta: 'Logo / Imagen', tipo: 'imagen', defaultW: 20, defaultH: 15 },
-
-    // Datos del Paciente
-    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'fecha', defaultW: 20, defaultH: 2.5 },
-    { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', defaultW: 50, defaultH: 2.5 },
-    { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', defaultW: 10, defaultH: 2.5 },
-    { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', defaultW: 10, defaultH: 2.5 },
-    { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', defaultW: 10, defaultH: 2.5 },
-    { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', defaultW: 80, defaultH: 5 },
-    { id: 'alergias', etiqueta: 'Alergias', tipo: 'texto', defaultW: 40, defaultH: 2.5 },
-
-    // Datos de la Receta
-    { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-    { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-
-    // Cuerpo de la Receta
-    { id: 'medicamento_nombre', etiqueta: 'Medicamento', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
-    { id: 'medicamento_generico', etiqueta: 'Denominación Genérica', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
-    { id: 'medicamento_marca', etiqueta: 'Marca Comercial', tipo: 'texto', defaultW: 30, defaultH: 2.5 },
-    { id: 'medicamento_forma', etiqueta: 'Forma Farmacéutica', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-    { id: 'medicamento_dosis', etiqueta: 'Dosis/Concentración', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-    { id: 'medicamento_presentacion', etiqueta: 'Presentación', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-    { id: 'medicamento_via', etiqueta: 'Vía de Admin.', tipo: 'texto', defaultW: 20, defaultH: 2.5 },
-    { id: 'medicamento_posologia', etiqueta: 'Posología (Instrucciones)', tipo: 'texto', defaultW: 60, defaultH: 10 },
-
-    // Legacy / Composites
-    { id: 'medicamentos_lista', etiqueta: 'Lista Completa (Tabla)', tipo: 'lista', defaultW: 90, defaultH: 40 },
-    { id: 'instrucciones_lista', etiqueta: 'Instrucciones (Bloque)', tipo: 'texto', defaultW: 90, defaultH: 20 },
-    { id: 'sugerencias', etiqueta: 'Sugerencias / Notas', tipo: 'texto', defaultW: 90, defaultH: 10 },
-] as const;
-
-// Componente Sidebar Draggable
-function SidebarDraggableItem({ field, isAdded }: { field: typeof AVAILABLE_FIELDS_DEF[number], isAdded: boolean }) {
-    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-        id: `sidebar-${field.id}`,
-        data: { type: 'sidebar', field }
-    });
-
-    return (
-        <div ref={setNodeRef} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50")}>
-            <Button
-                variant={isAdded ? "secondary" : "outline"}
-                className={cn(
-                    "w-full justify-start cursor-grab active:cursor-grabbing",
-                    isAdded && 'bg-blue-50 border-blue-200 text-blue-700'
-                )}
-            >
-                {isAdded ? <Layout className="mr-2 h-4 w-4" /> : <Type className="mr-2 h-4 w-4" />}
-                {field.etiqueta}
-            </Button>
-        </div>
-    )
-}
-
-// Helper para texto de ejemplo
+/**
+ * Obtiene el texto de ejemplo para un campo específico.
+ * 
+ * @param id - Identificador único del campo
+ * @returns Texto de ejemplo representativo del contenido del campo
+ */
 function getExampleText(id: string): string {
     const examples: Record<string, string> = {
         medico_nombre: "Dr. Juan Pérez",
@@ -123,7 +68,109 @@ function getExampleText(id: string): string {
     return examples[id] || "Texto de ejemplo";
 }
 
-// Helper para saber si un campo debe permitir redimensionar alto
+/**
+ * Calcula el ancho óptimo de un campo basado en su texto de ejemplo.
+ * 
+ * @param id - Identificador del campo
+ * @returns Ancho en porcentaje del canvas (mínimo: 5%, máximo: 95%)
+ */
+function calcularAnchoOptimo(id: string): number {
+    const texto = getExampleText(id);
+    // Aproximación: ~0.6% por carácter (considerando font-size 14px)
+    const anchoPorCaracter = 0.6;
+    const anchoCalculado = texto.length * anchoPorCaracter + 2; // +2% para padding
+
+    // Límites razonables
+    return Math.max(5, Math.min(95, anchoCalculado));
+}
+
+/**
+ * Definición de campos disponibles para agregar a la plantilla.
+ * Los anchos se calculan automáticamente basándose en el contenido de ejemplo.
+ */
+const AVAILABLE_FIELDS_DEF = [
+    // Datos del Médico
+    { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_cedula_gral', etiqueta: 'Cédula (Gral)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_institucion_esp', etiqueta: 'Institución (Esp)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_cedula_esp', etiqueta: 'Cédula (Esp)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_domicilio', etiqueta: 'Domicilio Consultorio', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 5 },
+    { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_logo', etiqueta: 'Logo / Imagen', tipo: 'imagen', defaultW: 20, defaultH: 15 },
+
+    // Datos del Paciente
+    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'fecha', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 5 },
+    { id: 'alergias', etiqueta: 'Alergias', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+
+    // Datos de la Receta
+    { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+
+    // Cuerpo de la Receta
+    { id: 'medicamento_nombre', etiqueta: 'Medicamento', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medicamento_generico', etiqueta: 'Denominación Genérica', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medicamento_marca', etiqueta: 'Marca Comercial', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medicamento_forma', etiqueta: 'Forma Farmacéutica', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medicamento_dosis', etiqueta: 'Dosis/Concentración', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medicamento_presentacion', etiqueta: 'Presentación', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medicamento_via', etiqueta: 'Vía de Admin.', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medicamento_posologia', etiqueta: 'Posología (Instrucciones)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 10 },
+
+    // Legacy / Composites
+    { id: 'medicamentos_lista', etiqueta: 'Lista Completa (Tabla)', tipo: 'lista', defaultW: 90, defaultH: 40 },
+    { id: 'instrucciones_lista', etiqueta: 'Instrucciones (Bloque)', tipo: 'texto', defaultW: 90, defaultH: 20 },
+    { id: 'sugerencias', etiqueta: 'Sugerencias / Notas', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 10 },
+] as const;
+
+/**
+ * Componente de item arrastrable en el sidebar.
+ * Muestra un campo disponible que puede ser arrastrado al canvas.
+ * 
+ * @param props - Propiedades del componente
+ * @param props.field - Definición del campo con id, etiqueta, tipo y dimensiones por defecto
+ * @param props.isAdded - Indica si el campo ya fue agregado al canvas
+ * @returns Elemento JSX del botón arrastrable
+ */
+function SidebarDraggableItem({ field, isAdded }: { field: typeof AVAILABLE_FIELDS_DEF[number], isAdded: boolean }) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+        id: `sidebar-${field.id}`,
+        data: { type: 'sidebar', field }
+    });
+
+    return (
+        <div ref={setNodeRef} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50")}>
+            <Button
+                variant={isAdded ? "secondary" : "outline"}
+                className={cn(
+                    "w-full justify-start cursor-grab active:cursor-grabbing",
+                    isAdded && 'bg-blue-50 border-blue-200 text-blue-700'
+                )}
+            >
+                {isAdded ? <Layout className="mr-2 h-4 w-4" /> : <Type className="mr-2 h-4 w-4" />}
+                {field.etiqueta}
+            </Button>
+        </div>
+    )
+}
+
+
+
+/**
+ * Determina si un campo debe permitir redimensionamiento en altura.
+ * Los campos de imagen, lista y multilinea permiten ajustar su altura.
+ * 
+ * @param field - Campo de plantilla a evaluar
+ * @returns true si el campo permite redimensionar altura, false en caso contrario
+ */
 function canResizeHeight(field: CampoPlantilla): boolean {
     if (field.tipo === 'imagen') return true;
     if (field.tipo === 'lista') return true;
@@ -140,7 +187,19 @@ function canResizeHeight(field: CampoPlantilla): boolean {
     return MULTILINE_IDS.includes(field.id);
 }
 
-// Componente de Campo Arrastrable en Canvas
+/**
+ * Componente de campo arrastrable y redimensionable en el canvas.
+ * Permite mover, seleccionar, redimensionar y actualizar campos de la plantilla.
+ * 
+ * @param props - Propiedades del componente
+ * @param props.field - Campo de plantilla a renderizar
+ * @param props.isSelected - Indica si el campo está actualmente seleccionado
+ * @param props.onSelect - Callback al seleccionar el campo
+ * @param props.onResize - Callback al redimensionar el campo (id, anchoPercent, altoPercent)
+ * @param props.onUpdate - Callback al actualizar propiedades del campo (id, updates)
+ * @param props.containerRef - Referencia al contenedor canvas para cálculos de posición
+ * @returns Elemento JSX del campo arrastrable
+ */
 function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef }: {
     field: CampoPlantilla,
     isSelected: boolean,
@@ -155,8 +214,14 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
     });
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
-    const allowHeight = true; // Permitir redimensionar en ambos ejes para todos los campos
+    // Permitir redimensionar en ambos ejes para mejorar flexibilidad del editor
+    const allowHeight = true;
 
+    /**
+     * Maneja el evento de redimensionamiento del campo EN TIEMPO REAL.
+     * Convierte dimensiones de píxeles a porcentajes del canvas.
+     * Se llama tanto durante el resize (onResize) como al finalizar (onResizeStop).
+     */
     const handleResize = (e: React.SyntheticEvent, data: ResizeCallbackData) => {
         if (!containerRef.current) return;
         const containerWidth = containerRef.current.offsetWidth;
@@ -168,6 +233,10 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
         onResize(field.id, newWidthPercent, newHeightPercent);
     };
 
+    /**
+     * Maneja la carga de imagen para campos de tipo 'imagen'.
+     * Convierte la imagen a Base64 y actualiza el campo.
+     */
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -179,7 +248,10 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
         }
     };
 
-    // Convertir porcentajes a pixeles
+    /**
+     * Convierte las dimensiones del campo de porcentajes a píxeles.
+     * Necesario para el componente ResizableBox que trabaja con píxeles.
+     */
     const getPixelDimensions = () => {
         if (!containerRef.current) return { width: 100, height: 30 };
         return {
@@ -203,15 +275,12 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
         <div
             ref={setNodeRef}
             style={style}
-            // Aplicamos listeners al contenedor principal para facilitar el agarre
-            {...listeners}
-            {...attributes}
             onClick={(e) => {
                 e.stopPropagation();
                 onSelect();
             }}
             className={cn(
-                "absolute cursor-grab active:cursor-grabbing hover:z-20",
+                "absolute hover:z-20",
                 isSelected && "z-50"
             )}
         >
@@ -219,47 +288,37 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                 width={dims.width}
                 height={dims.height}
                 axis={allowHeight ? 'both' : 'x'}
+                onResize={handleResize}
                 onResizeStop={handleResize}
-                draggableOpts={{ enableUserSelectHack: false }}
+                resizeHandles={isSelected ? ['se'] : []}
                 minConstraints={[50, 20]}
                 maxConstraints={[800, 600]}
-                // Manijas personalizadas según el eje permitido
+                // Manija de redimensionamiento personalizada
                 handle={
                     isSelected ? (
-                        <>
-                            {/* Handle SE (Corner) - Visible si se permite altura o ancho */}
-                            <div
-                                className={cn(
-                                    "react-resizable-handle absolute bottom-0 right-0 w-5 h-5 z-50 flex items-center justify-center p-0.5 bg-transparent",
-                                    allowHeight ? "cursor-se-resize" : "cursor-e-resize"
-                                )}
-                                onMouseDown={(e) => e.stopPropagation()}
-                                onTouchStart={(e) => e.stopPropagation()}
-                            >
-                                <div className={cn(
-                                    "w-full h-full bg-blue-500 shadow-sm border border-white",
-                                    allowHeight ? "rounded-tl-lg" : "rounded-none w-1.5 h-full ml-auto"
-                                )} />
-                            </div>
-
-                            {/* Handle E (Right Edge) - Para facilitar solo ancho */}
-                            {!allowHeight && (
-                                <div
-                                    className="react-resizable-handle react-resizable-handle-e absolute top-0 right-0 bottom-5 w-2 cursor-e-resize z-40 hover:bg-blue-200/50"
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                    onTouchStart={(e) => e.stopPropagation()}
-                                />
-                            )}
-                        </>
-                    ) : <span />
+                        <div
+                            className="react-resizable-handle react-resizable-handle-se absolute bottom-0 right-0 w-6 h-6 z-[70] cursor-se-resize"
+                            style={{ pointerEvents: 'auto' }}
+                        >
+                            {/* Indicador visual de la manija */}
+                            <div className="absolute bottom-0 right-0 w-4 h-4 bg-blue-600 shadow-lg border-2 border-white rounded-tl-lg" />
+                        </div>
+                    ) : undefined
                 }
                 className={cn(
                     "flex items-start p-0 select-none overflow-hidden h-full w-full relative transition-colors duration-200 group",
                     // Solo mostramos borde si está seleccionado o arrastrando, o hover suave
                     isDragging ? 'opacity-80 shadow-2xl scale-105 border border-blue-500 bg-blue-50/50' : '',
-                    isSelected ? 'border border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-slate-50/50 hover:border hover:border-dashed hover:border-slate-300'
+                    isSelected ? 'border-2 border-blue-500 bg-blue-50/10 ring-2 ring-blue-300/30' : 'hover:bg-slate-50/50 hover:border hover:border-dashed hover:border-slate-300'
                 )}
             >
+                {/* Capa para drag - NO incluye las manijas */}
+                <div
+                    className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                    style={{ zIndex: 1, pointerEvents: isSelected ? 'none' : 'auto' }}
+                    {...listeners}
+                    {...attributes}
+                />
                 {/* Visual Anchor Point (Esquina INFERIOR izquierda - Baseline) */}
                 <div className={cn(
                     "absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-red-600 z-50 -translate-x-[1px] translate-y-[1px]",
@@ -274,7 +333,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                     {field.etiqueta}
                 </div>
 
-                <div className="flex w-full h-full overflow-hidden relative">
+                <div className="flex w-full h-full overflow-hidden relative" style={{ zIndex: 10 }}>
                     {field.tipo === 'imagen' ? (
                         <div className="flex-grow h-full flex items-center justify-center border border-dashed border-slate-300 m-1 bg-slate-50/50">
                             {field.src ? (
@@ -331,7 +390,14 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
     );
 }
 
-// Draggable Overlay Minimalista para evitar obstrucción visual
+/**
+ * Overlay visual que se muestra durante el arrastre de un campo.
+ * Muestra una vista previa minimalista con el texto de ejemplo y un ancla visual.
+ * 
+ * @param props - Propiedades del componente
+ * @param props.field - Campo siendo arrastrado
+ * @returns Elemento JSX del overlay o null si no hay campo
+ */
 function DragItemOverlay({ field }: { field: any }) {
     if (!field) return null;
 
@@ -339,14 +405,14 @@ function DragItemOverlay({ field }: { field: any }) {
     const textShort = text.length > 25 ? text.substring(0, 25) + "..." : text;
 
     return (
-        // El DragOverlay de dnd-kit coloca el (0,0) del componente en la posición del puntero (o activator).
-        // Queremos que la ESQUINA INFERIOR IZQUIERDA coincida con el puntero.
-        // Por lo tanto, desplazamos el contenido hacia arriba el 100% de su altura (translate-y-full negativo).
+        // El DragOverlay de dnd-kit coloca el (0,0) del componente en la posición del puntero.
+        // Desplazamos el contenido hacia arriba el 100% de su altura para que
+        // la esquina inferior izquierda coincida con el cursor.
         <div className="flex flex-col items-start justify-end pointer-events-none opacity-90 origin-bottom-left"
             style={{ transform: 'translate(0, -100%)' }}
         >
             <div className="relative">
-                {/* Contenido (Tamaño fuente reducido en lugar de scale para evitar lio de coordenadas) */}
+                {/* Vista previa del contenido */}
                 <div
                     style={{
                         fontFamily: 'Helvetica, Arial, sans-serif',
@@ -360,18 +426,34 @@ function DragItemOverlay({ field }: { field: any }) {
                     {textShort}
                 </div>
 
-                {/* Anchor - Justo en la esquina inferior izquierda del contenedor, que está en el cursor */}
-                {/* Ajuste fino: -left-1 para centrar el cuadro del punto en el cursor */}
+                {/* Ancla visual en la esquina inferior izquierda */}
                 <div className="w-3 h-3 border-l-2 border-b-2 border-red-600 absolute -bottom-1 -left-1 z-50 rounded-bl-sm bg-transparent" />
             </div>
         </div>
     )
 }
 
+/**
+ * Propiedades del componente PlantillaEditor.
+ */
 interface PlantillaEditorProps {
+    /** ID de la plantilla a editar (opcional, undefined para nueva plantilla) */
     plantillaId?: string;
 }
 
+/**
+ * Componente principal del editor de plantillas de recetas.
+ * Permite diseñar plantillas mediante drag & drop con las siguientes funcionalidades:
+ * - Arrastrar campos desde el sidebar al canvas
+ * - Posicionar campos con precisión
+ * - Redimensionar campos manualmente
+ * - Configurar imagen de fondo y opciones de impresión
+ * - Guardar/actualizar plantillas en IndexedDB
+ * 
+ * @param props - Propiedades del componente
+ * @param props.plantillaId - ID de plantilla existente para editar, o undefined para crear nueva
+ * @returns Componente JSX del editor de plantillas
+ */
 export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const router = useRouter()
     const { toast } = useToast()
