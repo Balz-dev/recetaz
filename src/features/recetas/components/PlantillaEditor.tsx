@@ -312,10 +312,10 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                     isSelected ? 'border-2 border-blue-500 bg-blue-50/10 ring-2 ring-blue-300/30' : 'hover:bg-slate-50/50 hover:border hover:border-dashed hover:border-slate-300'
                 )}
             >
-                {/* Capa para drag - NO incluye las manijas */}
+                {/* Capa para drag (Invisible Overlay) - ENCIMA del contenido, DEBAJO de la manija */}
                 <div
-                    className="absolute inset-0 cursor-grab active:cursor-grabbing"
-                    style={{ zIndex: 1, pointerEvents: isSelected ? 'none' : 'auto' }}
+                    className="absolute inset-0 cursor-grab active:cursor-grabbing hover:bg-blue-500/5 transition-colors"
+                    style={{ zIndex: 20, touchAction: 'none' }}
                     {...listeners}
                     {...attributes}
                 />
