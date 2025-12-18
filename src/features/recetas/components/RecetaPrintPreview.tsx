@@ -80,28 +80,25 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
         if (!loading && receta && paciente && medico && !pdfUrl) {
             generateAndSetPDF();
         }
-    }, [loading, receta, paciente, medico]);
+    }, [loading, receta, paciente, medico, pdfUrl]);
 
-    const handleImprimirFondoChange = async (checked: boolean) => {
-        setImprimirFondo(checked);
+    const handleImprimirFondoChange = async (imprimirFondoValue: boolean) => {
+        // Actualizamos estado local inmediatamente
+        setImprimirFondo(imprimirFondoValue);
+        
+        // Limpiamos el URL actual para forzar regeneración en el efecto
+        if (pdfUrl) {
+            URL.revokeObjectURL(pdfUrl);
+            setPdfUrl(null);
+        }
+        setRegeneratingPDF(true);
+
         if (plantillaActiva) {
             try {
-                await plantillaService.update(plantillaActiva.id, { imprimirFondo: checked });
-                setPlantillaActiva({ ...plantillaActiva, imprimirFondo: checked });
-
-                setRegeneratingPDF(true);
-                if (pdfUrl) {
-                    URL.revokeObjectURL(pdfUrl);
-                    setPdfUrl(null);
-                }
-
-                setTimeout(async () => {
-                    await generateAndSetPDF();
-                    setRegeneratingPDF(false);
-                }, 100);
+                await plantillaService.update(plantillaActiva.id, { imprimirFondo: imprimirFondoValue });
+                setPlantillaActiva({ ...plantillaActiva, imprimirFondo: imprimirFondoValue });
             } catch (error) {
                 console.error("Error al guardar preferencia de impresión de fondo:", error);
-                setRegeneratingPDF(false);
             }
         }
     };
@@ -115,6 +112,8 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
             }
         } catch (error) {
             console.error("Error generando PDF:", error);
+        } finally {
+            setRegeneratingPDF(false);
         }
     };
 
@@ -194,8 +193,8 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
                         <div className="flex items-center space-x-2 mr-2 bg-slate-50 px-3 py-2 rounded-md border">
                             <Switch
                                 id="preview-bg-toggle"
-                                checked={imprimirFondo}
-                                onCheckedChange={handleImprimirFondoChange}
+                                checked={!imprimirFondo} // Si NO imprimimos fondo, es porque usamos hoja membretada
+                                onCheckedChange={(checked) => handleImprimirFondoChange(!checked)}
                             />
                             <Label htmlFor="preview-bg-toggle" className="text-sm cursor-pointer">Imprimir en hoja membretada</Label>
                         </div>

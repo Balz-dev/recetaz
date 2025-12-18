@@ -155,7 +155,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
     });
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
-    const allowHeight = canResizeHeight(field);
+    const allowHeight = true; // Permitir redimensionar en ambos ejes para todos los campos
 
     const handleResize = (e: React.SyntheticEvent, data: ResizeCallbackData) => {
         if (!containerRef.current) return;
@@ -313,7 +313,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                             <span
                                 style={{
                                     fontFamily: 'Helvetica, Arial, sans-serif',
-                                    fontSize: '10px',
+                                    fontSize: '14px',
                                     lineHeight: '1.1',
                                     color: '#000',
                                     whiteSpace: allowHeight ? 'pre-wrap' : 'nowrap',
