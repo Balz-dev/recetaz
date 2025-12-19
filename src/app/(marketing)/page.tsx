@@ -3,24 +3,33 @@ import { Hero } from "./components/Hero"
 import { ComparisonSection } from "./components/ComparisonSection"
 import { HowItWorks } from "./components/HowItWorks"
 import { Features } from "./components/Features"
+import { Pricing } from "./components/Pricing"
+import { Philosophy } from "./components/Philosophy"
+import { Confidence } from "./components/Confidence"
+import { FAQ } from "./components/FAQ"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
 /**
  * Metadata SEO para la landing page.
+ * Siguiendo las mejores prácticas para Micro-SaaS B2B.
  */
 export const metadata: Metadata = {
   title: "RecetaZ | Deja de hacer recetas en Word",
-  description: "La herramienta para médicos que desean dejar de usar Word. Genera recetas en segundos usando tus propias hojas membretadas. Rápido, ordenado y profesional.",
+  description: "La forma más rápida y profesional de generar recetas médicas en México. Diseña tu propia receta membretada, captura pacientes y ahorra tiempo. Prueba la demo gratis.",
+  keywords: ["receta medica", "software medico", "mexico", "recetario", "word vs recetaz", "digitalizar consultorio"],
   openGraph: {
     title: "RecetaZ | Recetas médicas profesionales en segundos",
-    description: "Diseña tu receta, captura pacientes y genera prescripciones rápidamente. El micro-SaaS para médicos independientes.",
+    description: "Deja de usar Word. Usa tu propia receta membretada con más rapidez y orden. Diseñado para médicos independientes en México.",
     type: "website",
     locale: "es_MX",
-    url: "https://recetaz.com", // Ajustar si es necesario
+    url: "https://recetaz.com",
+    siteName: "RecetaZ",
   },
-  alternates: {
-    canonical: "/",
+  twitter: {
+    card: "summary_large_image",
+    title: "RecetaZ | Deja de hacer recetas en Word",
+    description: "Genera recetas médicas profesionales en segundos usando tus propias hojas membretadas.",
   },
 }
 
@@ -34,22 +43,31 @@ export default function LandingPage() {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "RecetaZ",
-    "applicationCategory": "MedicalBusinessApplication",
+    "applicationCategory": "HealthApplication",
     "operatingSystem": "Web",
-    "description": "Aplicación para médicos que quieren dejar de usar Word para hacer recetas. Permite diseñar plantillas de recetas y gestionar pacientes.",
+    "description": "Micro-SaaS para médicos en México que ayuda a generar recetas médicas rápidas y ordenadas, reemplazando el uso de Microsoft Word.",
     "offers": {
-      "@type": "Offer",
-      "price": "0", // Ajustar si hay planes
-      "priceCurrency": "MXN"
+      "@type": "AggregateOffer",
+      "priceCurrency": "MXN",
+      "lowPrice": "149",
+      "highPrice": "299",
+      "offerCount": "2"
     },
     "audience": {
       "@type": "Audience",
-      "audienceType": "Medical professionals"
-    }
+      "audienceType": "Independent Doctors and Clinics"
+    },
+    "featureList": [
+      "Diseño de recetas personalizadas",
+      "Gestión de historial de pacientes",
+      "Catálogo de medicamentos frecuentes",
+      "Funcionamiento offline-first",
+      "Panel de analytics de consultas"
+    ]
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-0">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaMarkup) }}
@@ -59,32 +77,39 @@ export default function LandingPage() {
       <ComparisonSection />
       <HowItWorks />
       <Features />
+      <Philosophy />
+      <Pricing />
+      <Confidence />
+      <FAQ />
       
       {/* Sección Final CTA */}
       <section className="py-24 bg-blue-600 dark:bg-blue-700 relative overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 relative z-10 text-center">
-          <h2 className="text-3xl sm:text-5xl font-bold text-white mb-6">
-            Empieza hoy mismo a digitalizar tu consultorio
+        <div className="container mx-auto px-4 sm:px-6 relative z-10 text-center text-white">
+          <h2 className="text-3xl sm:text-6xl font-extrabold mb-6 tracking-tight">
+            ¿Listo para modernizar tu consulta?
           </h2>
-          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-            No pierdas más tiempo en Word. RecetaZ es la herramienta que necesitas para verte más profesional y ahorrar tiempo.
+          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Únete a los médicos que ya ahorran horas a la semana dejando atrás el desorden de Word. 
+            <strong> 14 días gratis, sin tarjetas.</strong>
           </p>
-          <Link
-            href="/demo"
-            className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-lg font-bold text-blue-600 hover:bg-slate-100 transition-all shadow-xl hover:shadow-white/10 active:scale-95"
-          >
-            Probar RecetaZ Gratis
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
-          <p className="mt-6 text-sm text-blue-200">
-            Sin tarjetas de crédito. Prueba la demo al instante.
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/demo"
+              className="group w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-white px-10 py-5 text-xl font-bold text-blue-600 hover:bg-slate-50 transition-all shadow-2xl hover:shadow-white/20 active:scale-95"
+            >
+              Empezar mi prueba gratuita
+              <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          <p className="mt-8 text-sm text-blue-200 opacity-80">
+            Sin instalación compleja. Funciona directamente en tu navegador.
           </p>
         </div>
         
-        {/* Decoración */}
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[500px] h-[500px] bg-blue-500 rounded-full mix-blend-soft-light filter blur-[120px] opacity-50"></div>
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[500px] h-[500px] bg-indigo-500 rounded-full mix-blend-soft-light filter blur-[120px] opacity-50"></div>
+        {/* Decoración premium */}
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-white rounded-full mix-blend-soft-light filter blur-[140px] opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-indigo-300 rounded-full mix-blend-soft-light filter blur-[140px] opacity-20"></div>
       </section>
-    </>
+    </div>
   )
 }

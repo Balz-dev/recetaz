@@ -16,7 +16,7 @@ export function Hero() {
             Deja de hacer recetas en <span className="text-blue-600 dark:text-blue-500">Word</span>
           </h1>
           <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Conserva tu formato membretado de siempre, pero genera recetas en segundos. 
+            Usa tu misma receta membretada, pero más rápido y ordenado. 
             Sin errores, sin repetir datos y con orden total en tu consultorio.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

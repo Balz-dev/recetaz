@@ -1,41 +1,40 @@
-import { Clock, ShieldCheck, Printer, History, BarChart3, CloudOff } from "lucide-react"
+import { Clock, ShieldCheck, Printer, History, BarChart3, CloudOff, Smartphone } from "lucide-react"
 
 /**
  * Sección de beneficios principales de RecetaZ.
- * 
- * @returns Componente JSX con el grid de beneficios.
+ * Enfocada en la productividad y simplicidad para el médico independiente.
  */
 export function Features() {
   const features = [
     {
       icon: <Clock className="h-6 w-6 text-blue-600" />,
-      title: "Ahorra tiempo",
-      description: "Reduce el tiempo de escritura a menos de la mitad en cada consulta."
-    },
-    {
-      icon: <Printer className="h-6 w-6 text-blue-600" />,
-      title: "Usa tu receta",
-      description: "Imprime sobre tus hojas membretadas actuales con precisión quirúrgica."
-    },
-    {
-      icon: <History className="h-6 w-6 text-blue-600" />,
-      title: "Orden total",
-      description: "Ten el historial de cada paciente organizado y fácil de consultar."
-    },
-    {
-      icon: <BarChart3 className="h-6 w-6 text-blue-600" />,
-      title: "Control de ingresos",
-      description: "Visualiza cuántas consultas y cuánto dinero has generado por semana."
+      title: "Ahorra tiempo en consulta",
+      description: "Reduce el tiempo de escritura a menos de la mitad en cada paciente."
     },
     {
       icon: <CloudOff className="h-6 w-6 text-blue-600" />,
-      title: "Sin conexión",
-      description: "RecetaZ funciona offline. No dependas de si hay internet en el consultorio."
+      title: "Funciona sin conexión",
+      description: "No dependas del internet del consultorio. RecetaZ siempre está disponible."
+    },
+    {
+      icon: <History className="h-6 w-6 text-blue-600" />,
+      title: "No más repeticiones",
+      description: "Los datos del paciente y sus medicamentos frecuentes se guardan automáticamente."
+    },
+    {
+      icon: <Printer className="h-6 w-6 text-blue-600" />,
+      title: "Tu diseño, tu receta",
+      description: "Imprime sobre tus hojas membretadas actuales con absoluta precisión."
+    },
+    {
+      icon: <BarChart3 className="h-6 w-6 text-blue-600" />,
+      title: "Control de actividad",
+      description: "Visualiza cuántas consultas y qué ingresos has generado durante la semana."
     },
     {
       icon: <ShieldCheck className="h-6 w-6 text-blue-600" />,
-      title: "Privado y Seguro",
-      description: "Tus datos (y los de tus pacientes) se quedan en tu dispositivo. Nada se sube sin tu permiso."
+      title: "Privacidad total",
+      description: "Toda la información se guarda localmente. Tú tienes el control total de tus datos."
     }
   ]
 
@@ -47,7 +46,7 @@ export function Features() {
             Diseñado para el médico independiente
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Pequeñas herramientas que hacen una gran diferencia en tu día a día.
+            Pequeñas herramientas que hacen una gran diferencia en tu día a día, eliminando la fricción de los sistemas tradicionales.
           </p>
         </div>
 
