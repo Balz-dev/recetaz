@@ -1,88 +1,59 @@
-
-"use client";
-
-import { Button } from "@/shared/components/ui/button";
-import { ArrowRight, Printer, Laptop } from "lucide-react";
+import Link from "next/link"
+import { ArrowRight, CheckCircle } from "lucide-react"
 
 /**
- * Sección Hero principal enfocada en el dolor del médico (Word).
+ * Sección Hero de la landing page.
+ * Enfocada en atacar el dolor de usar Word para recetas.
  * 
- * @returns Componente React Hero.
+ * @returns Componente JSX con el Hero.
  */
 export function Hero() {
   return (
-    <section className="relative pt-20 pb-32 px-6 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-        
-        {/* Contenido de Texto */}
-        <div className="space-y-8 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/50 text-blue-700 text-sm font-medium border border-blue-200">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-            </span>
-            Diseñado para médicos en México
-          </div>
-          
-          <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Deja de hacer tus recetas en <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Word</span>.
+    <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
+            Deja de hacer recetas en <span className="text-blue-600 dark:text-blue-500">Word</span>
           </h1>
-          
-          <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-            Sigue usando tu misma receta membretada tradicional, pero genera el contenido en segundos sin que se mueva el formato.
+          <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Conserva tu formato membretado de siempre, pero genera recetas en segundos. 
+            Sin errores, sin repetir datos y con orden total en tu consultorio.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto lg:mx-0">
-            <Button 
-              size="lg" 
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-200/50 text-lg px-8 h-14"
-              onClick={() => window.location.href = '/demo'}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/demo"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95"
             >
-              Probar Demo Gratis <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+              Usarlo en mi consultorio
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+            <p className="text-sm text-slate-500 dark:text-slate-500">
+              Pruébalo ahora, sin registros complejos.
+            </p>
           </div>
           
-          <p className="text-sm text-slate-500">
-            Sin instalaciones complejas • Úsalo en tus primeras consultas gratis
-          </p>
-        </div>
-
-        {/* Visual Hero */}
-        <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-          <div className="relative rounded-2xl bg-white shadow-2xl border border-slate-200 p-2 overflow-hidden">
-            <div className="bg-slate-50 rounded-xl p-8 relative overflow-hidden aspect-[4/3] flex items-center justify-center">
-                 <div className="grid grid-cols-2 gap-8 w-full">
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col items-center gap-4 relative">
-                        <div className="absolute top-2 left-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Lo de siempre</div>
-                        <Printer className="w-12 h-12 text-slate-300" />
-                        <div className="w-24 h-32 border-2 border-dashed border-slate-300 rounded flex items-center justify-center bg-white">
-                             <p className="text-[0.5rem] text-center text-slate-400 px-2">Tu Hoja Membretada</p>
-                        </div>
-                    </div>
-                    <div className="bg-slate-900 p-4 rounded-lg shadow-sm border border-slate-800 flex flex-col items-center gap-4 relative text-white">
-                         <div className="absolute top-2 left-2 text-xs font-bold text-slate-500 uppercase tracking-widest">RecetaZ</div>
-                        <Laptop className="w-12 h-12 text-blue-400" />
-                        <div className="w-24 h-32 bg-slate-800 rounded flex flex-col p-2 gap-1 overflow-hidden">
-                            <div className="h-1.5 w-1/2 bg-slate-600 rounded"></div>
-                            <div className="h-1.5 w-3/4 bg-slate-700 rounded"></div>
-                            <div className="flex-1"></div>
-                             <div className="h-6 w-full bg-blue-600/20 border border-blue-500/50 rounded flex items-center justify-center">
-                                <span className="text-[0.4rem] text-blue-300">Datos precisos</span>
-                             </div>
-                        </div>
-                    </div>
-                 </div>
-                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="bg-white p-2 rounded-full shadow-lg border border-slate-100 z-10">
-                         <ArrowRight className="w-6 h-6 text-blue-600" />
-                    </div>
-                 </div>
+          <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400">
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+              Tus propias hojas membretadas
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+              Funciona sin internet
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+              Privacidad de datos garantizada
             </div>
           </div>
-          <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl -z-10"></div>
-          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl -z-10"></div>
         </div>
       </div>
+      
+      {/* Elementos decorativos de fondo */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-0 pointer-events-none opacity-50 dark:opacity-20">
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse delay-700"></div>
+      </div>
     </section>
-  );
+  )
 }
