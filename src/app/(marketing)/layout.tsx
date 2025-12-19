@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "../globals.css";
 
 export const metadata: Metadata = {
-    title: "Recetaz - Software Médico para Doctores Modernos",
-    description: "Gestiona tus recetas médicas de forma rápida, segura y elegante.",
+    title: "RecetaZ - Deja de hacer recetas en Word",
+    description: "La forma más simple para médicos en México que quieren dejar de usar Word para sus recetas.",
 };
 
 export default function MarketingLayout({

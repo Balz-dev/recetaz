@@ -1,25 +1,27 @@
 
-import { BookOpen, History, ShieldCheck, Zap } from "lucide-react";
+import { Zap, FileText, LayoutDashboard } from "lucide-react";
 
 /**
- * Sección de beneficios adicionales.
+ * Sección de beneficios clave enfocada en el valor del mundo real.
+ * 
+ * @returns Componente React de Beneficios.
  */
 export function Benefits() {
-  const benefits = [
+  const items = [
     {
-      icon: <BookOpen className="w-6 h-6 text-white" />,
-      title: "Vademécum Inteligente",
-      description: "Escribe 'Para...' y te sugerimos 'Paracetamol'. Autocompletado de dosis y frecuencias comunes para ahorrar clics."
+      icon: <Zap className="w-6 h-6 text-white" />,
+      title: "Ahorra tiempo en consulta",
+      description: "No vuelvas a escribir lo mismo. Selecciona medicamentos frecuentes y dosis sugeridas en segundos."
     },
     {
-      icon: <History className="w-6 h-6 text-white" />,
-      title: "Expediente Express",
-      description: "Guarda automáticamente a tus pacientes. Replica una receta anterior con un solo clic en su próxima visita."
+      icon: <FileText className="w-6 h-6 text-white" />,
+      title: "Usa tu propia receta",
+      description: "Tú diseñas la plantilla una sola vez para que imprima exactamente sobre tu papelería membretada actual."
     },
     {
-      icon: <ShieldCheck className="w-6 h-6 text-white" />,
-      title: "Seguridad y Cumplimiento",
-      description: "Cumple con los requisitos normativos (Cédula, dirección, firma digital). Tus datos están seguros y locales."
+      icon: <LayoutDashboard className="w-6 h-6 text-white" />,
+      title: "Ten orden y control",
+      description: "Mira cuántos pacientes atendiste y cuánto has generado por semana desde un panel simple y claro."
     }
   ];
 
@@ -27,14 +29,14 @@ export function Benefits() {
     <section className="py-24 px-6 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-3 gap-12">
-          {benefits.map((benefit, index) => (
-            <div key={index} className="flex flex-col items-start">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-blue-200">
-                {benefit.icon}
+          {items.map((item, index) => (
+            <div key={index} className="flex flex-col items-start group">
+              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-blue-200 transition-transform group-hover:scale-110">
+                {item.icon}
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">{benefit.title}</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
               <p className="text-slate-600 leading-relaxed">
-                {benefit.description}
+                {item.description}
               </p>
             </div>
           ))}
