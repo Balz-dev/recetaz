@@ -19,3 +19,7 @@ coverage/
 # Misc
 .idea/
 .vagrant/
+.agent/rules/pwa.md
+.agent/rules/liberar-puertos.md
+.agent/rules/documentacion-esp.md
+.gitignore
