@@ -28,10 +28,14 @@ async function seedMedicamentos() {
                 .first();
 
             if (!existing) {
+                const tokens = new Set<string>();
+                med.nombre.toLowerCase().split(/\s+/).forEach(t => tokens.add(t));
+                
                 await db.medicamentos.add({
                     id: uuidv4(),
                     nombre: med.nombre,
                     presentacion: med.presentacion,
+                    busquedaTokens: Array.from(tokens).filter(t => t.length > 0),
                     createdAt: now,
                     updatedAt: now
                 });

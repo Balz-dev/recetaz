@@ -104,7 +104,7 @@ class RecetasDatabase extends Dexie {
             finanzas: 'id, tipo, fecha, categoria',
             configuracionFinanciera: 'id',
             plantillas: 'id, nombre, activa',
-            medicamentos: 'id, nombre'
+            medicamentos: '++id, nombre, *busquedaTokens'
         });
     }
 }

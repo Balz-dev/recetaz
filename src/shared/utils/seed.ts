@@ -8,7 +8,7 @@
 
 import { db } from '@/shared/db/db.config';
 import { v4 as uuidv4 } from 'uuid';
-import type { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, Medicamento, PlantillaReceta } from '@/types';
+import type { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, Medicamento, PlantillaReceta, MedicamentoCatalogo } from '@/types';
 
 /**
  * Genera datos de ejemplo para el médico
@@ -607,6 +607,54 @@ function generarConfiguracionFinanciera(): ConfiguracionFinanciera {
 }
 
 /**
+ * Genera el catálogo inicial de medicamentos
+ */
+function generarMedicamentos(): MedicamentoCatalogo[] {
+    const now = new Date();
+    const listaBase = [
+        { nombre: "Paracetamol", nombreComercial: "Tempra", presentacion: "Tabletas", concentracion: "500 mg", instruccionesDefault: "Tomar 1 tableta cada 6-8 horas por 3 a 5 días si hay dolor o fiebre." },
+        { nombre: "Ibuprofeno", nombreComercial: "Advil", presentacion: "Cápsulas", concentracion: "400 mg", instruccionesDefault: "Tomar 1 cápsula cada 8 horas con alimentos por 3 a 5 días." },
+        { nombre: "Amoxicilina", nombreComercial: "Amoxil", presentacion: "Cápsulas", concentracion: "500 mg", instruccionesDefault: "Tomar 1 cápsula cada 8 horas por 7 días. Completar esquema." },
+        { nombre: "Omeprazol", nombreComercial: "Losec", presentacion: "Cápsulas", concentracion: "20 mg", instruccionesDefault: "Tomar 1 cápsula en ayunas por 14 días." },
+        { nombre: "Losartán", nombreComercial: "Cozaar", presentacion: "Tabletas", concentracion: "50 mg", instruccionesDefault: "Tomar 1 tableta cada 24 horas. Tratamiento continuo." },
+        { nombre: "Metformina", nombreComercial: "Dabex", presentacion: "Tabletas", concentracion: "850 mg", instruccionesDefault: "Tomar 1 tableta cada 12 horas con alimentos." },
+        { nombre: "Atorvastatina", nombreComercial: "Lipitor", presentacion: "Tabletas", concentracion: "20 mg", instruccionesDefault: "Tomar 1 tableta cada 24 horas por la noche." },
+        { nombre: "Salbutamol", nombreComercial: "Ventolin", presentacion: "Suspensión en aerosol", concentracion: "100 mcg", instruccionesDefault: "2 disparos cada 6 horas por 5 días. Usar cámara espaciadora." },
+        { nombre: "Glibenclamida", nombreComercial: "Daonil", presentacion: "Tabletas", concentracion: "5 mg", instruccionesDefault: "Tomar 1 tableta cada 24 horas antes del desayuno." },
+        { nombre: "Loratadina", nombreComercial: "Clarityne", presentacion: "Tabletas", concentracion: "10 mg", instruccionesDefault: "Tomar 1 tableta cada 24 horas por 5 días." },
+        { nombre: "Naproxeno", nombreComercial: "Flanax", presentacion: "Tabletas", concentracion: "550 mg", instruccionesDefault: "Tomar 1 tableta cada 12 horas con alimentos por 3 días." },
+        { nombre: "Ciprofloxacino", nombreComercial: "Ciproxina", presentacion: "Tabletas", concentracion: "500 mg", instruccionesDefault: "Tomar 1 tableta cada 12 horas por 7 días." },
+        { nombre: "Ketorolaco", nombreComercial: "Dolac", presentacion: "Tabletas sublinguales", concentracion: "30 mg", instruccionesDefault: "Tomar 1 tableta sublingual en caso de dolor intenso (Máx 4 días)." },
+        { nombre: "Ácido Acetilsalicílico", nombreComercial: "Aspirina Protect", presentacion: "Tabletas", concentracion: "100 mg", instruccionesDefault: "Tomar 1 tableta cada 24 horas con el desayuno." },
+        { nombre: "Diclofenaco", nombreComercial: "Voltaren", presentacion: "Grageas", concentracion: "100 mg", instruccionesDefault: "Tomar 1 gragea cada 24 horas con alimentos por 3 días." },
+        { nombre: "Azitromicina", nombreComercial: "Azitrocin", presentacion: "Tabletas", concentracion: "500 mg", instruccionesDefault: "Tomar 1 tableta cada 24 horas por 3 días." },
+        { nombre: "Prednisona", nombreComercial: "Meticorten", presentacion: "Tabletas", concentracion: "20 mg", instruccionesDefault: "Tomar 1 tableta cada 24 horas por la mañana segun esquema de reducción." },
+        { nombre: "Ambroxol", nombreComercial: "Mucosolvan", presentacion: "Jarabe", concentracion: "30 mg/5ml", instruccionesDefault: "Tomar 5 ml cada 8 horas por 5 días." },
+        { nombre: "Butilhioscina", nombreComercial: "Buscapina", presentacion: "Grageas", concentracion: "10 mg", instruccionesDefault: "Tomar 1 gragea cada 8 horas si hay dolor tipo cólico." },
+        { nombre: "Pantoprazol", nombreComercial: "Tecta", presentacion: "Tabletas", concentracion: "40 mg", instruccionesDefault: "Tomar 1 tableta en ayunas por 14 días." }
+    ];
+
+    return listaBase.map(m => {
+        // Generar tokens de búsqueda (palabras clave del nombre y nombre comercial)
+        const tokens = new Set<string>();
+        m.nombre.toLowerCase().split(/\s+/).forEach(t => tokens.add(t));
+        m.nombreComercial.toLowerCase().split(/\s+/).forEach(t => tokens.add(t));
+        
+        return {
+            id: uuidv4(),
+            nombre: m.nombre,
+            nombreComercial: m.nombreComercial,
+            presentacion: m.presentacion,
+            concentracion: m.concentracion,
+            instruccionesDefault: m.instruccionesDefault,
+            busquedaTokens: Array.from(tokens).filter(t => t.length > 0),
+            createdAt: now,
+            updatedAt: now
+        };
+    });
+}
+
+/**
  * Función principal que ejecuta el seed en el navegador
  * 
  * @returns Promise que se resuelve cuando el seed se completa exitosamente
@@ -622,6 +670,7 @@ export async function seedDatabase(): Promise<void> {
         await db.recetas.clear();
         await db.finanzas.clear();
         await db.configuracionFinanciera.clear();
+        await db.medicamentos.clear();
         console.log('✅ Datos limpiados\n');
 
         // Insertar configuración del médico
@@ -667,7 +716,14 @@ export async function seedDatabase(): Promise<void> {
         await db.plantillas.bulkAdd(plantillas);
         console.log(`✅ ${plantillas.length} plantillas insertadas\n`);
 
+        // Insertar catálogo de medicamentos
+        console.log('💊 Insertando catálogo de medicamentos...');
+        const medicamentos = generarMedicamentos();
+        await db.medicamentos.bulkAdd(medicamentos);
+        console.log(`✅ ${medicamentos.length} medicamentos insertados\n`);
+
         console.log(`   - ${plantillas.length} plantillas configuradas`);
+        console.log(`   - ${medicamentos.length} medicamentos en catálogo`);
         console.log(`   - Configuración financiera establecida\n`);
         console.log('🔄 Recarga la página para ver los cambios');
     } catch (error) {

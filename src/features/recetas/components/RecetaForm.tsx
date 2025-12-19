@@ -168,6 +168,12 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
         setShowSuggestions(false)
     }
 
+    /**
+     * Maneja la búsqueda de medicamentos en tiempo real y actualiza las sugerencias.
+     * 
+     * @param query - El texto ingresado para buscar el medicamento.
+     * @param index - El índice del medicamento en el arreglo del formulario.
+     */
     const handleMedicamentoSearch = async (query: string, index: number) => {
         form.setValue(`medicamentos.${index}.nombre`, query)
 
@@ -182,13 +188,40 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
         setActiveMedicamentoIndex(index)
     }
 
+    /**
+     * Selecciona una sugerencia de medicamento y autocompleta los campos relacionados.
+     * 
+     * @param medicamento - El objeto del medicamento seleccionado del catálogo.
+     * @param index - El índice del medicamento en el arreglo del formulario.
+     */
     const selectMedicamentoSuggestion = (medicamento: MedicamentoCatalogo, index: number) => {
-        form.setValue(`medicamentos.${index}.nombre`, medicamento.nombre)
+        // Formato: Nombre (Nombre Comercial) para facilitar identificación
+        const nombreCompleto = medicamento.nombreComercial 
+            ? `${medicamento.nombre} (${medicamento.nombreComercial})`
+            : medicamento.nombre
+
+        form.setValue(`medicamentos.${index}.nombre`, nombreCompleto)
+        
         if (medicamento.presentacion) {
             form.setValue(`medicamentos.${index}.presentacion`, medicamento.presentacion)
+            // Limpia error de validación si existía
+            form.clearErrors(`medicamentos.${index}.presentacion`)
         }
+        
+        if (medicamento.concentracion) {
+            form.setValue(`medicamentos.${index}.dosis`, medicamento.concentracion)
+            form.clearErrors(`medicamentos.${index}.dosis`)
+        }
+
+        if (medicamento.instruccionesDefault) {
+             form.setValue(`medicamentos.${index}.indicaciones`, medicamento.instruccionesDefault)
+        }
+        
         setMedicamentoSuggestions([])
         setActiveMedicamentoIndex(null)
+        
+        // Enfocar el campo de frecuencia que suele ser el siguiente necesario a llenar manualmente
+        // (Esto es un detalle de UX que podríamos mejorar con refs, pero por ahora solo el llenado)
     }
 
     const handlePatientCreated = async (pacienteId: string) => {
@@ -486,10 +519,14 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                                 className="w-full px-4 py-2 text-left hover:bg-slate-100 flex flex-col"
                                                                 onClick={() => selectMedicamentoSuggestion(med, index)}
                                                             >
-                                                                <span className="font-medium">{med.nombre}</span>
-                                                                {med.presentacion && (
-                                                                    <span className="text-xs text-slate-500">{med.presentacion}</span>
-                                                                )}
+                                                                    <span className="font-medium">
+                                                                        {med.nombre} 
+                                                                        {med.nombreComercial && <span className="text-slate-500 font-normal"> ({med.nombreComercial})</span>}
+                                                                    </span>
+                                                                    <div className="flex gap-2 text-xs text-slate-500">
+                                                                        {med.presentacion && <span>{med.presentacion}</span>}
+                                                                        {med.concentracion && <span>• {med.concentracion}</span>}
+                                                                    </div>
                                                             </button>
                                                         ))}
                                                     </div>

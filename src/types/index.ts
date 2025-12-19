@@ -128,11 +128,15 @@ export type PlantillaRecetaFormData = Omit<PlantillaReceta, 'id' | 'createdAt' |
 export interface MedicamentoCatalogo {
     id: string;
     nombre: string;
+    nombreComercial?: string;
     presentacion?: string;
+    concentracion?: string;
+    instruccionesDefault?: string;
+    busquedaTokens: string[];
     createdAt: Date;
     updatedAt: Date;
 }
 
-export type MedicamentoCatalogoFormData = Omit<MedicamentoCatalogo, 'id' | 'createdAt' | 'updatedAt'>;
+export type MedicamentoCatalogoFormData = Omit<MedicamentoCatalogo, 'id' | 'createdAt' | 'updatedAt' | 'busquedaTokens'>;
 
 
