@@ -19,3 +19,8 @@ coverage/
 # Misc
 .idea/
 .vagrant/
+.agent/rules/documentacion-esp.md
+.gitignore
+.gitignore
+.agent/rules/pwa.md
+.agent/rules/liberar-puertos.md
