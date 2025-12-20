@@ -1,49 +1,63 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight, CheckCircle } from "lucide-react"
 
 /**
  * Sección Hero de la landing page.
- * Enfocada en atacar el dolor de usar Word para recetas.
- * 
- * @returns Componente JSX con el Hero.
+ * Enfocada en atacar el dolor de usar Word para recetas e introducir la solución de RecetaZ.
  */
 export function Hero() {
   return (
     <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
-            Deja de hacer recetas en <span className="text-blue-600 dark:text-blue-500">Word</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Usa tu misma receta membretada, pero más rápido y ordenado. 
-            Sin errores, sin repetir datos y con orden total en tu consultorio.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/demo"
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95"
-            >
-              Usarlo en mi consultorio
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-            <p className="text-sm text-slate-500 dark:text-slate-500">
-              Pruébalo ahora, sin registros complejos.
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          {/* Columna de Texto */}
+          <div className="flex-1 text-center lg:text-left">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
+              Deja de escribir tus recetas en <span className="text-blue-600 dark:text-blue-500">Word</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl lg:mx-0 mx-auto leading-relaxed">
+              Usa tu receta médica de siempre, pero con un sistema diseñado para consultorios reales.
             </p>
+            
+            <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4 mb-10">
+              <Link
+                href="/demo"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95"
+              >
+                Probar gratis
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </div>
+            
+            <div className="flex flex-col gap-4 text-sm font-medium text-slate-600 dark:text-slate-400">
+              <div className="flex items-center lg:justify-start justify-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                Funciona incluso sin internet
+              </div>
+              <div className="flex items-center lg:justify-start justify-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                Diseña tu receta una sola vez
+              </div>
+              <div className="flex items-center lg:justify-start justify-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                Atiende más rápido sin cambiar tu forma de trabajar
+              </div>
+            </div>
           </div>
-          
-          <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400">
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-              Tus propias hojas membretadas
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-              Funciona sin internet
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-              Privacidad de datos garantizada
+
+          {/* Columna de Imagen */}
+          <div className="flex-1 w-full max-w-3xl lg:max-w-none">
+            <div className="relative rounded-xl shadow-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <Image
+                src="/word-recetaz.png"
+                alt="Comparación entre escribir recetas en Word y usar RecetaZ con formulario médico"
+                width={1200}
+                height={800}
+                className="w-full h-auto object-cover"
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
             </div>
           </div>
         </div>
