@@ -1,5 +1,7 @@
+import React from "react"
 import "../globals.css"
 import Link from "next/link"
+import Image from "next/image"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { ThemeProvider } from "@/components/ThemeProvider"
 
@@ -23,7 +25,16 @@ export default function MarketingLayout({
             <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md">
               <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
                 <Link href="/" className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-500"><img src="/fenotipo.png" alt="fenotipo de recetaZ" /></span>
+                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-500">
+                    <Image 
+                      src="/fenotipo.png" 
+                      alt="Logo RecetaZ" 
+                      width={32} 
+                      height={32} 
+                      className="h-8 w-auto"
+                      priority
+                    />
+                  </span>
                 </Link>
                 <div className="flex items-center space-x-4">
                   <ThemeToggle />
@@ -43,7 +54,15 @@ export default function MarketingLayout({
               <div className="container mx-auto px-4 sm:px-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                   <div className="col-span-1 md:col-span-2">
-                    <span className="text-xl font-bold text-blue-600 dark:text-blue-500"><img src="/fenotipo.png" alt="fenotipo de recetaZ" /></span>
+                    <span className="text-xl font-bold text-blue-600 dark:text-blue-500">
+                      <Image 
+                        src="/fenotipo.png" 
+                        alt="Logo RecetaZ" 
+                        width={28} 
+                        height={28} 
+                        className="h-7 w-auto"
+                      />
+                    </span>
                     <p className="mt-4 text-slate-600 dark:text-slate-400 max-w-xs">
                       La forma más rápida y ordenada de hacer recetas médicas en México. 
                       Adiós al Word, hola a la eficiencia.
