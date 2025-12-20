@@ -1,77 +1,75 @@
+"use client"
 
-"use client";
+import { useState } from "react"
+import { Plus, Minus } from "lucide-react"
 
-import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
-
+/**
+ * Sección de Preguntas Frecuentes (FAQ).
+ */
 export function FAQ() {
   const faqs = [
     {
-      question: "¿Recetaz funciona sin internet?",
-      answer: "Sí. Recetaz es una PWA Offline-First. Esto significa que puedes crear recetas, guardar pacientes y consultar el historial sin conexión a internet. Los datos se sincronizan automáticamente cuando vuelves a conectarte."
+      question: "¿Necesito internet para usar RecetaZ?",
+      answer: "No. RecetaZ funciona incluso si no hay conexión en tu consultorio. La información se guarda en tu dispositivo para que puedas seguir trabajando sin interrupciones."
     },
     {
-      question: "¿Puedo usar mis hojas membretadas actuales?",
-      answer: "Absolutamente. Nuestra función de 'Impresión Híbrida' te permite calibrar los márgenes para que imprimamos SOLO los datos del paciente y medicamentos sobre tu hoja actual, sin desperdiciar tinta en el fondo."
+      question: "¿RecetaZ es una receta electrónica con validación COFEPRIS?",
+      answer: "No. RecetaZ es una herramienta de productividad diseñada para imprimir sobre tus propias recetas membretadas físicas. No es un sistema de receta electrónica oficial."
     },
     {
-      question: "¿Es seguro mi historial clínico?",
-      answer: "Tus datos viven en tu dispositivo (encriptados en el navegador). No compartimos información con terceros y cumplimos con la normativa de privacidad. Tú eres el único dueño de tu información."
-    },
-    {
-      question: "¿Qué pasa si cambio de computadora?",
-      answer: "Puedes exportar tu base de datos completa y restaurarla en cualquier otro dispositivo en segundos. En la versión Cloud (próximamente), tendrás sincronización automática entre dispositivos."
-    },
-    {
-      question: "¿Cuánto cuesta realmente?",
-      answer: "Tienes un plan gratuito de por vida con 50 recetas mensuales. Si necesitas más, el plan Pro cuesta $299 MXN al mes. También ofrecemos un pago único de por vida por lanzamiento."
+      question: "¿Dónde se guarda la información de mis pacientes?",
+      answer: "Toda la información de tus pacientes se guarda de manera local y segura en tu propia computadora o dispositivo. Tú eres el único dueño y responsable de tu información."
     }
-  ];
+  ]
+
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
-    <section id="faq" className="py-24 px-6 bg-slate-50">
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center text-slate-900 mb-4">Preguntas Frecuentes</h2>
-        <p className="text-center text-slate-600 mb-12">
-          Todo lo que necesitas saber antes de empezar.
-        </p>
+    <section className="py-24 bg-white dark:bg-[#0F172A]" id="faq">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+            Preguntas frecuentes
+          </h2>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Resolvemos tus dudas sobre cómo RecetaZ se adapta a tu consulta.
+          </p>
+        </div>
 
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <AccordionItem key={index} question={faq.question} answer={faq.answer} />
+        <div className="max-w-3xl mx-auto space-y-4">
+          {faqs.map((faq, i) => (
+            <div 
+              key={i} 
+              className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/50"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                aria-expanded={openIndex === i}
+              >
+                <span className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+                  {faq.question}
+                </span>
+                {openIndex === i ? (
+                  <Minus className="h-5 w-5 text-blue-600 flex-shrink-0 ml-4" />
+                ) : (
+                  <Plus className="h-5 w-5 text-slate-400 flex-shrink-0 ml-4" />
+                )}
+              </button>
+              
+              <div 
+                className={`transition-all duration-300 ease-in-out ${
+                  openIndex === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="p-6 pt-0 text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 leading-relaxed">
+                  {faq.answer}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
     </section>
-  );
+  )
 }
-
-function AccordionItem({ question, answer }: { question: string, answer: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="border-b border-slate-200 last:border-0">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex justify-between items-center w-full py-4 text-left group"
-      >
-        <span className={`font-semibold transition-colors ${isOpen ? 'text-blue-600' : 'text-slate-900 group-hover:text-blue-600'}`}>
-          {question}
-        </span>
-        {isOpen ? (
-          <ChevronUp className="w-5 h-5 text-blue-600" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
-        )}
-      </button>
-      <div 
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'}`}
-      >
-        <p className="text-slate-600 leading-relaxed text-sm">
-          {answer}
-        </p>
-      </div>
-    </div>
-  );
-}
-
