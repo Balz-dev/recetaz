@@ -15,12 +15,22 @@ import {
 } from "@/shared/components/ui/form"
 import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
-import { medicoService } from "@/features/config-medico/services/medico.service"
-import { MedicoConfigFormDataWithoutLogo } from "@/types"
-import { useEffect, useState, useRef } from "react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/shared/components/ui/select"
+import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
+import { useState, useRef, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
+import { medicoService } from "@/features/config-medico/services/medico.service"
 import { Loader2, Save, Upload, X } from "lucide-react"
 import Image from "next/image"
+import { MedicoConfig } from "@/types"
+
+type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfig, 'id' | 'createdAt' | 'updatedAt' | 'logo'>;
 
 // Esquema de validación con Zod
 const medicoFormSchema = z.object({
@@ -30,6 +40,7 @@ const medicoFormSchema = z.object({
     especialidad: z.string().min(2, {
         message: "La especialidad es requerida.",
     }),
+    especialidadKey: z.string().optional(),
     cedula: z.string().min(5, {
         message: "La cédula es requerida.",
     }),
@@ -56,6 +67,7 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
         defaultValues: {
             nombre: "",
             especialidad: "",
+            especialidadKey: "general", // Valor por defecto
             cedula: "",
             telefono: "",
             direccion: "",
@@ -71,6 +83,7 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                     form.reset({
                         nombre: data.nombre,
                         especialidad: data.especialidad,
+                        especialidadKey: data.especialidadKey || "general",
                         cedula: data.cedula,
                         telefono: data.telefono,
                         direccion: data.direccion || "",
@@ -134,8 +147,13 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
     async function onSubmit(values: MedicoConfigFormDataWithoutLogo) {
         setIsLoading(true)
         try {
+            // Asegurar que el nombre de la especialidad coincida con la key seleccionada
+            const selectedSpecialty = SPECIALTIES_CONFIG[values.especialidadKey || 'general'];
+            const especialidadLabel = selectedSpecialty ? selectedSpecialty.label : values.especialidad;
+
             await medicoService.save({
                 ...values,
+                especialidad: especialidadLabel,
                 logo: logoBase64,
             })
             toast({
@@ -227,13 +245,33 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
 
                     <FormField
                         control={form.control}
-                        name="especialidad"
+                        name="especialidadKey"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Especialidad</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Medicina General" {...field} />
-                                </FormControl>
+                                <Select 
+                                    onValueChange={(value) => {
+                                        field.onChange(value);
+                                        // Actualizar también el label visual si se desea, aunque onSubmit lo maneja
+                                        const label = SPECIALTIES_CONFIG[value]?.label;
+                                        if (label) form.setValue('especialidad', label);
+                                    }} 
+                                    defaultValue={field.value}
+                                    value={field.value}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione su especialidad" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {Object.entries(SPECIALTIES_CONFIG).map(([key, config]) => (
+                                            <SelectItem key={key} value={key}>
+                                                {config.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 <FormMessage />
                             </FormItem>
                         )}
