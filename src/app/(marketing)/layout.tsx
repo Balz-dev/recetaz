@@ -29,8 +29,8 @@ export default function MarketingLayout({
                     <Image 
                       src="/fenotipo.png" 
                       alt="Logo RecetaZ" 
-                      width={32} 
-                      height={32} 
+                      width={1214} 
+                      height={276} 
                       className="h-8 w-auto"
                       priority
                     />
@@ -58,8 +58,8 @@ export default function MarketingLayout({
                       <Image 
                         src="/fenotipo.png" 
                         alt="Logo RecetaZ" 
-                        width={28} 
-                        height={28} 
+                        width={1214} 
+                        height={276} 
                         className="h-7 w-auto"
                       />
                     </span>
