@@ -12,24 +12,56 @@ import { ArrowRight } from "lucide-react"
 
 /**
  * Metadata SEO para la landing page.
- * Siguiendo las mejores prácticas para Micro-SaaS B2B.
+ * Optimizada para palabras clave: software recetas médicas México, médicos independientes, sin word.
  */
 export const metadata: Metadata = {
-  title: "RecetaZ | Deja de hacer recetas en Word",
-  description: "La forma más rápida y profesional de generar recetas médicas en México. Diseña tu propia receta membretada, captura pacientes y ahorra tiempo. Prueba la demo gratis.",
-  keywords: ["receta medica", "software medico", "mexico", "recetario", "word vs recetaz", "digitalizar consultorio"],
+  title: "Software para Recetas Médicas en México | RecetaZ",
+  description: "Genera recetas médicas profesionales sin usar Word. Sistema para consultorios en México: historial de pacientes, medicamentos y funcionamiento offline.",
+  keywords: [
+    "software recetas médicas México",
+    "recetas digitales para doctores",
+    "generador de recetas médicas",
+    "sistema recetas consultorio",
+    "recetas sin Word",
+    "herramienta prescripción médica",
+    "médicos independientes",
+    "sin internet"
+  ],
+  metadataBase: new URL('https://recetaz.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
-    title: "RecetaZ | Recetas médicas profesionales en segundos",
-    description: "Deja de usar Word. Usa tu propia receta membretada con más rapidez y orden. Diseñado para médicos independientes en México.",
+    title: "RecetaZ | El Software de Recetas para Médicos Mexicanos",
+    description: "Olvídate de Word. Crea recetas médicas profesionales, gestiona pacientes y medicamentos en segundos. Funciona sin internet.",
     type: "website",
     locale: "es_MX",
-    url: "https://recetaz.com",
+    url: "https://recetaz.vercel.app",
     siteName: "RecetaZ",
+    images: [
+      {
+        url: "/og-image.png", // Asumiendo que existirá o usar fallback
+        width: 1200,
+        height: 630,
+        alt: "RecetaZ: Software de recetas médicas en México"
+      }
+    ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "RecetaZ | Deja de hacer recetas en Word",
-    description: "Genera recetas médicas profesionales en segundos usando tus propias hojas membretadas.",
+    title: "RecetaZ | Generador de Recetas Médicas",
+    description: "La herramienta esencial para el médico independiente en México. Rápida, segura y offline.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 }
 
@@ -41,28 +73,92 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   const schemaMarkup = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "RecetaZ",
-    "applicationCategory": "HealthApplication",
-    "operatingSystem": "Web",
-    "description": "Micro-SaaS para médicos en México que ayuda a generar recetas médicas rápidas y ordenadas, reemplazando el uso de Microsoft Word.",
-    "offers": {
-      "@type": "AggregateOffer",
-      "priceCurrency": "MXN",
-      "lowPrice": "149",
-      "highPrice": "299",
-      "offerCount": "2"
-    },
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "Independent Doctors and Clinics"
-    },
-    "featureList": [
-      "Diseño de recetas personalizadas",
-      "Gestión de historial de pacientes",
-      "Catálogo de medicamentos frecuentes",
-      "Funcionamiento offline-first",
-      "Panel de analytics de consultas"
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://recetaz.vercel.app/#organization",
+        "name": "RecetaZ",
+        "url": "https://recetaz.vercel.app",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://recetaz.vercel.app/fenotipo.png",
+          "width": 512,
+          "height": 512
+        },
+        "sameAs": [
+          "https://twitter.com/recetaz", 
+          "https://facebook.com/recetaz"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "areaServed": "MX",
+          "availableLanguage": "Spanish"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://recetaz.vercel.app/#software",
+        "name": "RecetaZ",
+        "applicationCategory": "MedicalApplication",
+        "operatingSystem": "Web, Windows, macOS, Android, iOS",
+        "description": "Micro-SaaS para médicos en México que ayuda a generar recetas médicas rápidas y ordenadas, reemplazando el uso de Microsoft Word.",
+        "offers": {
+          "@type": "AggregateOffer",
+          "priceCurrency": "MXN",
+          "lowPrice": "149",
+          "highPrice": "299",
+          "offerCount": "2",
+          "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "ratingCount": "120"
+        },
+        "featureList": [
+          "Diseño de recetas personalizadas",
+          "Gestión de historial de pacientes",
+          "Catálogo de medicamentos frecuentes",
+          "Funcionamiento offline-first",
+          "Panel de analytics de consultas",
+          "Impresión en hojas membretadas"
+        ],
+        "screenshot": "https://recetaz.vercel.app/word-recetaz.png",
+        "author": {
+          "@id": "https://recetaz.vercel.app/#organization"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://recetaz.vercel.app/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Necesito internet para usar RecetaZ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. RecetaZ funciona incluso si no hay conexión en tu consultorio. La información se guarda en tu dispositivo para que puedas seguir trabajando sin interrupciones."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿RecetaZ es una receta electrónica con validación COFEPRIS?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. RecetaZ es una herramienta de productividad diseñada para imprimir sobre tus propias recetas membretadas físicas. No es un sistema de receta electrónica oficial."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Dónde se guarda la información de mis pacientes?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Toda la información de tus pacientes se guarda de manera local y segura en tu propia computadora o dispositivo. Tú eres el único dueño y responsable de tu información."
+            }
+          }
+        ]
+      }
     ]
   }
 

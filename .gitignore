@@ -24,3 +24,7 @@ coverage/
 .gitignore
 .agent/rules/pwa.md
 .agent/rules/liberar-puertos.md
+.agent/rules/doc-esp.md
+.agent/rules/liberar-puerto.md
+.agent/rules/pwa2.md
+.gitignore
