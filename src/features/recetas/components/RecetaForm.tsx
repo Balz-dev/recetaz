@@ -26,6 +26,16 @@ import Link from "next/link"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { PatientRegistrationModal } from "@/features/pacientes/components/PatientRegistrationModal"
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/shared/components/ui/select"
+import { medicoService } from "@/features/config-medico/services/medico.service"
+import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
+
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
     presentacion: z.string().optional(),
@@ -46,6 +56,7 @@ const recetaFormSchema = z.object({
     diagnostico: z.string().min(1, "El diagnóstico es requerido"),
     medicamentos: z.array(medicamentoSchema).min(1, "Debe agregar al menos un medicamento"),
     instrucciones: z.string().optional(),
+    datosEspecificos: z.record(z.string(), z.any()).optional(),
 })
 
 interface RecetaFormProps {
@@ -66,6 +77,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
     const [isLoading, setIsLoading] = useState(false)
     const [pacientes, setPacientes] = useState<Paciente[]>([])
     const [filteredPacientes, setFilteredPacientes] = useState<Paciente[]>([])
+    const [specialtyConfig, setSpecialtyConfig] = useState<any>(null) // SpecialtyConfig type
 
     // Estados para autocompletado de medicamentos
     const [medicamentoSuggestions, setMedicamentoSuggestions] = useState<MedicamentoCatalogo[]>([])
@@ -91,6 +103,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             diagnostico: "",
             medicamentos: [{ nombre: "", presentacion: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
             instrucciones: "",
+            datosEspecificos: {},
         },
     })
 
@@ -106,6 +119,15 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     useEffect(() => {
         loadPacientes()
+        // Cargar configuración de especialidad
+        const loadConfig = async () => {
+            const config = await medicoService.get();
+            if (config) {
+                const key = config.especialidadKey || 'general';
+                setSpecialtyConfig(SPECIALTIES_CONFIG[key] || SPECIALTIES_CONFIG['general']);
+            }
+        };
+        loadConfig();
     }, [])
 
     // Cargar paciente preseleccionado
@@ -251,7 +273,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 pacienteTalla: values.pacienteTalla || undefined, // Nuevo
                 diagnostico: values.diagnostico,
                 medicamentos: values.medicamentos,
-                instrucciones: values.instrucciones
+                instrucciones: values.instrucciones,
+                datosEspecificos: values.datosEspecificos
             }
 
             const recetaId = await recetaService.create(
@@ -281,6 +304,52 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             setIsLoading(false)
         }
     }
+
+    const renderDynamicField = (fieldDef: any) => {
+        return (
+            <FormField
+                key={fieldDef.id}
+                control={form.control}
+                name={`datosEspecificos.${fieldDef.id}`}
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>
+                            {fieldDef.label} {fieldDef.required && "*"}
+                        </FormLabel>
+                        <FormControl>
+                            {fieldDef.type === 'select' ? (
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    value={field.value}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione..." />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {fieldDef.options?.map((opt: string) => (
+                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : fieldDef.type === 'textarea' ? (
+                                <Textarea placeholder={fieldDef.placeholder} {...field} />
+                            ) : (
+                                <Input 
+                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'} 
+                                    placeholder={fieldDef.placeholder} 
+                                    {...field} 
+                                />
+                            )}
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+        );
+    };
 
     return (
         <Form {...form}>
@@ -434,6 +503,15 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                     )}
                                 />
                             </div>
+
+                            {/* Campos Dinámicos de Especialidad (Exploración Física / Obstétricos) */}
+                            {specialtyConfig?.prescriptionFields && (
+                                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4 mt-2">
+                                     <div className="md:col-span-3 font-medium text-sm text-slate-500">Datos de Exploración / Especialidad</div>
+                                     {specialtyConfig.prescriptionFields.map(renderDynamicField)}
+                                </div>
+                            )}
+
                         </CardContent>
                     </Card>
 

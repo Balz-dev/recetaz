@@ -16,11 +16,20 @@ import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { pacienteService } from "@/features/pacientes/services/paciente.service"
 import { PacienteFormData, Paciente } from "@/types"
-import { useState } from "react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/shared/components/ui/select"
+import { medicoService } from "@/features/config-medico/services/medico.service"
+import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
+import { useEffect, useState } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
-import { Loader2, Save, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { ArrowLeft, Loader2, Save } from "lucide-react"
 
 const pacienteFormSchema = z.object({
     nombre: z.string().min(2, {
@@ -32,6 +41,7 @@ const pacienteFormSchema = z.object({
     direccion: z.string().optional(),
     alergias: z.string().optional(),
     antecedentes: z.string().optional(),
+    datosEspecificos: z.record(z.string(), z.any()).optional(),
 })
 
 interface PacienteFormProps {
@@ -52,6 +62,7 @@ interface PacienteFormProps {
  */
 export function PacienteForm({ initialData, isEditing = false, afterSave, onCancel }: PacienteFormProps) {
     const [isLoading, setIsLoading] = useState(false)
+    const [specialtyConfig, setSpecialtyConfig] = useState<any>(null) // SpecialtyConfig type
     const { toast } = useToast()
     const router = useRouter()
 
@@ -59,14 +70,26 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
         resolver: zodResolver(pacienteFormSchema),
         defaultValues: {
             nombre: initialData?.nombre || "",
-            edad: initialData?.edad, // Undefined by default to avoid 0
+            edad: initialData?.edad,
             peso: initialData?.peso || "",
             talla: initialData?.talla || "",
             direccion: initialData?.direccion || "",
             alergias: initialData?.alergias || "",
             antecedentes: initialData?.antecedentes || "",
+            datosEspecificos: initialData?.datosEspecificos || {},
         },
     })
+
+    useEffect(() => {
+        const loadConfig = async () => {
+            const config = await medicoService.get();
+            if (config) {
+                const key = config.especialidadKey || 'general';
+                setSpecialtyConfig(SPECIALTIES_CONFIG[key] || SPECIALTIES_CONFIG['general']);
+            }
+        };
+        loadConfig();
+    }, []);
 
     async function onSubmit(values: PacienteFormData) {
         setIsLoading(true)
@@ -105,6 +128,52 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
         }
     }
 
+    const renderDynamicField = (fieldDef: any) => {
+        return (
+            <FormField
+                key={fieldDef.id}
+                control={form.control}
+                name={`datosEspecificos.${fieldDef.id}`}
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>
+                            {fieldDef.label} {fieldDef.required && "*"}
+                        </FormLabel>
+                        <FormControl>
+                            {fieldDef.type === 'select' ? (
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    value={field.value}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione..." />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {fieldDef.options?.map((opt: string) => (
+                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : fieldDef.type === 'textarea' ? (
+                                <Textarea placeholder={fieldDef.placeholder} {...field} />
+                            ) : (
+                                <Input 
+                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'} 
+                                    placeholder={fieldDef.placeholder} 
+                                    {...field} 
+                                />
+                            )}
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+        );
+    };
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -119,6 +188,16 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                             {isEditing ? "Editar Paciente" : "Nuevo Paciente"}
                         </h2>
                     </div>
+                )}
+
+                {/* Campos Dinámicos - Datos Personales */}
+                {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_personales') && (
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
+                        <div className="md:col-span-2 font-medium text-slate-700">Datos Personales Adicionales</div>
+                        {specialtyConfig.patientFields
+                            .filter((f: any) => f.section === 'datos_personales')
+                            .map(renderDynamicField)}
+                     </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -147,7 +226,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                         type="number"
                                         placeholder="0"
                                         {...field}
-                                        value={field.value ?? ""} // Handle undefined/null to show empty or placeholder
+                                        value={field.value ?? ""}
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             field.onChange(val === "" ? undefined : Number(val));
@@ -186,8 +265,6 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                             </FormItem>
                         )}
                     />
-
-
                 </div>
 
                 <FormField
@@ -203,6 +280,16 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                         </FormItem>
                     )}
                 />
+
+                {/* Campos Dinámicos - Datos Médicos */}
+                {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_medicos') && (
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
+                        <div className="md:col-span-2 font-medium text-slate-700">Información Médica Adicional</div>
+                        {specialtyConfig.patientFields
+                            .filter((f: any) => f.section === 'datos_medicos')
+                            .map(renderDynamicField)}
+                     </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField

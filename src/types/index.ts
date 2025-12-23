@@ -7,6 +7,8 @@ export interface Paciente {
     antecedentes?: string;
     peso?: string; // Permitir "70 kg" o solo "70"
     talla?: string; // Permitir "1.75 m" o "175 cm"
+    // Campos dinámicos de especialidad
+    datosEspecificos?: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -15,6 +17,8 @@ export interface MedicoConfig {
     id: string;
     nombre: string;
     especialidad: string;
+    // Clave de la especialidad para campos dinámicos (ej: 'pediatria', 'ginecologia')
+    especialidadKey?: string; 
     cedula: string;
     telefono: string;
     direccion?: string;
@@ -41,6 +45,8 @@ export interface Receta {
     pacienteEdad: number;   // Desnormalizado
     peso?: string;          // Desnormalizado (Snapshot)
     talla?: string;         // Desnormalizado (Snapshot)
+    // Campos dinámicos de especialidad en receta (ej: T/A, FUM, temperatura)
+    datosEspecificos?: Record<string, any>;
     diagnostico: string;
     medicamentos: Medicamento[];
     instrucciones?: string;
@@ -62,6 +68,7 @@ export type PacienteFormData = {
     antecedentes?: string;
     peso?: string;
     talla?: string;
+    datosEspecificos?: Record<string, any>;
     //cedula?: string;
 };
 export type RecetaFormData = {
@@ -77,6 +84,7 @@ export type RecetaFormData = {
     diagnostico: string;
     medicamentos: Omit<Medicamento, 'id'>[];
     instrucciones?: string;
+    datosEspecificos?: Record<string, any>;
 };
 
 export interface MovimientoFinanciero {

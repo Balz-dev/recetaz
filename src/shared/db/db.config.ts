@@ -106,6 +106,20 @@ class RecetasDatabase extends Dexie {
             plantillas: 'id, nombre, activa',
             medicamentos: 'id, nombre'
         });
+
+        // Versión 6: Soporte para campos dinámicos por especialidad
+        // - medico: se añade especialidadKey (no indexado)
+        // - pacientes: se añade datosEspecificos (no indexado)
+        // - recetas: se añade datosEspecificos (no indexado)
+        this.version(6).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, cedula',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: 'id, nombre'
+        });
     }
 }
 

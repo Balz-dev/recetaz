@@ -12,6 +12,8 @@ import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, M
 import { restrictToParentElement } from "@dnd-kit/modifiers"
 import { PlantillaReceta, CampoPlantilla, PlantillaRecetaFormData } from "@/types"
 import { plantillaService } from "@/features/recetas/services/plantilla.service"
+import { medicoService } from "@/features/config-medico/services/medico.service"
+import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -65,7 +67,17 @@ function getExampleText(id: string): string {
         instrucciones_lista: "Beber abundantes líquidos.\nReposo relativo.",
         sugerencias: "Evitar cambios bruscos de temperatura."
     };
-    return examples[id] || "Texto de ejemplo";
+    
+    // Fallback genérico para campos dinámicos
+    if (!examples[id]) {
+        if (id.startsWith('datos_personales_')) return "Dato Personal";
+        if (id.startsWith('datos_medicos_')) return "Dato Médico";
+        if (id.startsWith('exploracion_')) return "Hallazgo Normal";
+        if (id.startsWith('obstetricos_')) return "Dato Obstétrico";
+        return "Texto de Ejemplo";
+    }
+    
+    return examples[id];
 }
 
 /**
@@ -84,11 +96,20 @@ function calcularAnchoOptimo(id: string): number {
     return Math.max(5, Math.min(95, anchoCalculado));
 }
 
+interface EditorFieldDef {
+    id: string;
+    etiqueta: string;
+    tipo: 'texto' | 'imagen' | 'fecha' | 'lista';
+    defaultW: number;
+    defaultH: number;
+    src?: string;
+}
+
 /**
- * Definición de campos disponibles para agregar a la plantilla.
+ * Definición de campos BASE disponibles para agregar a la plantilla.
  * Los anchos se calculan automáticamente basándose en el contenido de ejemplo.
  */
-const AVAILABLE_FIELDS_DEF = [
+const BASE_FIELDS_DEF: EditorFieldDef[] = [
     // Datos del Médico
     { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
@@ -129,7 +150,7 @@ const AVAILABLE_FIELDS_DEF = [
     { id: 'medicamentos_lista', etiqueta: 'Lista Completa (Tabla)', tipo: 'lista', defaultW: 90, defaultH: 40 },
     { id: 'instrucciones_lista', etiqueta: 'Instrucciones (Bloque)', tipo: 'texto', defaultW: 90, defaultH: 20 },
     { id: 'sugerencias', etiqueta: 'Sugerencias / Notas', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 10 },
-] as const;
+] as EditorFieldDef[];
 
 /**
  * Componente de item arrastrable en el sidebar.
@@ -140,7 +161,7 @@ const AVAILABLE_FIELDS_DEF = [
  * @param props.isAdded - Indica si el campo ya fue agregado al canvas
  * @returns Elemento JSX del botón arrastrable
  */
-function SidebarDraggableItem({ field, isAdded }: { field: typeof AVAILABLE_FIELDS_DEF[number], isAdded: boolean }) {
+function SidebarDraggableItem({ field, isAdded }: { field: EditorFieldDef, isAdded: boolean }) {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: `sidebar-${field.id}`,
         data: { type: 'sidebar', field }
@@ -469,6 +490,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
     // Estado del Editor
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
+    const [availableFields, setAvailableFields] = useState<EditorFieldDef[]>(BASE_FIELDS_DEF)
     const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
     const [activeDragItem, setActiveDragItem] = useState<any>(null) // Para el Overlay
 
@@ -511,6 +533,46 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             loadData()
         }
     }, [plantillaId, router, toast])
+
+    // Cargar campos dinámicos de la especialidad
+    useEffect(() => {
+        const loadSpecialtyFields = async () => {
+            const config = await medicoService.get();
+            if (config) {
+                const key = config.especialidadKey || 'general';
+                const specialtyConfig = SPECIALTIES_CONFIG[key];
+                
+                if (specialtyConfig) {
+                    const newFields: EditorFieldDef[] = [];
+
+                     // Mapear campos de paciente
+                    specialtyConfig.patientFields?.forEach(f => {
+                         newFields.push({
+                             id: `datos_${f.id}`, // Convención: datos_ + id de especialidad
+                             etiqueta: f.label,
+                             tipo: 'texto',
+                             defaultW: 20,
+                             defaultH: f.type === 'textarea' ? 5 : 2.5
+                         });
+                    });
+
+                    // Mapear campos de receta
+                    specialtyConfig.prescriptionFields?.forEach(f => {
+                        newFields.push({
+                             id: `datos_${f.id}`,
+                             etiqueta: f.label,
+                             tipo: 'texto',
+                             defaultW: 20,
+                             defaultH: f.type === 'textarea' ? 5 : 2.5
+                         });
+                    });
+
+                    setAvailableFields([...BASE_FIELDS_DEF, ...newFields]);
+                }
+            }
+        };
+        loadSpecialtyFields();
+    }, []);
 
 
 
@@ -869,9 +931,13 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             <CardContent className="pt-6 space-y-2">
                                 <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Datos Paciente y Tratamiento</h3>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {AVAILABLE_FIELDS_DEF.filter(f =>
+                                    {availableFields.filter(f =>
                                         f.id.startsWith('paciente_') ||
-                                        ['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id)
+                                        ['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id) ||
+                                        // Incluir campos dinámicos de paciente (suelen tener sección en config)
+                                        // Por convención simple, si no es 'medico_' ni 'receta_' ni 'medicamento_', puede ir aquí o en el otro.
+                                        // O podemos ser más específicos si supiéramos el origen.
+                                        f.id.startsWith('datos_') // Asumiendo que 'datos_' son los dinámicos
                                     ).map(def => {
                                         const isAdded = campos.some(c => c.id === def.id);
                                         return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
@@ -884,9 +950,10 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             <CardContent className="pt-6 space-y-2">
                                 <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Datos Médico y Receta</h3>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {AVAILABLE_FIELDS_DEF.filter(f =>
+                                    {availableFields.filter(f =>
                                         !f.id.startsWith('paciente_') &&
-                                        !['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id)
+                                        !['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id) &&
+                                        !f.id.startsWith('datos_') // Excluir los que pusimos arriba
                                     ).map(def => {
                                         const isAdded = campos.some(c => c.id === def.id);
                                         return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
