@@ -27,7 +27,7 @@ export default function MarketingLayout({
                 <Link href="/" className="flex items-center space-x-2">
                   <span className="text-2xl font-bold text-blue-600 dark:text-blue-500">
                     <Image 
-                      src="/fenotipo.png" 
+                      src="/fenotipo.svg" 
                       alt="Logo RecetaZ" 
                       width={1214} 
                       height={276} 
@@ -56,7 +56,7 @@ export default function MarketingLayout({
                   <div className="col-span-1 md:col-span-2">
                     <span className="text-xl font-bold text-blue-600 dark:text-blue-500">
                       <Image 
-                        src="/fenotipo.png" 
+                        src="/fenotipo.svg" 
                         alt="Logo RecetaZ" 
                         width={1214} 
                         height={276} 

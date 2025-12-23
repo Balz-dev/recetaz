@@ -102,7 +102,7 @@ export function Sidebar() {
             {/* Header del Sidebar */}
             <div className="p-3">
                 <h1 className="p-0 text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    <Image src="/fenotipo.png" alt="Logo" width={200} height={200} />
+                    <Image src="/fenotipo.svg" alt="Logo" width={150} height={34} style={{ width: 'auto', height: 'auto' }} priority />
                 </h1>
                 <p className=" pt-0 text-xs text-slate-400 mt-1 text-[10px] color-cyan-400">Tu aliado en la creación de recetas médicas</p>
             </div>
