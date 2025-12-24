@@ -81,9 +81,9 @@ export default function LandingPage() {
         "url": "https://recetaz.vercel.app",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://recetaz.vercel.app/fenotipo.png",
-          "width": 512,
-          "height": 512
+          "url": "https://recetaz.vercel.app/fenotipo.svg",
+          "width": 1214,
+          "height": 276
         },
         "sameAs": [
           "https://twitter.com/recetaz", 

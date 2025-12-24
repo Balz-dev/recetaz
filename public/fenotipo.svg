@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="1214.000000pt" height="276.000000pt" viewBox="0 0 1214.000000 276.000000" preserveAspectRatio="xMidYMid meet" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:export>
+      <bx:file format="svg" path="fenotipo.svg" units="pt"/>
+      <bx:file format="svg" path="Sin título 2.svg" units="pt" excluded="true"/>
+    </bx:export>
+  </defs>
+  <path d="M 1080.3 88.6 C 1079.6 88.9 1079 90.6 1079 92.3 C 1079 93.9 1077.6 100.5 1075.9 106.7 C 1074.3 113 1073 119.3 1073.2 120.8 L 1073.5 123.5 L 1107.1 123.1 C 1131.9 122.8 1140.9 123 1141.4 123.9 C 1141.8 124.5 1140.6 127.1 1138.7 129.8 L 1135.2 134.5 L 1142.4 134.5 C 1151 134.5 1159.2 138 1164 143.8 C 1167.5 148 1170.4 156.9 1169.7 160.8 C 1169.1 163.8 1167.3 165.7 1194.4 136 L 1211.2 117.5 L 1210.6 108.5 C 1209.7 97 1208.5 91.9 1206.4 90.3 C 1205 89.3 1196.6 89 1170.6 89 C 1151.8 89 1124.1 88.8 1109 88.5 C 1093.9 88.2 1080.9 88.3 1080.3 88.6 Z" stroke="none" style="stroke-width: 0.1; fill: rgb(13, 68, 145);"/>
+  <path d="M 1092.9 183.1 C 1081.7 195.8 1072 207 1071.3 208 C 1070.4 209.3 1070.3 210.6 1071.1 212.8 C 1071.6 214.4 1072.9 220.4 1073.8 226.1 C 1075.5 236.2 1075.6 236.4 1078.5 237.1 C 1080.2 237.5 1110 238 1144.8 238.2 C 1202.8 238.6 1208.2 238.5 1209 237 C 1210.4 234.4 1212.8 218.3 1213.2 209.5 L 1213.5 201.5 L 1205.5 201.6 C 1201.1 201.6 1184.3 202.2 1168.2 202.9 C 1152.1 203.6 1138.2 203.9 1137.4 203.6 C 1135.3 202.8 1136.4 201.1 1145.5 190.6 L 1153.2 181.9 L 1149.3 182.7 C 1140.5 184.6 1129.1 182 1123 176.8 C 1119.8 174.1 1116.1 168.3 1115.1 164.2 C 1114.4 161.9 1113.8 160 1113.6 160 C 1113.4 160 1104.1 170.4 1092.9 183.1 Z" stroke="none" style="stroke-width: 0.1; fill: rgb(83, 140, 221);"/>
+  <text style="fill: rgb(25, 54, 129); font-family: Arial, sans-serif; font-size: 29px; font-weight: 700; paint-order: stroke; white-space: pre;" transform="matrix(8.273842, 0, 0, 8.391305, -3897.820068, -204.732208)" x="503.234" y="50.866">Receta</text>
+  <ellipse style="stroke: rgb(0, 0, 0); fill: rgb(4, 249, 70);" cx="1142.13" cy="159.362" rx="16.616" ry="16.616"/>
+  <rect x="22.401" y="39.89" width="192.737" height="190.343" style="stroke: rgb(0, 0, 0); fill: rgb(83, 140, 221);" rx="23.942" ry="23.942"/>
+  <text style="fill: rgb(25, 54, 129); font-family: Arial, sans-serif; font-size: 28px; font-weight: 700; white-space: pre;" transform="matrix(2.525424, 0, 0, 1.925926, -357.902802, 416.860931)"><tspan x="160.071" y="-158.83" style="font-size: 29px;">R</tspan><tspan>x</tspan></text>
+  <rect x="53.526" y="135.66" width="81.405" height="13.168" style="stroke: rgb(0, 0, 0); paint-order: fill; fill: rgb(255, 255, 255);"/>
+  <rect x="53.526" y="165.291" width="81.405" height="13.168" style="stroke: rgb(0, 0, 0); stroke-width: 1; paint-order: fill; fill: rgb(255, 255, 255);"/>
+  <rect x="53.526" y="194.922" width="81.405" height="13.168" style="stroke: rgb(0, 0, 0); stroke-width: 1; paint-order: fill; fill: rgb(255, 255, 255);"/>
+  <path d="M 471.323 -139.309 H 499.02 L 499.02 -155.309 L 540.02 -125.309 L 499.02 -95.309 L 499.02 -111.309 H 471.323 V -139.309 Z" bx:shape="arrow 471.323 -155.309 68.697 60 28 41 0 1@e5e372f3" style="stroke: rgb(0, 0, 0); fill: rgb(4, 249, 70);" transform="matrix(-0.749329, -0.662198, 0.662198, -0.749329, 631.322266, 430.476898)"/>
+</svg>

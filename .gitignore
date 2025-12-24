@@ -28,3 +28,5 @@ coverage/
 .agent/rules/liberar-puerto.md
 .agent/rules/pwa2.md
 .gitignore
+.agent/rules/git-workflow.md
+next-env.d.ts
