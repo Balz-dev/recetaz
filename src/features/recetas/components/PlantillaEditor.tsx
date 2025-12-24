@@ -62,10 +62,11 @@ function getExampleText(id: string): string {
         medicamento_dosis: "500 mg",
         medicamento_presentacion: "Caja con 12",
         medicamento_via: "Oral",
-        medicamento_posologia: "Tomar 1 cápsula cada 8 horas por 7 días...",
-        medicamentos_lista: "• Amoxicilina - 500mg\n• Paracetamol - 500mg",
-        instrucciones_lista: "Beber abundantes líquidos.\nReposo relativo.",
-        sugerencias: "Evitar cambios bruscos de temperatura."
+    medicamento_posologia: "Tomar 1 cápsula cada 8 horas por 7 días...",
+    medicamentos_lista: "• Amoxicilina - 500mg\n• Paracetamol - 500mg",
+    instrucciones_lista: "Beber abundantes líquidos.\nReposo relativo.",
+        sugerencias: "Evitar cambios bruscos de temperatura.",
+        tratamiento_grupo: "💊 Tratamiento\n--------------------------------\nMetformina          850 mg\nTomar: Cada 12h...\n\nAtorvastatina        20 mg\nTomar: Cada 24h..."
     };
     
     // Fallback genérico para campos dinámicos
@@ -149,6 +150,7 @@ const BASE_FIELDS_DEF: EditorFieldDef[] = [
     // Legacy / Composites
     { id: 'medicamentos_lista', etiqueta: 'Lista Completa (Tabla)', tipo: 'lista', defaultW: 90, defaultH: 40 },
     { id: 'instrucciones_lista', etiqueta: 'Instrucciones (Bloque)', tipo: 'texto', defaultW: 90, defaultH: 20 },
+    { id: 'tratamiento_grupo', etiqueta: 'Tratamiento (Grupo Estilizado)', tipo: 'lista', defaultW: 90, defaultH: 40 },
     { id: 'sugerencias', etiqueta: 'Sugerencias / Notas', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 10 },
 ] as EditorFieldDef[];
 
