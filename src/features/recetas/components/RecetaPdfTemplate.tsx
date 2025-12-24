@@ -173,6 +173,71 @@ const styles = StyleSheet.create({
     dynamicText: {
         fontSize: 10,
         fontFamily: 'Helvetica',
+    },
+    // Estilos para grupo tratamiento
+    tratamientoSection: {
+        marginBottom: 10,
+    },
+    tratamientoHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
+    tratamientoIcon: {
+        fontSize: 12,
+        marginRight: 4,
+    },
+    tratamientoTitle: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#000',
+    },
+    tratamientoDivider: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        marginBottom: 8,
+        marginTop: 2,
+    },
+    medicationRow: {
+        marginBottom: 10,
+        paddingBottom: 8,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#eee',
+    },
+    medHeaderLine: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8, // Aumentado de 4 para dar un salto claro
+        width: '100%',
+    },
+    medName: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#000',
+    },
+    medBadgeContainer: {
+        backgroundColor: '#f0f4f8',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 4,
+    },
+    medBadgeText: {
+        fontSize: 10,
+        color: '#0066CC',
+        fontWeight: 'bold',
+    },
+    medInstructions: {
+        fontSize: 11,
+        color: '#333',
+        marginBottom: 8, // Aumentado de 4 para separar de las notas
+        lineHeight: 1.6,
+    },
+    medNote: {
+        fontSize: 10,
+        fontStyle: 'italic',
+        color: '#666',
+        marginTop: 4, // Aumentado ligeramente
     }
 });
 
@@ -269,6 +334,41 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                                 );
                                 break;
 
+                            // Grupo Tratamiento Estilizado
+                            case 'tratamiento_grupo':
+                                content = (
+                                    <View style={styles.tratamientoSection}>
+                                        <View style={styles.tratamientoHeader}>
+                                            <Text style={styles.tratamientoTitle}>Tratamiento</Text>
+                                        </View>
+                                        <View style={styles.tratamientoDivider} />
+                                        
+                                        {receta.medicamentos.map((med, idx) => (
+                                            <View key={med.id || idx} style={styles.medicationRow}>
+                                                <View style={styles.medHeaderLine}>
+                                                    <Text style={styles.medName}>{med.nombre}</Text>
+                                                    <View style={styles.medBadgeContainer}>
+                                                        <Text style={styles.medBadgeText}>{med.dosis}</Text>
+                                                    </View>
+                                                </View>
+                                                
+                                                <Text style={styles.medInstructions}>
+                                                    <Text style={{fontWeight: 'bold'}}>Tomar: </Text>
+                                                    {med.frecuencia ? `${med.frecuencia} ` : ''}
+                                                    {med.duracion ? `durante ${med.duracion}` : ''}
+                                                </Text>
+                                                
+                                                {med.indicaciones && (
+                                                    <Text style={styles.medNote}>
+                                                        Nota: {med.indicaciones}
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        ))}
+                                    </View>
+                                );
+                                break;
+
                             // Campos individuales de medicamento (primer medicamento)
                             case 'medicamento_nombre':
                                 content = receta.medicamentos[0]?.nombre || "";
@@ -356,8 +456,8 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                         if (campo.tipo === 'imagen' || campo.id === 'medico_logo') {
                             // Imágenes se renderizan directamente
                             renderedContent = content;
-                        } else if (campo.id === 'medicamentos' || campo.id === 'medicamentos_lista') {
-                            // Listas se renderizan directamente (ya son View con Text)
+                        } else if (campo.id === 'medicamentos' || campo.id === 'medicamentos_lista' || campo.id === 'tratamiento_grupo') {
+                            // Listas y grupos complejos se renderizan directamente (ya son View con Text)
                             renderedContent = content;
                         } else {
                             // Texto normal
