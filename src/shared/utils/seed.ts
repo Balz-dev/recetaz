@@ -32,91 +32,43 @@ function generarMedicoConfig(): MedicoConfig {
  */
 function generarPacientes(): Paciente[] {
     const now = new Date();
+    const pacientes: Paciente[] = [];
 
-    return [
-        {
+    const nombres = ['Juan', 'María', 'Carlos', 'Ana', 'Luis', 'Laura', 'Roberto', 'Diana', 'Miguel', 'Patricia', 'José', 'Sofía', 'Alejandro', 'Carolina', 'Ángel', 'Elena', 'Alberto', 'Teresa', 'David', 'Gabriela', 'Fernando', 'Mónica', 'Jorge', 'Adriana', 'Ricardo', 'Verónica', 'Manuel', 'Silvia', 'Francisco', 'Elizabeth', 'Antonio', 'Martha', 'Daniel', 'Rosa', 'Pablo', 'Andrea', 'Jesús', 'Lucía', 'Pedro', 'Yolanda'];
+    const apellidos = ['Pérez', 'González', 'Rodríguez', 'López', 'Martínez', 'Sánchez', 'Hernández', 'Cruz', 'García', 'Ramírez', 'Mendoza', 'Torres', 'Flores', 'Díaz', 'Ruiz', 'Morales', 'Ortiz', 'Vargas', 'Castillo', 'Romero', 'Álvarez', 'Castro', 'Méndez', 'Guzmán', 'Herrera', 'Aguilar', 'Delgado', 'Jiménez', 'Moreno', 'Chávez', 'Ramos', 'Rivera', 'Juárez', 'Reyes'];
+    const calles = ['Av. Reforma', 'Calle Morelos', 'Av. Juárez', 'Calle Insurgentes', 'Av. Universidad', 'Calle Hidalgo', 'Av. Revolución', 'Calle Madero'];
+    const colonias = ['Centro', 'Roma', 'Condesa', 'Del Valle', 'San Ángel', 'Polanco', 'Juárez', 'Narvarte', 'Coyoacán', 'Pedregal'];
+    const antecedentesOpts = ['Ninguno', 'Hipertensión', 'Diabetes', 'Asma', 'Gastritis', 'Ninguno', 'Ninguno', 'Alergia estacional'];
+
+    const getRandomItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    for (let i = 0; i < 50; i++) {
+        const primerNombre = getRandomItem(nombres);
+        const segundoNombre = Math.random() > 0.5 ? getRandomItem(nombres) : '';
+        const apellidoPaterno = getRandomItem(apellidos);
+        const apellidoMaterno = getRandomItem(apellidos);
+        const nombreCompleto = [primerNombre, segundoNombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(' ');
+
+        const edad = Math.floor(Math.random() * 80) + 5;
+        const direccion = `${getRandomItem(calles)} ${Math.floor(Math.random() * 900) + 1}, Col. ${getRandomItem(colonias)}`;
+        const diasAntiguedad = Math.floor(Math.random() * 365);
+        const fechaRegistro = new Date(now.getTime() - diasAntiguedad * 24 * 60 * 60 * 1000);
+
+        pacientes.push({
             id: uuidv4(),
-            nombre: 'María Elena Rodríguez López',
-            edad: 45,
-            direccion: 'Calle Morelos 45, Col. Centro',
-            alergias: 'Penicilina',
-            antecedentes: 'Hipertensión arterial controlada',
-            peso: '72 kg',
-            talla: '1.65 m',
-            createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        },
-        {
-            id: uuidv4(),
-            nombre: 'Carlos Alberto Martínez Sánchez',
-            edad: 62,
-            direccion: 'Av. Juárez 789, Col. Roma',
-            alergias: '',
-            antecedentes: 'Diabetes tipo 2, dislipidemia',
-            createdAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000)
-        },
-        {
-            id: uuidv4(),
-            nombre: 'Ana Patricia Hernández Cruz',
-            edad: 28,
-            direccion: 'Calle Insurgentes 234, Col. Condesa',
-            alergias: 'Aspirina',
-            antecedentes: 'Ninguno',
-            createdAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000)
-        },
-        {
-            id: uuidv4(),
-            nombre: 'José Luis García Ramírez',
-            edad: 55,
-            direccion: 'Av. Universidad 567, Col. Del Valle',
-            alergias: '',
-            antecedentes: 'Gastritis crónica',
-            createdAt: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000)
-        },
-        {
-            id: uuidv4(),
-            nombre: 'Laura Sofía Mendoza Torres',
-            edad: 8,
-            direccion: 'Calle Hidalgo 12, Col. Centro',
-            alergias: '',
-            antecedentes: 'Asma leve',
-            createdAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000)
-        },
-        {
-            id: uuidv4(),
-            nombre: 'Roberto Alejandro Flores Díaz',
-            edad: 72,
-            direccion: 'Av. Revolución 890, Col. San Ángel',
-            alergias: 'Sulfonamidas',
-            antecedentes: 'Hipertensión, arritmia cardiaca',
-            createdAt: new Date(now.getTime() - 12 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 12 * 24 * 60 * 60 * 1000)
-        },
-        {
-            id: uuidv4(),
-            nombre: 'Diana Carolina Ruiz Morales',
-            edad: 35,
-            direccion: 'Calle Madero 345, Col. Polanco',
-            alergias: '',
-            antecedentes: 'Migraña crónica',
-            createdAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
-        },
-        {
-            id: uuidv4(),
-            nombre: 'Miguel Ángel Ortiz Vargas',
-            edad: 19,
-            direccion: 'Av. Chapultepec 678, Col. Juárez',
-            alergias: '',
-            antecedentes: 'Ninguno',
-            createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000)
-        }
-    ];
+            nombre: nombreCompleto,
+            edad: edad,
+            direccion: direccion,
+            alergias: Math.random() > 0.7 ? 'Penicilina' : '',
+            antecedentes: getRandomItem(antecedentesOpts),
+            peso: `${Math.floor(Math.random() * 40) + 50} kg`,
+            talla: `1.${Math.floor(Math.random() * 40) + 50} m`,
+            createdAt: fechaRegistro,
+            updatedAt: fechaRegistro
+        });
+    }
+
+    return pacientes;
 }
 
 /**
@@ -126,364 +78,84 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
     const now = new Date();
     const recetas: Receta[] = [];
 
-    // Receta 1: María Elena - Hipertensión
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0001',
-        pacienteId: pacientes[0].id,
-        pacienteNombre: pacientes[0].nombre,
-        pacienteEdad: pacientes[0].edad || 0,
-        peso: '72 kg',
-        talla: '1.65 m',
-        diagnostico: 'Hipertensión arterial sistémica',
-        medicamentos: [
-            {
+    const diagnosticos = [
+        { dx: 'Hipertensión arterial sistémica', med1: 'Losartán 50mg', med2: 'Hidroclorotiazida 12.5mg', ind: 'Control diario de PA. Dieta baja en sodio.' },
+        { dx: 'Diabetes mellitus tipo 2', med1: 'Metformina 850mg', med2: 'Glibenclamida 5mg', ind: 'Dieta baja en carbohidratos. Ejercicio regular.' },
+        { dx: 'Infección respiratoria aguda', med1: 'Amoxicilina 500mg', med2: 'Paracetamol 500mg', ind: 'Abundantes líquidos. Reposo.' },
+        { dx: 'Gastritis aguda', med1: 'Omeprazol 20mg', med2: 'Melox 10ml', ind: 'Evitar irritantes, café y alcohol.' },
+        { dx: 'Colitis nerviosa', med1: 'Bromuro de Pinaverio 100mg', med2: 'Simeticona 40mg', ind: 'Reducir estrés. Comer despacio.' },
+        { dx: 'Cefalea tensional', med1: 'Ibuprofeno 400mg', med2: '', ind: 'Reposo en lugar oscuro y silencioso.' },
+        { dx: 'Dermatitis atópica', med1: 'Loratadina 10mg', med2: 'Betametasona crema', ind: 'No rascar. Usar ropa de algodón.' },
+        { dx: 'Control de Niño Sano', med1: 'Multivitamínico Pediátrico', med2: '', ind: 'Alimentación balanceada. Vacunación al día.' },
+        { dx: 'Lumbalgia mecánica', med1: 'Naproxeno 500mg', med2: 'Complejo B', ind: 'Evitar cargar objetos pesados. Higiene de columna.' },
+        { dx: 'Faringoamigdalitis', med1: 'Penicilina Procainica 800,000 UI', med2: 'Ibuprofeno 400mg', ind: 'Completar esquema de antibiótico.' }
+    ];
+
+    const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const getRandomItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    let recetaCounter = 1;
+
+    pacientes.forEach(paciente => {
+        // Regla: Entre 1 y 5 recetas por paciente
+        const numRecetas = getRandomInt(1, 5);
+
+        for (let i = 0; i < numRecetas; i++) {
+            // Fechas entre el 21 y 27 de Diciembre de 2025
+            const dia = getRandomInt(21, 27);
+            // Horario aleatorio de consulta (9:00 - 19:59)
+            const hora = getRandomInt(9, 19);
+            const minuto = getRandomInt(0, 59);
+
+            // Nota: Mes 11 es Diciembre en Javascript
+            const fecha = new Date(2025, 11, dia, hora, minuto);
+            const dxData = getRandomItem(diagnosticos);
+
+            const medicamentos = [];
+
+            // Primer medicamento
+            medicamentos.push({
                 id: uuidv4(),
-                nombre: 'Losartán',
-                dosis: '50 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar en ayunas'
+                nombre: dxData.med1.split(' ')[0],
+                dosis: dxData.med1.split(' ').slice(1).join(' '),
+                frecuencia: 'Cada ' + getRandomItem(['8', '12', '24']) + ' horas',
+                duracion: getRandomItem(['3', '5', '7', '15', '30']) + ' días',
+                indicaciones: 'Oral'
+            });
+
+            // Segundo medicamento (opcional)
+            if (dxData.med2) {
+                medicamentos.push({
+                    id: uuidv4(),
+                    nombre: dxData.med2.split(' ')[0],
+                    dosis: dxData.med2.split(' ').slice(1).join(' '),
+                    frecuencia: 'Cada ' + getRandomItem(['8', '12', '24']) + ' horas',
+                    duracion: getRandomItem(['3', '5', '7', '15', '30']) + ' días',
+                    indicaciones: 'Oral'
+                });
             }
-        ],
-        instrucciones: 'Control de presión arterial diario. Dieta baja en sodio.',
-        fechaEmision: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+            recetas.push({
+                id: uuidv4(),
+                numeroReceta: recetaCounter.toString().padStart(4, '0'),
+                pacienteId: paciente.id,
+                pacienteNombre: paciente.nombre,
+                pacienteEdad: paciente.edad || 0,
+                peso: paciente.peso,
+                talla: paciente.talla,
+                diagnostico: dxData.dx,
+                medicamentos: medicamentos,
+                instrucciones: dxData.ind,
+                fechaEmision: fecha,
+                createdAt: fecha,
+                updatedAt: fecha
+            });
+            recetaCounter++;
+        }
     });
 
-    // Receta 2: Carlos Alberto - Diabetes
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0002',
-        pacienteId: pacientes[1].id,
-        pacienteNombre: pacientes[1].nombre,
-        pacienteEdad: pacientes[1].edad || 0,
-        peso: '85 kg',
-        talla: '1.78 m',
-        diagnostico: 'Diabetes mellitus tipo 2',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Metformina',
-                dosis: '850 mg',
-                frecuencia: 'Cada 12 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar con alimentos'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Glibenclamida',
-                dosis: '5 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar antes del desayuno'
-            }
-        ],
-        instrucciones: 'Monitoreo de glucosa en ayunas. Dieta para diabético.',
-        fechaEmision: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 3: Ana Patricia - Infección respiratoria
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0003',
-        pacienteId: pacientes[2].id,
-        pacienteNombre: pacientes[2].nombre,
-        pacienteEdad: pacientes[2].edad || 0,
-        diagnostico: 'Infección de vías respiratorias superiores',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Amoxicilina',
-                dosis: '500 mg',
-                frecuencia: 'Cada 8 horas',
-                duracion: '7 días',
-                indicaciones: 'Completar tratamiento'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Paracetamol',
-                dosis: '500 mg',
-                frecuencia: 'Cada 6 horas',
-                duracion: '5 días',
-                indicaciones: 'En caso de fiebre o dolor'
-            }
-        ],
-        instrucciones: 'Reposo relativo. Abundantes líquidos.',
-        fechaEmision: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 4: José Luis - Gastritis
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0004',
-        pacienteId: pacientes[3].id,
-        pacienteNombre: pacientes[3].nombre,
-        pacienteEdad: pacientes[3].edad || 0,
-        diagnostico: 'Gastritis aguda',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Omeprazol',
-                dosis: '20 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '14 días',
-                indicaciones: 'Tomar en ayunas'
-            }
-        ],
-        instrucciones: 'Evitar irritantes gástricos. Dieta blanda.',
-        fechaEmision: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 5: Laura Sofía - Asma
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0005',
-        pacienteId: pacientes[4].id,
-        pacienteNombre: pacientes[4].nombre,
-        pacienteEdad: pacientes[4].edad || 0,
-        diagnostico: 'Crisis asmática leve',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Salbutamol (inhalador)',
-                dosis: '2 disparos',
-                frecuencia: 'Cada 6 horas',
-                duracion: '7 días',
-                indicaciones: 'Usar con cámara espaciadora'
-            }
-        ],
-        instrucciones: 'Evitar exposición a alérgenos. Acudir a urgencias si empeora.',
-        fechaEmision: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 6: Roberto Alejandro - Arritmia
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0006',
-        pacienteId: pacientes[5].id,
-        pacienteNombre: pacientes[5].nombre,
-        pacienteEdad: pacientes[5].edad || 0,
-        diagnostico: 'Fibrilación auricular',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Warfarina',
-                dosis: '5 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar a la misma hora'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Bisoprolol',
-                dosis: '2.5 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Control de frecuencia cardiaca'
-            }
-        ],
-        instrucciones: 'Control de INR mensual. Evitar alimentos ricos en vitamina K.',
-        fechaEmision: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 7: Diana Carolina - Migraña
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0007',
-        pacienteId: pacientes[6].id,
-        pacienteNombre: pacientes[6].nombre,
-        pacienteEdad: pacientes[6].edad || 0,
-        diagnostico: 'Migraña con aura',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Sumatriptán',
-                dosis: '50 mg',
-                frecuencia: 'Al inicio de la crisis',
-                duracion: '10 tabletas',
-                indicaciones: 'No exceder 2 dosis en 24 horas'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Propranolol',
-                dosis: '40 mg',
-                frecuencia: 'Cada 12 horas',
-                duracion: '30 días',
-                indicaciones: 'Profilaxis'
-            }
-        ],
-        instrucciones: 'Identificar y evitar desencadenantes. Reposo en lugar oscuro.',
-        fechaEmision: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 8: Miguel Ángel - Faringitis
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0008',
-        pacienteId: pacientes[7].id,
-        pacienteNombre: pacientes[7].nombre,
-        pacienteEdad: pacientes[7].edad || 0,
-        diagnostico: 'Faringitis aguda',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Azitromicina',
-                dosis: '500 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '3 días',
-                indicaciones: 'Tomar con alimentos'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Ibuprofeno',
-                dosis: '400 mg',
-                frecuencia: 'Cada 8 horas',
-                duracion: '5 días',
-                indicaciones: 'Para dolor e inflamación'
-            }
-        ],
-        instrucciones: 'Gárgaras con agua tibia y sal. Evitar bebidas frías.',
-        fechaEmision: now,
-        createdAt: now,
-        updatedAt: now
-    });
-
-    // Recetas adicionales para tener más datos
-    // Receta 9: María Elena - Control
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0009',
-        pacienteId: pacientes[0].id,
-        pacienteNombre: pacientes[0].nombre,
-        pacienteEdad: pacientes[0].edad || 0,
-        diagnostico: 'Control de hipertensión arterial',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Losartán',
-                dosis: '50 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar en ayunas'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Hidroclorotiazida',
-                dosis: '12.5 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar junto con Losartán'
-            }
-        ],
-        instrucciones: 'Continuar con dieta hiposódica. Control mensual.',
-        fechaEmision: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 10: Carlos Alberto - Control
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0010',
-        pacienteId: pacientes[1].id,
-        pacienteNombre: pacientes[1].nombre,
-        pacienteEdad: pacientes[1].edad || 0,
-        diagnostico: 'Control de diabetes mellitus tipo 2',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Metformina',
-                dosis: '850 mg',
-                frecuencia: 'Cada 12 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar con alimentos'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Atorvastatina',
-                dosis: '20 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar por la noche'
-            }
-        ],
-        instrucciones: 'Laboratorios de control en 3 meses. Ejercicio regular.',
-        fechaEmision: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 11: Ana Patricia - Gripe
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0011',
-        pacienteId: pacientes[2].id,
-        pacienteNombre: pacientes[2].nombre,
-        pacienteEdad: pacientes[2].edad || 0,
-        diagnostico: 'Síndrome gripal',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Paracetamol',
-                dosis: '500 mg',
-                frecuencia: 'Cada 6 horas',
-                duracion: '5 días',
-                indicaciones: 'Para fiebre y malestar'
-            },
-            {
-                id: uuidv4(),
-                nombre: 'Loratadina',
-                dosis: '10 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '5 días',
-                indicaciones: 'Para congestión nasal'
-            }
-        ],
-        instrucciones: 'Reposo. Abundantes líquidos. Lavado nasal con solución salina.',
-        fechaEmision: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
-    });
-
-    // Receta 12: José Luis - Control gastritis
-    recetas.push({
-        id: uuidv4(),
-        numeroReceta: '0012',
-        pacienteId: pacientes[3].id,
-        pacienteNombre: pacientes[3].nombre,
-        pacienteEdad: pacientes[3].edad || 0,
-        diagnostico: 'Gastritis crónica en control',
-        medicamentos: [
-            {
-                id: uuidv4(),
-                nombre: 'Omeprazol',
-                dosis: '20 mg',
-                frecuencia: 'Cada 24 horas',
-                duracion: '30 días',
-                indicaciones: 'Tomar 30 minutos antes del desayuno'
-            }
-        ],
-        instrucciones: 'Evitar café, alcohol y picante. Comidas pequeñas y frecuentes.',
-        fechaEmision: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000),
-        createdAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000)
-    });
-
-    return recetas;
+    // Ordenar por fecha descendente
+    return recetas.sort((a, b) => b.fechaEmision.getTime() - a.fechaEmision.getTime());
 }
 
 /**
