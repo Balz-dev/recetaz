@@ -9,6 +9,7 @@
 import { db } from '@/shared/db/db.config';
 import { v4 as uuidv4 } from 'uuid';
 import type { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, Medicamento, PlantillaReceta } from '@/types';
+import { commonMedications, MedicamentoSeed } from './seeds/medicamentos-data';
 
 /**
  * Genera datos de ejemplo para el médico
@@ -74,27 +75,36 @@ function generarPacientes(): Paciente[] {
 /**
  * Genera recetas de ejemplo para los pacientes
  */
+/**
+ * Genera recetas de ejemplo para los pacientes
+ */
 function generarRecetas(pacientes: Paciente[]): Receta[] {
-    const now = new Date();
     const recetas: Receta[] = [];
 
     const diagnosticos = [
-        { dx: 'Hipertensión arterial sistémica', med1: 'Losartán 50mg', med2: 'Hidroclorotiazida 12.5mg', ind: 'Control diario de PA. Dieta baja en sodio.' },
-        { dx: 'Diabetes mellitus tipo 2', med1: 'Metformina 850mg', med2: 'Glibenclamida 5mg', ind: 'Dieta baja en carbohidratos. Ejercicio regular.' },
-        { dx: 'Infección respiratoria aguda', med1: 'Amoxicilina 500mg', med2: 'Paracetamol 500mg', ind: 'Abundantes líquidos. Reposo.' },
-        { dx: 'Gastritis aguda', med1: 'Omeprazol 20mg', med2: 'Melox 10ml', ind: 'Evitar irritantes, café y alcohol.' },
-        { dx: 'Colitis nerviosa', med1: 'Bromuro de Pinaverio 100mg', med2: 'Simeticona 40mg', ind: 'Reducir estrés. Comer despacio.' },
-        { dx: 'Cefalea tensional', med1: 'Ibuprofeno 400mg', med2: '', ind: 'Reposo en lugar oscuro y silencioso.' },
-        { dx: 'Dermatitis atópica', med1: 'Loratadina 10mg', med2: 'Betametasona crema', ind: 'No rascar. Usar ropa de algodón.' },
-        { dx: 'Control de Niño Sano', med1: 'Multivitamínico Pediátrico', med2: '', ind: 'Alimentación balanceada. Vacunación al día.' },
-        { dx: 'Lumbalgia mecánica', med1: 'Naproxeno 500mg', med2: 'Complejo B', ind: 'Evitar cargar objetos pesados. Higiene de columna.' },
-        { dx: 'Faringoamigdalitis', med1: 'Penicilina Procainica 800,000 UI', med2: 'Ibuprofeno 400mg', ind: 'Completar esquema de antibiótico.' }
+        { dx: 'Hipertensión arterial sistémica', med1: 'Losartán', med2: 'Hidroclorotiazida', ind: 'Control diario de PA. Dieta baja en sodio.' },
+        { dx: 'Diabetes mellitus tipo 2', med1: 'Metformina', med2: 'Glibenclamida', ind: 'Dieta baja en carbohidratos. Ejercicio regular.' },
+        { dx: 'Infección respiratoria aguda', med1: 'Amoxicilina', med2: 'Paracetamol', ind: 'Abundantes líquidos. Reposo.' },
+        { dx: 'Gastritis aguda', med1: 'Omeprazol', med2: 'Butilhioscina', ind: 'Evitar irritantes, café y alcohol.' },
+        { dx: 'Colitis nerviosa', med1: 'Butilhioscina', med2: 'Loperamida', ind: 'Reducir estrés. Comer despacio.' },
+        { dx: 'Cefalea tensional', med1: 'Ibuprofeno', med2: '', ind: 'Reposo en lugar oscuro y silencioso.' },
+        { dx: 'Dermatitis atópica', med1: 'Loratadina', med2: 'Betametasona', ind: 'No rascar. Usar ropa de algodón.' }, // Betametasona might be missing in seed, will handle fallback
+        { dx: 'Lumbalgia mecánica', med1: 'Naproxeno', med2: 'Complejo B', ind: 'Evitar cargar objetos pesados. Higiene de columna.' },
+        { dx: 'Faringoamigdalitis', med1: 'Ceftriaxona', med2: 'Ibuprofeno', ind: 'Completar esquema de antibiótico.' }
     ];
 
     const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
     const getRandomItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
 
     let recetaCounter = 1;
+
+    // Helper para buscar medicamento en la data semillada
+    const buscarMedicamento = (nombre: string): MedicamentoSeed | undefined => {
+        return commonMedications.find(m =>
+            m.nombreGenerico.toLowerCase().includes(nombre.toLowerCase()) ||
+            (m.nombreComercial && m.nombreComercial.toLowerCase().includes(nombre.toLowerCase()))
+        );
+    };
 
     pacientes.forEach(paciente => {
         // Regla: Entre 1 y 5 recetas por paciente
@@ -103,7 +113,6 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
         for (let i = 0; i < numRecetas; i++) {
             // Fechas entre el 21 y 27 de Diciembre de 2025
             const dia = getRandomInt(21, 27);
-            // Horario aleatorio de consulta (9:00 - 19:59)
             const hora = getRandomInt(9, 19);
             const minuto = getRandomInt(0, 59);
 
@@ -111,29 +120,44 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
             const fecha = new Date(2025, 11, dia, hora, minuto);
             const dxData = getRandomItem(diagnosticos);
 
-            const medicamentos = [];
+            const medicamentos: Medicamento[] = [];
 
-            // Primer medicamento
-            medicamentos.push({
-                id: uuidv4(),
-                nombre: dxData.med1.split(' ')[0],
-                dosis: dxData.med1.split(' ').slice(1).join(' '),
-                frecuencia: 'Cada ' + getRandomItem(['8', '12', '24']) + ' horas',
-                duracion: getRandomItem(['3', '5', '7', '15', '30']) + ' días',
-                indicaciones: 'Oral'
-            });
+            // Función interna para agregar medicamento procesado
+            const agregarMed = (nombreBusqueda: string) => {
+                if (!nombreBusqueda) return;
 
-            // Segundo medicamento (opcional)
-            if (dxData.med2) {
-                medicamentos.push({
-                    id: uuidv4(),
-                    nombre: dxData.med2.split(' ')[0],
-                    dosis: dxData.med2.split(' ').slice(1).join(' '),
-                    frecuencia: 'Cada ' + getRandomItem(['8', '12', '24']) + ' horas',
-                    duracion: getRandomItem(['3', '5', '7', '15', '30']) + ' días',
-                    indicaciones: 'Oral'
-                });
-            }
+                const medData = buscarMedicamento(nombreBusqueda);
+
+                if (medData) {
+                    medicamentos.push({
+                        id: uuidv4(),
+                        nombre: medData.nombreComercial ? `${medData.nombreComercial} (${medData.nombreGenerico})` : medData.nombreGenerico,
+                        nombreGenerico: medData.nombreGenerico,
+                        concentracion: medData.concentracion,
+                        presentacion: medData.formaFarmaceutica, // Mapeo de campos
+                        formaFarmaceutica: medData.formaFarmaceutica,
+                        cantidadSurtir: medData.cantidadSurtir,
+                        dosis: medData.dosis,
+                        frecuencia: medData.frecuencia,
+                        viaAdministracion: medData.viaAdministracion,
+                        duracion: medData.duracion,
+                        indicaciones: medData.indicaciones
+                    });
+                } else {
+                    // Fallback para medicamentos no encontrados en el catálogo nuevo
+                    medicamentos.push({
+                        id: uuidv4(),
+                        nombre: nombreBusqueda,
+                        dosis: '1 tableta', // Default
+                        frecuencia: 'Cada 8 horas',
+                        duracion: '5 días',
+                        indicaciones: 'Oral'
+                    });
+                }
+            };
+
+            agregarMed(dxData.med1);
+            if (dxData.med2) agregarMed(dxData.med2);
 
             recetas.push({
                 id: uuidv4(),
