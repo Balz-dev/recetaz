@@ -9,6 +9,7 @@
 import { db } from '@/shared/db/db.config';
 import { v4 as uuidv4 } from 'uuid';
 import type { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, Medicamento, PlantillaReceta } from '@/types';
+import { seederService } from '@/features/medicamentos/services/seeder.service';
 
 /**
  * Genera datos de ejemplo para el médico
@@ -622,7 +623,13 @@ export async function seedDatabase(): Promise<void> {
         await db.recetas.clear();
         await db.finanzas.clear();
         await db.configuracionFinanciera.clear();
+        await db.medicamentos.clear();
         console.log('✅ Datos limpiados\n');
+
+        // Poblar catálogo de medicamentos
+        console.log('💊 Poblando catálogo de medicamentos...');
+        await seederService.seedMedicamentos();
+        console.log('✅ Catálogo de medicamentos poblado\n');
 
         // Insertar configuración del médico
         console.log('👨‍⚕️ Insertando configuración del médico...');

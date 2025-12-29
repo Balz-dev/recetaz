@@ -1,125 +1,296 @@
+/**
+ * @fileoverview Catálogo de Medicamentos Comunes con Datos Clínicos
+ * 
+ * Este archivo contiene los medicamentos más prescritos en México con sus
+ * instrucciones predeterminadas más comunes. El médico puede modificar
+ * estos valores en el formulario según el caso clínico específico.
+ */
 
-export const commonMedications = [
+export interface MedicamentoSeed {
+    nombre: string;
+    presentacion: string;
+    dosis?: string;
+    frecuencia?: string;
+    duracion?: string;
+    indicaciones?: string;
+}
+
+export const commonMedications: MedicamentoSeed[] = [
     // Analgésicos y Antiinflamatorios
-    { nombre: "Paracetamol", presentacion: "Tabletas 500mg" },
-    { nombre: "Paracetamol", presentacion: "Jarabe 120mg/5ml" },
-    { nombre: "Ibuprofeno", presentacion: "Tabletas 400mg" },
-    { nombre: "Ibuprofeno", presentacion: "Suspensión 100mg/5ml" },
-    { nombre: "Naproxeno", presentacion: "Tabletas 250mg" },
-    { nombre: "Naproxeno", presentacion: "Tabletas 500mg" },
-    { nombre: "Diclofenaco", presentacion: "Tabletas 100mg" },
-    { nombre: "Diclofenaco", presentacion: "Gel 1%" },
-    { nombre: "Ketorolaco", presentacion: "Tabletas 10mg" },
-    { nombre: "Ketorolaco", presentacion: "Solución Inyectable 30mg" },
-    { nombre: "Ácido Acetilsalicílico", presentacion: "Tabletas 100mg" },
-    { nombre: "Metamizol Sódico", presentacion: "Tabletas 500mg" },
-    { nombre: "Metamizol Sódico", presentacion: "Solución Inyectable 1g" },
-    { nombre: "Tramadol", presentacion: "Cápsulas 50mg" },
-    { nombre: "Celecoxib", presentacion: "Cápsulas 200mg" },
-    { nombre: "Meloxicam", presentacion: "Tabletas 15mg" },
-    
+    {
+        nombre: "Paracetamol",
+        presentacion: "Tabletas 500mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 8 horas",
+        duracion: "5 días",
+        indicaciones: "Tomar con alimentos. En caso de fiebre o dolor"
+    },
+    {
+        nombre: "Paracetamol",
+        presentacion: "Jarabe 120mg/5ml",
+        dosis: "5-10 ml",
+        frecuencia: "Cada 6-8 horas",
+        duracion: "3-5 días",
+        indicaciones: "Administrar con jeringa dosificadora"
+    },
+    {
+        nombre: "Ibuprofeno",
+        presentacion: "Tabletas 400mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 8 horas",
+        duracion: "5-7 días",
+        indicaciones: "Tomar con alimentos para evitar irritación gástrica"
+    },
+    {
+        nombre: "Ibuprofeno",
+        presentacion: "Suspensión 100mg/5ml",
+        dosis: "5-10 ml",
+        frecuencia: "Cada 6-8 horas",
+        duracion: "3-5 días",
+        indicaciones: "Agitar antes de usar"
+    },
+    {
+        nombre: "Naproxeno",
+        presentacion: "Tabletas 250mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 12 horas",
+        duracion: "5-7 días",
+        indicaciones: "Tomar con alimentos"
+    },
+    {
+        nombre: "Diclofenaco",
+        presentacion: "Tabletas 100mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 12-24 horas",
+        duracion: "5-7 días",
+        indicaciones: "Tomar con alimentos"
+    },
+
     // Antibióticos
-    { nombre: "Amoxicilina", presentacion: "Cápsulas 500mg" },
-    { nombre: "Amoxicilina", presentacion: "Suspensión 250mg/5ml" },
-    { nombre: "Amoxicilina + Ácido Clavulánico", presentacion: "Tabletas 875mg/125mg" },
-    { nombre: "Ceftriaxona", presentacion: "Solución Inyectable 1g" },
-    { nombre: "Ciprofloxacino", presentacion: "Tabletas 500mg" },
-    { nombre: "Azitromicina", presentacion: "Tabletas 500mg" },
-    { nombre: "Clindamicina", presentacion: "Cápsulas 300mg" },
-    { nombre: "Doxiciclina", presentacion: "Cápsulas 100mg" },
-    { nombre: "Eritromicina", presentacion: "Tabletas 500mg" },
-    { nombre: "Trimethoprim + Sulfametoxazol", presentacion: "Tabletas 160mg/800mg" },
-    { nombre: "Metronidazol", presentacion: "Tabletas 500mg" },
-    { nombre: "Metronidazol", presentacion: "Suspensión 250mg/5ml" },
-    { nombre: "Gentamicina", presentacion: "Solución Inyectable 160mg" },
-    
+    {
+        nombre: "Amoxicilina",
+        presentacion: "Cápsulas 500mg",
+        dosis: "1 cápsula",
+        frecuencia: "Cada 8 horas",
+        duracion: "7-10 días",
+        indicaciones: "Completar tratamiento completo aunque mejoren los síntomas"
+    },
+    {
+        nombre: "Amoxicilina",
+        presentacion: "Suspensión 250mg/5ml",
+        dosis: "5-10 ml",
+        frecuencia: "Cada 8 horas",
+        duracion: "7-10 días",
+        indicaciones: "Refrigerar después de reconstituir. Agitar antes de usar"
+    },
+    {
+        nombre: "Amoxicilina + Ácido Clavulánico",
+        presentacion: "Tabletas 875mg/125mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 12 horas",
+        duracion: "7-10 días",
+        indicaciones: "Tomar con alimentos. Completar tratamiento"
+    },
+    {
+        nombre: "Azitromicina",
+        presentacion: "Tabletas 500mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "3-5 días",
+        indicaciones: "Tomar con el estómago vacío o con alimentos"
+    },
+    {
+        nombre: "Ciprofloxacino",
+        presentacion: "Tabletas 500mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 12 horas",
+        duracion: "7-14 días",
+        indicaciones: "Tomar con abundante agua. Evitar lácteos 2 horas antes/después"
+    },
+
     // Gastrointestinales
-    { nombre: "Omeprazol", presentacion: "Cápsulas 20mg" },
-    { nombre: "Pantoprazol", presentacion: "Tabletas 40mg" },
-    { nombre: "Esomeprazol", presentacion: "Tabletas 40mg" },
-    { nombre: "Ranitidina", presentacion: "Tabletas 150mg" },
-    { nombre: "Butilhioscina", presentacion: "Tabletas 10mg" },
-    { nombre: "Metoclopramida", presentacion: "Tabletas 10mg" },
-    { nombre: "Loperamida", presentacion: "Tabletas 2mg" },
-    { nombre: "Hidróxido de Aluminio y Magnesio", presentacion: "Suspensión" },
-    { nombre: "Senósidos A-B", presentacion: "Tabletas" },
-    { nombre: "Lactulosa", presentacion: "Jarabe" },
-    
-    // Respiratorios y Antiasmáticos
-    { nombre: "Salbutamol", presentacion: "Aerosol 100mcg" },
-    { nombre: "Salbutamol", presentacion: "Jarabe 2mg/5ml" },
-    { nombre: "Ambroxol", presentacion: "Jarabe 30mg/5ml" },
-    { nombre: "Dextrometorfano", presentacion: "Jarabe 15mg/5ml" },
-    { nombre: "Loratadina", presentacion: "Tabletas 10mg" },
-    { nombre: "Loratadina", presentacion: "Jarabe 5mg/5ml" },
-    { nombre: "Clorfenamina", presentacion: "Tabletas 4mg" },
-    { nombre: "Desloratadina", presentacion: "Tabletas 5mg" },
-    { nombre: "Montelukast", presentacion: "Tabletas 10mg" },
-    { nombre: "Fluticasona", presentacion: "Spray Nasal" },
-    
+    {
+        nombre: "Omeprazol",
+        presentacion: "Cápsulas 20mg",
+        dosis: "1 cápsula",
+        frecuencia: "Cada 24 horas",
+        duracion: "14-30 días",
+        indicaciones: "Tomar 30 minutos antes del desayuno"
+    },
+    {
+        nombre: "Pantoprazol",
+        presentacion: "Tabletas 40mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "14-30 días",
+        indicaciones: "Tomar en ayunas"
+    },
+    {
+        nombre: "Ranitidina",
+        presentacion: "Tabletas 150mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 12 horas",
+        duracion: "14 días",
+        indicaciones: "Puede tomarse con o sin alimentos"
+    },
+    {
+        nombre: "Butilhioscina",
+        presentacion: "Tabletas 10mg",
+        dosis: "1-2 tabletas",
+        frecuencia: "Cada 8 horas",
+        duracion: "3-5 días",
+        indicaciones: "Para cólicos y dolor abdominal"
+    },
+    {
+        nombre: "Metoclopramida",
+        presentacion: "Tabletas 10mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 8 horas",
+        duracion: "5-7 días",
+        indicaciones: "Tomar 30 minutos antes de las comidas"
+    },
+    {
+        nombre: "Loperamida",
+        presentacion: "Tabletas 2mg",
+        dosis: "2 tabletas inicialmente, luego 1 tableta",
+        frecuencia: "Después de cada evacuación líquida",
+        duracion: "Máximo 2 días",
+        indicaciones: "No exceder 8 tabletas en 24 horas"
+    },
+
+    // Respiratorios
+    {
+        nombre: "Salbutamol",
+        presentacion: "Aerosol 100mcg",
+        dosis: "1-2 inhalaciones",
+        frecuencia: "Cada 4-6 horas",
+        duracion: "Según necesidad",
+        indicaciones: "Usar con cámara espaciadora si es posible"
+    },
+    {
+        nombre: "Ambroxol",
+        presentacion: "Jarabe 30mg/5ml",
+        dosis: "10 ml",
+        frecuencia: "Cada 8 horas",
+        duracion: "5-7 días",
+        indicaciones: "Tomar con abundantes líquidos"
+    },
+    {
+        nombre: "Loratadina",
+        presentacion: "Tabletas 10mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "5-10 días",
+        indicaciones: "Puede tomarse con o sin alimentos"
+    },
+    {
+        nombre: "Montelukast",
+        presentacion: "Tabletas 10mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar por la noche"
+    },
+
     // Cardiovasculares
-    { nombre: "Losartán", presentacion: "Grageas 50mg" },
-    { nombre: "Telmisartán", presentacion: "Tabletas 40mg" },
-    { nombre: "Candesartán", presentacion: "Tabletas 8mg" },
-    { nombre: "Enalapril", presentacion: "Tabletas 10mg" },
-    { nombre: "Captopril", presentacion: "Tabletas 25mg" },
-    { nombre: "Amlodipino", presentacion: "Tabletas 5mg" },
-    { nombre: "Nifedipino", presentacion: "Tabletas 30mg" },
-    { nombre: "Hidroclorotiazida", presentacion: "Tabletas 25mg" },
-    { nombre: "Furosemida", presentacion: "Tabletas 40mg" },
-    { nombre: "Espironolactona", presentacion: "Tabletas 25mg" },
-    { nombre: "Metoprolol", presentacion: "Tabletas 100mg" },
-    { nombre: "Bisoprolol", presentacion: "Tabletas 2.5mg" },
-    { nombre: "Atorvastatina", presentacion: "Tabletas 20mg" },
-    { nombre: "Pravastatina", presentacion: "Tabletas 10mg" },
-    { nombre: "Rosuvastatina", presentacion: "Tabletas 10mg" },
-    { nombre: "Ácido Acetilsalicílico (Protect)", presentacion: "Tabletas 100mg" },
-    
-    // Diabetes y Endócrinos
-    { nombre: "Metformina", presentacion: "Tabletas 850mg" },
-    { nombre: "Metformina", presentacion: "Tabletas 500mg" },
-    { nombre: "Glibenclamida", presentacion: "Tabletas 5mg" },
-    { nombre: "Insulina Glargina", presentacion: "Solución Inyectable 100U/ml" },
-    { nombre: "Insulina NPH", presentacion: "Solución Inyectable 100U/ml" },
-    { nombre: "Levotiroxina", presentacion: "Tabletas 100mcg" },
-    
-    // Vitaminas y Suplementos
-    { nombre: "Complejo B", presentacion: "Tabletas" },
-    { nombre: "Complejo B", presentacion: "Solución Inyectable" },
-    { nombre: "Vitamina C", presentacion: "Tabletas Efervescentes 1g" },
-    { nombre: "Vitamina D3", presentacion: "Cápsulas 4000UI" },
-    { nombre: "Ácido Fólico", presentacion: "Tabletas 4mg" },
-    { nombre: "Hierro Dextran", presentacion: "Solución Inyectable 100mg" },
-    { nombre: "Sulfato Ferroso", presentacion: "Tabletas 200mg" },
-    { nombre: "Calcio + Vitamina D", presentacion: "Tabletas 500mg/400UI" },
-    
-    // Salud Mental y Neurológicos
-    { nombre: "Clonazepam", presentacion: "Tabletas 2mg" },
-    { nombre: "Alprazolam", presentacion: "Tabletas 0.5mg" },
-    { nombre: "Diazepam", presentacion: "Tabletas 10mg" },
-    { nombre: "Sertralina", presentacion: "Tabletas 50mg" },
-    { nombre: "Fluoxetina", presentacion: "Cápsulas 20mg" },
-    { nombre: "Escitalopram", presentacion: "Tabletas 10mg" },
-    { nombre: "Pregabalina", presentacion: "Cápsulas 75mg" },
-    { nombre: "Gabapentina", presentacion: "Cápsulas 300mg" },
-    { nombre: "Carbamazepina", presentacion: "Tabletas 200mg" },
-    
-    // Dermatológicos
-    { nombre: "Miconazol", presentacion: "Crema 2%" },
-    { nombre: "Clotrimazol", presentacion: "Crema 1%" },
-    { nombre: "Betametasona", presentacion: "Crema 0.05%" },
-    { nombre: "Hidrocortisona", presentacion: "Crema 1%" },
-    { nombre: "Óxido de Zinc", presentacion: "Pasta" },
-    
-    // Oftálmicos y Óticos
-    { nombre: "Hipromelosa", presentacion: "Gotas Oftálmicas 0.5%" },
-    { nombre: "Cloranfenicol", presentacion: "Gotas Oftálmicas" },
-    { nombre: "Ciprofloxacino", presentacion: "Gotas Oftálmicas" },
-    { nombre: "Neomicina + Polimixina B + Dexametasona", presentacion: "Gotas Oftálmicas" },
-    
-    // Urológicos y Salud Masculina
-    { nombre: "Tamsulosina", presentacion: "Cápsulas 0.4mg" },
-    { nombre: "Finasterida", presentacion: "Tabletas 5mg" },
-    { nombre: "Sildenafil", presentacion: "Tabletas 50mg" },
-    { nombre: "Tadalafil", presentacion: "Tabletas 20mg" }
+    {
+        nombre: "Losartán",
+        presentacion: "Grageas 50mg",
+        dosis: "1 gragea",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar en ayunas. Control de presión arterial"
+    },
+    {
+        nombre: "Enalapril",
+        presentacion: "Tabletas 10mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 12-24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar a la misma hora diariamente"
+    },
+    {
+        nombre: "Amlodipino",
+        presentacion: "Tabletas 5mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Puede tomarse con o sin alimentos"
+    },
+    {
+        nombre: "Hidroclorotiazida",
+        presentacion: "Tabletas 25mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar por la mañana. Puede causar aumento de micción"
+    },
+    {
+        nombre: "Atorvastatina",
+        presentacion: "Tabletas 20mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar por la noche"
+    },
+    {
+        nombre: "Ácido Acetilsalicílico (Protect)",
+        presentacion: "Tabletas 100mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar con alimentos"
+    },
+
+    // Diabetes
+    {
+        nombre: "Metformina",
+        presentacion: "Tabletas 850mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 12 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar con alimentos. Control de glucosa"
+    },
+    {
+        nombre: "Metformina",
+        presentacion: "Tabletas 500mg",
+        dosis: "1-2 tabletas",
+        frecuencia: "Cada 12 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar con alimentos"
+    },
+    {
+        nombre: "Glibenclamida",
+        presentacion: "Tabletas 5mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso prolongado",
+        indicaciones: "Tomar antes del desayuno"
+    },
+
+    // Vitaminas
+    {
+        nombre: "Complejo B",
+        presentacion: "Tabletas",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "30 días",
+        indicaciones: "Tomar con alimentos"
+    },
+    {
+        nombre: "Vitamina C",
+        presentacion: "Tabletas Efervescentes 1g",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "10-15 días",
+        indicaciones: "Disolver en agua"
+    },
+    {
+        nombre: "Ácido Fólico",
+        presentacion: "Tabletas 4mg",
+        dosis: "1 tableta",
+        frecuencia: "Cada 24 horas",
+        duracion: "Según indicación",
+        indicaciones: "Importante en embarazo"
+    }
 ];

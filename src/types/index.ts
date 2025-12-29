@@ -18,7 +18,7 @@ export interface MedicoConfig {
     nombre: string;
     especialidad: string;
     // Clave de la especialidad para campos dinámicos (ej: 'pediatria', 'ginecologia')
-    especialidadKey?: string; 
+    especialidadKey?: string;
     cedula: string;
     telefono: string;
     direccion?: string;
@@ -137,6 +137,11 @@ export interface MedicamentoCatalogo {
     id: string;
     nombre: string;
     presentacion?: string;
+    // Datos clínicos predeterminados para agilizar la receta
+    dosis?: string;
+    frecuencia?: string;
+    duracion?: string;
+    indicaciones?: string;
     createdAt: Date;
     updatedAt: Date;
 }

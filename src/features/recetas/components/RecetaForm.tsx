@@ -204,11 +204,31 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
         setActiveMedicamentoIndex(index)
     }
 
+    /**
+     * Autocompleta todos los campos del medicamento al seleccionar una sugerencia del catálogo.
+     * Los valores predeterminados pueden ser modificados por el médico según el caso clínico.
+     */
     const selectMedicamentoSuggestion = (medicamento: MedicamentoCatalogo, index: number) => {
-        form.setValue(`medicamentos.${index}.nombre`, medicamento.nombre)
+        // Autocompletar nombre y presentación
+        form.setValue(`medicamentos.${index}.nombre`, medicamento.nombre, { shouldValidate: true })
         if (medicamento.presentacion) {
-            form.setValue(`medicamentos.${index}.presentacion`, medicamento.presentacion)
+            form.setValue(`medicamentos.${index}.presentacion`, medicamento.presentacion, { shouldValidate: true })
         }
+
+        // Autocompletar datos clínicos predeterminados
+        if (medicamento.dosis) {
+            form.setValue(`medicamentos.${index}.dosis`, medicamento.dosis, { shouldValidate: true })
+        }
+        if (medicamento.frecuencia) {
+            form.setValue(`medicamentos.${index}.frecuencia`, medicamento.frecuencia, { shouldValidate: true })
+        }
+        if (medicamento.duracion) {
+            form.setValue(`medicamentos.${index}.duracion`, medicamento.duracion, { shouldValidate: true })
+        }
+        if (medicamento.indicaciones) {
+            form.setValue(`medicamentos.${index}.indicaciones`, medicamento.indicaciones, { shouldValidate: true })
+        }
+
         setMedicamentoSuggestions([])
         setActiveMedicamentoIndex(null)
     }
@@ -337,10 +357,10 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             ) : fieldDef.type === 'textarea' ? (
                                 <Textarea placeholder={fieldDef.placeholder} {...field} />
                             ) : (
-                                <Input 
-                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'} 
-                                    placeholder={fieldDef.placeholder} 
-                                    {...field} 
+                                <Input
+                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'}
+                                    placeholder={fieldDef.placeholder}
+                                    {...field}
                                 />
                             )}
                         </FormControl>
@@ -507,8 +527,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             {/* Campos Dinámicos de Especialidad (Exploración Física / Obstétricos) */}
                             {specialtyConfig?.prescriptionFields && (
                                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4 mt-2">
-                                     <div className="md:col-span-3 font-medium text-sm text-slate-500">Datos de Exploración / Especialidad</div>
-                                     {specialtyConfig.prescriptionFields.map(renderDynamicField)}
+                                    <div className="md:col-span-3 font-medium text-sm text-slate-500">Datos de Exploración / Especialidad</div>
+                                    {specialtyConfig.prescriptionFields.map(renderDynamicField)}
                                 </div>
                             )}
 

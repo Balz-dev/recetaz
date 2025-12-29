@@ -11,7 +11,7 @@ export const seederService = {
     seedMedicamentos: async (): Promise<number> => {
         try {
             console.log('🌱 Iniciando seed de medicamentos desde el cliente...');
-            
+
             // Verificar si ya hay medicamentos para evitar duplicados masivos
             const count = await db.medicamentos.count();
             if (count > 0) {
@@ -36,6 +36,10 @@ export const seederService = {
                             id: uuidv4(),
                             nombre: med.nombre,
                             presentacion: med.presentacion,
+                            dosis: med.dosis,
+                            frecuencia: med.frecuencia,
+                            duracion: med.duracion,
+                            indicaciones: med.indicaciones,
                             createdAt: now,
                             updatedAt: now
                         });
