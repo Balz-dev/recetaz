@@ -38,8 +38,13 @@ import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
+    nombreGenerico: z.string().optional(),
     presentacion: z.string().optional(),
+    formaFarmaceutica: z.string().optional(),
+    concentracion: z.string().optional(),
+    cantidadSurtir: z.string().optional(),
     dosis: z.string().min(1, "La dosis es requerida"),
+    viaAdministracion: z.string().optional(),
     frecuencia: z.string().min(1, "La frecuencia es requerida"),
     duracion: z.string().min(1, "La duración es requerida"),
     indicaciones: z.string().optional(),
@@ -101,7 +106,19 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             pacienteTalla: "",
             // pacienteCedula: "",
             diagnostico: "",
-            medicamentos: [{ nombre: "", presentacion: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" }],
+            medicamentos: [{
+                nombre: "",
+                nombreGenerico: "",
+                presentacion: "",
+                formaFarmaceutica: "",
+                concentracion: "",
+                cantidadSurtir: "",
+                dosis: "",
+                viaAdministracion: "",
+                frecuencia: "",
+                duracion: "",
+                indicaciones: ""
+            }],
             instrucciones: "",
             datosEspecificos: {},
         },
@@ -205,10 +222,50 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
     }
 
     const selectMedicamentoSuggestion = (medicamento: MedicamentoCatalogo, index: number) => {
-        form.setValue(`medicamentos.${index}.nombre`, medicamento.nombre)
-        if (medicamento.presentacion) {
-            form.setValue(`medicamentos.${index}.presentacion`, medicamento.presentacion)
+        // console.log('Seleccionando medicamento:', medicamento);
+        form.setValue(`medicamentos.${index}.nombre`, medicamento.nombre, { shouldValidate: true })
+
+        // Mapear campos desde el catálogo si están disponibles
+        if (medicamento.nombreGenerico) {
+            form.setValue(`medicamentos.${index}.nombreGenerico`, medicamento.nombreGenerico, { shouldValidate: true })
         }
+
+        if (medicamento.presentacion) {
+            form.setValue(`medicamentos.${index}.presentacion`, medicamento.presentacion, { shouldValidate: true })
+        }
+
+        if (medicamento.formaFarmaceutica) {
+            form.setValue(`medicamentos.${index}.formaFarmaceutica`, medicamento.formaFarmaceutica, { shouldValidate: true })
+        }
+
+        if (medicamento.concentracion) {
+            form.setValue(`medicamentos.${index}.concentracion`, medicamento.concentracion, { shouldValidate: true })
+        }
+
+        if (medicamento.cantidadSurtir) {
+            form.setValue(`medicamentos.${index}.cantidadSurtir`, medicamento.cantidadSurtir, { shouldValidate: true })
+        }
+
+        if (medicamento.viaAdministracion) {
+            form.setValue(`medicamentos.${index}.viaAdministracion`, medicamento.viaAdministracion, { shouldValidate: true })
+        }
+
+        if (medicamento.dosis) {
+            form.setValue(`medicamentos.${index}.dosis`, medicamento.dosis, { shouldValidate: true })
+        }
+
+        if (medicamento.frecuencia) {
+            form.setValue(`medicamentos.${index}.frecuencia`, medicamento.frecuencia, { shouldValidate: true })
+        }
+
+        if (medicamento.duracion) {
+            form.setValue(`medicamentos.${index}.duracion`, medicamento.duracion, { shouldValidate: true })
+        }
+
+        if (medicamento.indicaciones) {
+            form.setValue(`medicamentos.${index}.indicaciones`, medicamento.indicaciones, { shouldValidate: true })
+        }
+
         setMedicamentoSuggestions([])
         setActiveMedicamentoIndex(null)
     }
@@ -337,10 +394,10 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             ) : fieldDef.type === 'textarea' ? (
                                 <Textarea placeholder={fieldDef.placeholder} {...field} />
                             ) : (
-                                <Input 
-                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'} 
-                                    placeholder={fieldDef.placeholder} 
-                                    {...field} 
+                                <Input
+                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'}
+                                    placeholder={fieldDef.placeholder}
+                                    {...field}
                                 />
                             )}
                         </FormControl>
@@ -507,8 +564,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             {/* Campos Dinámicos de Especialidad (Exploración Física / Obstétricos) */}
                             {specialtyConfig?.prescriptionFields && (
                                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4 mt-2">
-                                     <div className="md:col-span-3 font-medium text-sm text-slate-500">Datos de Exploración / Especialidad</div>
-                                     {specialtyConfig.prescriptionFields.map(renderDynamicField)}
+                                    <div className="md:col-span-3 font-medium text-sm text-slate-500">Datos de Exploración / Especialidad</div>
+                                    {specialtyConfig.prescriptionFields.map(renderDynamicField)}
                                 </div>
                             )}
 
@@ -531,12 +588,12 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
-                                <CardContent className="pt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <CardContent className="pt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
                                     <FormField
                                         control={form.control}
                                         name={`medicamentos.${index}.nombre`}
                                         render={({ field }) => (
-                                            <FormItem className="lg:col-span-2 relative">
+                                            <FormItem className="lg:col-span-3 relative">
                                                 <FormLabel>Medicamento {index + 1} *</FormLabel>
                                                 <FormControl>
                                                     <Input
@@ -544,7 +601,6 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                         {...field}
                                                         onChange={(e) => handleMedicamentoSearch(e.target.value, index)}
                                                         onBlur={() => {
-                                                            // Pequeño delay para permitir click en sugerencia
                                                             setTimeout(() => {
                                                                 if (activeMedicamentoIndex === index) {
                                                                     setMedicamentoSuggestions([])
@@ -554,7 +610,6 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                         }}
                                                     />
                                                 </FormControl>
-                                                {/* Sugerencias de Medicamentos */}
                                                 {activeMedicamentoIndex === index && medicamentoSuggestions.length > 0 && (
                                                     <div className="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-lg max-h-40 overflow-auto">
                                                         {medicamentoSuggestions.map((med) => (
@@ -564,7 +619,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                                 className="w-full px-4 py-2 text-left hover:bg-slate-100 flex flex-col"
                                                                 onClick={() => selectMedicamentoSuggestion(med, index)}
                                                             >
-                                                                <span className="font-medium">{med.nombre}</span>
+                                                                <span className="font-medium text-sm">{med.nombre}</span>
                                                                 {med.presentacion && (
                                                                     <span className="text-xs text-slate-500">{med.presentacion}</span>
                                                                 )}
@@ -578,12 +633,26 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                     />
                                     <FormField
                                         control={form.control}
-                                        name={`medicamentos.${index}.presentacion`}
+                                        name={`medicamentos.${index}.nombreGenerico`}
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Presentación</FormLabel>
+                                            <FormItem className="lg:col-span-3">
+                                                <FormLabel>Nombre Genérico (DCI)</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Ej: Tabs 500mg" {...field} />
+                                                    <Input placeholder="Ej: Paracetamol" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name={`medicamentos.${index}.concentracion`}
+                                        render={({ field }) => (
+                                            <FormItem className="lg:col-span-2">
+                                                <FormLabel>Concentración</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Ej: 500 mg" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -591,12 +660,39 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                     />
                                     <FormField
                                         control={form.control}
+                                        name={`medicamentos.${index}.formaFarmaceutica`}
+                                        render={({ field }) => (
+                                            <FormItem className="lg:col-span-2">
+                                                <FormLabel>Forma Farmacéutica</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Ej: Tabletas, Suspensión" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name={`medicamentos.${index}.viaAdministracion`}
+                                        render={({ field }) => (
+                                            <FormItem className="lg:col-span-2">
+                                                <FormLabel>Vía de Adm.</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Ej: V.O., I.M." {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
                                         name={`medicamentos.${index}.dosis`}
                                         render={({ field }) => (
-                                            <FormItem>
+                                            <FormItem className="lg:col-span-2">
                                                 <FormLabel>Dosis *</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Ej: 500mg" {...field} />
+                                                    <Input placeholder="Ej: 1 tableta" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -606,7 +702,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                         control={form.control}
                                         name={`medicamentos.${index}.frecuencia`}
                                         render={({ field }) => (
-                                            <FormItem>
+                                            <FormItem className="lg:col-span-2">
                                                 <FormLabel>Frecuencia *</FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="Ej: Cada 8 horas" {...field} />
@@ -619,10 +715,24 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                         control={form.control}
                                         name={`medicamentos.${index}.duracion`}
                                         render={({ field }) => (
-                                            <FormItem>
+                                            <FormItem className="lg:col-span-2">
                                                 <FormLabel>Duración *</FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="Ej: 7 días" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name={`medicamentos.${index}.cantidadSurtir`}
+                                        render={({ field }) => (
+                                            <FormItem className="lg:col-span-2">
+                                                <FormLabel>Cantidad a Surtir</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Ej: 14 tabletas" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -632,10 +742,10 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                         control={form.control}
                                         name={`medicamentos.${index}.indicaciones`}
                                         render={({ field }) => (
-                                            <FormItem className="lg:col-span-3">
-                                                <FormLabel>Instrucciones Específicas</FormLabel>
+                                            <FormItem className="lg:col-span-4">
+                                                <FormLabel>Indicaciones Especiales</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Ej: Tomar con alimentos" {...field} />
+                                                    <Input placeholder="Ej: Tomar en ayunas / Agitar antes de usar" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -649,7 +759,19 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => append({ nombre: "", presentacion: "", dosis: "", frecuencia: "", duracion: "", indicaciones: "" })}
+                                onClick={() => append({
+                                    nombre: "",
+                                    nombreGenerico: "",
+                                    presentacion: "",
+                                    formaFarmaceutica: "",
+                                    concentracion: "",
+                                    cantidadSurtir: "",
+                                    dosis: "",
+                                    viaAdministracion: "",
+                                    frecuencia: "",
+                                    duracion: "",
+                                    indicaciones: ""
+                                })}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
                                 Agregar Medicamento

@@ -18,7 +18,7 @@ export interface MedicoConfig {
     nombre: string;
     especialidad: string;
     // Clave de la especialidad para campos dinámicos (ej: 'pediatria', 'ginecologia')
-    especialidadKey?: string; 
+    especialidadKey?: string;
     cedula: string;
     telefono: string;
     direccion?: string;
@@ -27,13 +27,32 @@ export interface MedicoConfig {
     updatedAt: Date;
 }
 
+/**
+ * Representa un medicamento prescrito dentro de una receta.
+ */
 export interface Medicamento {
     id: string;
+    /** Nombre completo o comercial del medicamento */
     nombre: string;
+    /** Nombre genérico (DCI) */
+    nombreGenerico?: string;
+    /** Detalle de la presentación (ej: Tabletas, Jarabe) */
     presentacion?: string;
+    /** Forma farmacéutica estandarizada */
+    formaFarmaceutica?: string;
+    /** Concentración del principio activo (ej: 500mg) */
+    concentracion?: string;
+    /** Cantidad a surtir (ej: 1 caja, 20 tabletas) */
+    cantidadSurtir?: string;
+    /** Dosis prescrita (ej: 1 tableta, 5ml) */
     dosis: string;
+    /** Vía de administración (ej: Oral, Intravenosa) */
+    viaAdministracion?: string;
+    /** Frecuencia de la toma (ej: Cada 8 horas) */
     frecuencia: string;
+    /** Duración del tratamiento */
     duracion: string;
+    /** Indicaciones adicionales para el paciente */
     indicaciones?: string;
 }
 
@@ -136,7 +155,16 @@ export type PlantillaRecetaFormData = Omit<PlantillaReceta, 'id' | 'createdAt' |
 export interface MedicamentoCatalogo {
     id: string;
     nombre: string;
+    nombreGenerico?: string;
     presentacion?: string;
+    formaFarmaceutica?: string;
+    concentracion?: string;
+    cantidadSurtir?: string;
+    dosis?: string;
+    viaAdministracion?: string;
+    frecuencia?: string;
+    duracion?: string;
+    indicaciones?: string;
     createdAt: Date;
     updatedAt: Date;
 }

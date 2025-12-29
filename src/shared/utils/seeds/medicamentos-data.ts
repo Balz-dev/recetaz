@@ -1,125 +1,317 @@
+export interface MedicamentoSeed {
+    nombreGenerico: string;
+    nombreComercial?: string;
+    concentracion: string;
+    formaFarmaceutica: string;
+    cantidadSurtir: string;
+    dosis: string;
+    viaAdministracion: string;
+    frecuencia: string;
+    duracion: string;
+    indicaciones?: string;
+}
 
-export const commonMedications = [
+export const commonMedications: MedicamentoSeed[] = [
     // Analgésicos y Antiinflamatorios
-    { nombre: "Paracetamol", presentacion: "Tabletas 500mg" },
-    { nombre: "Paracetamol", presentacion: "Jarabe 120mg/5ml" },
-    { nombre: "Ibuprofeno", presentacion: "Tabletas 400mg" },
-    { nombre: "Ibuprofeno", presentacion: "Suspensión 100mg/5ml" },
-    { nombre: "Naproxeno", presentacion: "Tabletas 250mg" },
-    { nombre: "Naproxeno", presentacion: "Tabletas 500mg" },
-    { nombre: "Diclofenaco", presentacion: "Tabletas 100mg" },
-    { nombre: "Diclofenaco", presentacion: "Gel 1%" },
-    { nombre: "Ketorolaco", presentacion: "Tabletas 10mg" },
-    { nombre: "Ketorolaco", presentacion: "Solución Inyectable 30mg" },
-    { nombre: "Ácido Acetilsalicílico", presentacion: "Tabletas 100mg" },
-    { nombre: "Metamizol Sódico", presentacion: "Tabletas 500mg" },
-    { nombre: "Metamizol Sódico", presentacion: "Solución Inyectable 1g" },
-    { nombre: "Tramadol", presentacion: "Cápsulas 50mg" },
-    { nombre: "Celecoxib", presentacion: "Cápsulas 200mg" },
-    { nombre: "Meloxicam", presentacion: "Tabletas 15mg" },
-    
+    {
+        nombreGenerico: "Paracetamol",
+        nombreComercial: "Tempra",
+        concentracion: "500 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (20 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 8 horas",
+        duracion: "Por 5 días",
+        indicaciones: "Tomar con alimentos. No exceder dosis recomendada."
+    },
+    {
+        nombreGenerico: "Paracetamol",
+        concentracion: "120 mg/5 ml",
+        formaFarmaceutica: "Jarabe",
+        cantidadSurtir: "1 frasco (120 ml)",
+        dosis: "10 ml",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 6 horas",
+        duracion: "Por 3 días",
+        indicaciones: "Agitar antes de usar. Usar jeringa dosificadora."
+    },
+    {
+        nombreGenerico: "Ibuprofeno",
+        nombreComercial: "Advil",
+        concentracion: "400 mg",
+        formaFarmaceutica: "Cápsulas",
+        cantidadSurtir: "1 caja (10 cápsulas)",
+        dosis: "1 cápsula",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 8 horas",
+        duracion: "Por 5 días",
+        indicaciones: "Tomar con alimentos para evitar irritación gástrica."
+    },
+    {
+        nombreGenerico: "Naproxeno",
+        nombreComercial: "Flanax",
+        concentracion: "550 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (12 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 12 horas",
+        duracion: "Por 5 días",
+        indicaciones: "Tomar con abundante agua."
+    },
+    {
+        nombreGenerico: "Diclofenaco",
+        concentracion: "100 mg",
+        formaFarmaceutica: "Tabletas de liberación prolongada",
+        cantidadSurtir: "1 caja (20 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Por 7 días",
+        indicaciones: "No masticar, tragar entero."
+    },
+    {
+        nombreGenerico: "Ketorolaco",
+        concentracion: "10 mg",
+        formaFarmaceutica: "Tabletas sublinguales",
+        cantidadSurtir: "1 caja (10 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Sublingual",
+        frecuencia: "Cada 6 horas",
+        duracion: "Por 2 días",
+        indicaciones: "Dejar disolver bajo la lengua. No usar por más de 5 días."
+    },
+
     // Antibióticos
-    { nombre: "Amoxicilina", presentacion: "Cápsulas 500mg" },
-    { nombre: "Amoxicilina", presentacion: "Suspensión 250mg/5ml" },
-    { nombre: "Amoxicilina + Ácido Clavulánico", presentacion: "Tabletas 875mg/125mg" },
-    { nombre: "Ceftriaxona", presentacion: "Solución Inyectable 1g" },
-    { nombre: "Ciprofloxacino", presentacion: "Tabletas 500mg" },
-    { nombre: "Azitromicina", presentacion: "Tabletas 500mg" },
-    { nombre: "Clindamicina", presentacion: "Cápsulas 300mg" },
-    { nombre: "Doxiciclina", presentacion: "Cápsulas 100mg" },
-    { nombre: "Eritromicina", presentacion: "Tabletas 500mg" },
-    { nombre: "Trimethoprim + Sulfametoxazol", presentacion: "Tabletas 160mg/800mg" },
-    { nombre: "Metronidazol", presentacion: "Tabletas 500mg" },
-    { nombre: "Metronidazol", presentacion: "Suspensión 250mg/5ml" },
-    { nombre: "Gentamicina", presentacion: "Solución Inyectable 160mg" },
-    
+    {
+        nombreGenerico: "Amoxicilina",
+        concentracion: "500 mg",
+        formaFarmaceutica: "Cápsulas",
+        cantidadSurtir: "1 caja (21 cápsulas)",
+        dosis: "1 cápsula",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 8 horas",
+        duracion: "Por 7 días",
+        indicaciones: "Completar todo el tratamiento aunque se sienta mejor."
+    },
+    {
+        nombreGenerico: "Amoxicilina + Ácido Clavulánico",
+        nombreComercial: "Augmentin",
+        concentracion: "875 mg / 125 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (14 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 12 horas",
+        duracion: "Por 7 días",
+        indicaciones: "Tomar al inicio de las comidas para mejorar absorción."
+    },
+    {
+        nombreGenerico: "Ceftriaxona",
+        concentracion: "1 g",
+        formaFarmaceutica: "Solución Inyectable",
+        cantidadSurtir: "3 frascos ámpula",
+        dosis: "1 g",
+        viaAdministracion: "Intramuscular o Intravenosa",
+        frecuencia: "Cada 24 horas",
+        duracion: "Por 3 días",
+        indicaciones: "Aplicación profunda en glúteo o vía IV lenta."
+    },
+    {
+        nombreGenerico: "Azitromicina",
+        concentracion: "500 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (3 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Por 3 días",
+        indicaciones: "Puede tomarse con o sin alimentos."
+    },
+    {
+        nombreGenerico: "Ciprofloxacino",
+        concentracion: "500 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (14 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 12 horas",
+        duracion: "Por 7 días",
+        indicaciones: "Evitar lácteos y antiácidos 2 horas antes y después."
+    },
+
     // Gastrointestinales
-    { nombre: "Omeprazol", presentacion: "Cápsulas 20mg" },
-    { nombre: "Pantoprazol", presentacion: "Tabletas 40mg" },
-    { nombre: "Esomeprazol", presentacion: "Tabletas 40mg" },
-    { nombre: "Ranitidina", presentacion: "Tabletas 150mg" },
-    { nombre: "Butilhioscina", presentacion: "Tabletas 10mg" },
-    { nombre: "Metoclopramida", presentacion: "Tabletas 10mg" },
-    { nombre: "Loperamida", presentacion: "Tabletas 2mg" },
-    { nombre: "Hidróxido de Aluminio y Magnesio", presentacion: "Suspensión" },
-    { nombre: "Senósidos A-B", presentacion: "Tabletas" },
-    { nombre: "Lactulosa", presentacion: "Jarabe" },
-    
-    // Respiratorios y Antiasmáticos
-    { nombre: "Salbutamol", presentacion: "Aerosol 100mcg" },
-    { nombre: "Salbutamol", presentacion: "Jarabe 2mg/5ml" },
-    { nombre: "Ambroxol", presentacion: "Jarabe 30mg/5ml" },
-    { nombre: "Dextrometorfano", presentacion: "Jarabe 15mg/5ml" },
-    { nombre: "Loratadina", presentacion: "Tabletas 10mg" },
-    { nombre: "Loratadina", presentacion: "Jarabe 5mg/5ml" },
-    { nombre: "Clorfenamina", presentacion: "Tabletas 4mg" },
-    { nombre: "Desloratadina", presentacion: "Tabletas 5mg" },
-    { nombre: "Montelukast", presentacion: "Tabletas 10mg" },
-    { nombre: "Fluticasona", presentacion: "Spray Nasal" },
-    
-    // Cardiovasculares
-    { nombre: "Losartán", presentacion: "Grageas 50mg" },
-    { nombre: "Telmisartán", presentacion: "Tabletas 40mg" },
-    { nombre: "Candesartán", presentacion: "Tabletas 8mg" },
-    { nombre: "Enalapril", presentacion: "Tabletas 10mg" },
-    { nombre: "Captopril", presentacion: "Tabletas 25mg" },
-    { nombre: "Amlodipino", presentacion: "Tabletas 5mg" },
-    { nombre: "Nifedipino", presentacion: "Tabletas 30mg" },
-    { nombre: "Hidroclorotiazida", presentacion: "Tabletas 25mg" },
-    { nombre: "Furosemida", presentacion: "Tabletas 40mg" },
-    { nombre: "Espironolactona", presentacion: "Tabletas 25mg" },
-    { nombre: "Metoprolol", presentacion: "Tabletas 100mg" },
-    { nombre: "Bisoprolol", presentacion: "Tabletas 2.5mg" },
-    { nombre: "Atorvastatina", presentacion: "Tabletas 20mg" },
-    { nombre: "Pravastatina", presentacion: "Tabletas 10mg" },
-    { nombre: "Rosuvastatina", presentacion: "Tabletas 10mg" },
-    { nombre: "Ácido Acetilsalicílico (Protect)", presentacion: "Tabletas 100mg" },
-    
-    // Diabetes y Endócrinos
-    { nombre: "Metformina", presentacion: "Tabletas 850mg" },
-    { nombre: "Metformina", presentacion: "Tabletas 500mg" },
-    { nombre: "Glibenclamida", presentacion: "Tabletas 5mg" },
-    { nombre: "Insulina Glargina", presentacion: "Solución Inyectable 100U/ml" },
-    { nombre: "Insulina NPH", presentacion: "Solución Inyectable 100U/ml" },
-    { nombre: "Levotiroxina", presentacion: "Tabletas 100mcg" },
-    
-    // Vitaminas y Suplementos
-    { nombre: "Complejo B", presentacion: "Tabletas" },
-    { nombre: "Complejo B", presentacion: "Solución Inyectable" },
-    { nombre: "Vitamina C", presentacion: "Tabletas Efervescentes 1g" },
-    { nombre: "Vitamina D3", presentacion: "Cápsulas 4000UI" },
-    { nombre: "Ácido Fólico", presentacion: "Tabletas 4mg" },
-    { nombre: "Hierro Dextran", presentacion: "Solución Inyectable 100mg" },
-    { nombre: "Sulfato Ferroso", presentacion: "Tabletas 200mg" },
-    { nombre: "Calcio + Vitamina D", presentacion: "Tabletas 500mg/400UI" },
-    
-    // Salud Mental y Neurológicos
-    { nombre: "Clonazepam", presentacion: "Tabletas 2mg" },
-    { nombre: "Alprazolam", presentacion: "Tabletas 0.5mg" },
-    { nombre: "Diazepam", presentacion: "Tabletas 10mg" },
-    { nombre: "Sertralina", presentacion: "Tabletas 50mg" },
-    { nombre: "Fluoxetina", presentacion: "Cápsulas 20mg" },
-    { nombre: "Escitalopram", presentacion: "Tabletas 10mg" },
-    { nombre: "Pregabalina", presentacion: "Cápsulas 75mg" },
-    { nombre: "Gabapentina", presentacion: "Cápsulas 300mg" },
-    { nombre: "Carbamazepina", presentacion: "Tabletas 200mg" },
-    
-    // Dermatológicos
-    { nombre: "Miconazol", presentacion: "Crema 2%" },
-    { nombre: "Clotrimazol", presentacion: "Crema 1%" },
-    { nombre: "Betametasona", presentacion: "Crema 0.05%" },
-    { nombre: "Hidrocortisona", presentacion: "Crema 1%" },
-    { nombre: "Óxido de Zinc", presentacion: "Pasta" },
-    
-    // Oftálmicos y Óticos
-    { nombre: "Hipromelosa", presentacion: "Gotas Oftálmicas 0.5%" },
-    { nombre: "Cloranfenicol", presentacion: "Gotas Oftálmicas" },
-    { nombre: "Ciprofloxacino", presentacion: "Gotas Oftálmicas" },
-    { nombre: "Neomicina + Polimixina B + Dexametasona", presentacion: "Gotas Oftálmicas" },
-    
-    // Urológicos y Salud Masculina
-    { nombre: "Tamsulosina", presentacion: "Cápsulas 0.4mg" },
-    { nombre: "Finasterida", presentacion: "Tabletas 5mg" },
-    { nombre: "Sildenafil", presentacion: "Tabletas 50mg" },
-    { nombre: "Tadalafil", presentacion: "Tabletas 20mg" }
+    {
+        nombreGenerico: "Omeprazol",
+        concentracion: "20 mg",
+        formaFarmaceutica: "Cápsulas",
+        cantidadSurtir: "1 frasco (14 cápsulas)",
+        dosis: "1 cápsula",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Por 14 días",
+        indicaciones: "Tomar en ayunas, 30 minutos antes del desayuno."
+    },
+    {
+        nombreGenerico: "Pantoprazol",
+        concentracion: "40 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (14 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Por 14 días",
+        indicaciones: "Tomar en ayunas de preferencia."
+    },
+    {
+        nombreGenerico: "Butilhioscina",
+        nombreComercial: "Buscapina",
+        concentracion: "10 mg",
+        formaFarmaceutica: "Grageas",
+        cantidadSurtir: "1 caja (20 grageas)",
+        dosis: "1 gragea",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 8 horas",
+        duracion: "Por 3 días",
+        indicaciones: "Tomar si hay dolor tipo cólico."
+    },
+    {
+        nombreGenerico: "Loperamida",
+        concentracion: "2 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (12 tabletas)",
+        dosis: "2 tabletas iniciales, luego 1 tras cada evacuación líquida",
+        viaAdministracion: "Oral",
+        frecuencia: "Según necesidad",
+        duracion: "Máximo 2 días",
+        indicaciones: "No exceder 8 tabletas en 24 horas."
+    },
+    {
+        nombreGenerico: "Metoclopramida",
+        concentracion: "10 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (20 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 8 horas",
+        duracion: "Por 5 días",
+        indicaciones: "Tomar 30 minutos antes del desayuno (con alimentos)."
+    },
+
+    // Respiratorios
+    {
+        nombreGenerico: "Salbutamol",
+        concentracion: "100 mcg/dosis",
+        formaFarmaceutica: "Aerosol",
+        cantidadSurtir: "1 dispositivo",
+        dosis: "2 disparos",
+        viaAdministracion: "Inhalada",
+        frecuencia: "Cada 6 horas",
+        duracion: "Por 5 días o razón necesaria",
+        indicaciones: "Agitar bien antes de usar. Usar espaciador si es posible."
+    },
+    {
+        nombreGenerico: "Loratadina",
+        concentracion: "10 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (10 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Por 7 días",
+        indicaciones: "No causa sueño habitualmente."
+    },
+    {
+        nombreGenerico: "Ambroxol",
+        concentracion: "30 mg/5 ml",
+        formaFarmaceutica: "Jarabe",
+        cantidadSurtir: "1 frasco (120 ml)",
+        dosis: "5 ml",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 8 horas",
+        duracion: "Por 5 días",
+        indicaciones: "Tomar después de los alimentos."
+    },
+
+    // Crónico-Degenerativos (Cardio/Endo)
+    {
+        nombreGenerico: "Losartán",
+        concentracion: "50 mg",
+        formaFarmaceutica: "Grageas",
+        cantidadSurtir: "1 caja (30 grageas)",
+        dosis: "1 gragea",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 12 horas",
+        duracion: "Uso continuo",
+        indicaciones: "Monitorear presión arterial regularmente."
+    },
+    {
+        nombreGenerico: "Telmisartán",
+        concentracion: "40 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (14 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso continuo",
+        indicaciones: ""
+    },
+    {
+        nombreGenerico: "Metformina",
+        concentracion: "850 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (30 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 12 horas",
+        duracion: "Uso continuo",
+        indicaciones: "Tomar junto con alimentos."
+    },
+    {
+        nombreGenerico: "Glibenclamida",
+        concentracion: "5 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (50 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso continuo",
+        indicaciones: "Tomar con el desayuno."
+    },
+    {
+        nombreGenerico: "Atorvastatina",
+        concentracion: "20 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (10 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso continuo",
+        indicaciones: "Tomar preferentemente por la noche."
+    },
+
+    // Vitaminas y Otros
+    {
+        nombreGenerico: "Complejo B",
+        concentracion: "Tiamina 100mg, Piridoxina 100mg, Cianocobalamina 5mg",
+        formaFarmaceutica: "Solución Inyectable",
+        cantidadSurtir: "1 caja (5 ampolletas)",
+        dosis: "1 ampolleta",
+        viaAdministracion: "Intramuscular",
+        frecuencia: "Cada 48 horas",
+        duracion: "Por 5 dosis",
+        indicaciones: "Aplicación profunda, puede arder al aplicar."
+    },
+    {
+        nombreGenerico: "Ácido Fólico",
+        concentracion: "4 mg",
+        formaFarmaceutica: "Tabletas",
+        cantidadSurtir: "1 caja (90 tabletas)",
+        dosis: "1 tableta",
+        viaAdministracion: "Oral",
+        frecuencia: "Cada 24 horas",
+        duracion: "Uso continuo",
+        indicaciones: "Idealmente tomar siempre a la misma hora."
+    }
 ];
