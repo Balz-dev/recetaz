@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 async function seedMedicamentos() {
     console.log('🌱 Iniciando seed de medicamentos...');
-    
+
     // Verificar si ya hay medicamentos para no duplicar masivamente
     const count = await db.medicamentos.count();
     if (count > 0) {
@@ -21,17 +21,25 @@ async function seedMedicamentos() {
     // Usamos una transacción para eficiencia
     await db.transaction('rw', db.medicamentos, async () => {
         for (const med of commonMedications) {
-             const existing = await db.medicamentos
+            // Construir el nombre completo del medicamento
+            const nombreCompleto = med.nombreComercial
+                ? `${med.nombreGenerico} (${med.nombreComercial})`
+                : med.nombreGenerico;
+
+            const presentacion = `${med.concentracion} - ${med.formaFarmaceutica}`;
+
+            // Verificar si ya existe
+            const existing = await db.medicamentos
                 .where('nombre')
-                .equals(med.nombre)
-                .and(m => m.presentacion === med.presentacion)
+                .equals(nombreCompleto)
+                .and(m => m.presentacion === presentacion)
                 .first();
 
             if (!existing) {
                 await db.medicamentos.add({
                     id: uuidv4(),
-                    nombre: med.nombre,
-                    presentacion: med.presentacion,
+                    nombre: nombreCompleto,
+                    presentacion: presentacion,
                     createdAt: now,
                     updatedAt: now
                 });
