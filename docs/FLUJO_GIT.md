@@ -1037,3 +1037,16 @@ Este flujo híbrido te da:
 
 *Última actualización: Diciembre 2024*
 *Versión: 1.0*
+
+### Ver el historial bonito
+- `git tree`
+
+### Cambiar rápido entre ramas del proyecto
+- `git landing`
+- `git app`
+- `git dev`
+
+### Shortcuts cotidianos
+- `git st`
+- `git co feature/nueva-rama`
+- `git br -a`
