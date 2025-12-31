@@ -21,7 +21,7 @@ Guía completa del flujo de trabajo Git optimizado para desarrollo individual de
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                                                               │
-│  🔵 develop (Integración)                                    │
+│  🔵 dev (Integración)                                    │
 │     • Combina landing + app                                  │
 │     • Base para testing conjunto                             │
 │     • Deploy a staging/preview                               │
@@ -31,7 +31,7 @@ Guía completa del flujo de trabajo Git optimizado para desarrollo individual de
           ▼                          ▼
 ┌──────────────────────┐   ┌──────────────────────┐
 │                      │   │                      │
-│  🟡 develop-landing  │   │  🟣 develop-app      │
+│  🟡 dev-landing  │   │  🟣 dev-app      │
 │                      │   │                      │
 │  • Todo marketing    │   │  • Todo producto     │
 │  • Landing page      │   │  • Dashboard         │
@@ -60,19 +60,19 @@ git commit -m "initial commit"
 git branch -M main
 git push -u origin main
 
-# Crear develop
-git checkout -b develop
-git push -u origin develop
+# Crear dev
+git checkout -b dev
+git push -u origin dev
 
-# Crear develop-landing
-git checkout develop
-git checkout -b develop-landing
-git push -u origin develop-landing
+# Crear dev-landing
+git checkout dev
+git checkout -b dev-landing
+git push -u origin dev-landing
 
-# Crear develop-app
-git checkout develop
-git checkout -b develop-app
-git push -u origin develop-app
+# Crear dev-app
+git checkout dev
+git checkout -b dev-app
+git push -u origin dev-app
 ```
 
 ### Resultado en GitHub
@@ -80,9 +80,9 @@ git push -u origin develop-app
 ```
 Branches:
   ├─ main (producción)
-  ├─ develop (integración)
-  ├─ develop-landing (marketing)
-  └─ develop-app (producto)
+  ├─ dev (integración)
+  ├─ dev-landing (marketing)
+  └─ dev-app (producto)
 ```
 
 ---
@@ -95,7 +95,7 @@ Branches:
 LUNES: Feature de Landing
 ═══════════════════════════════════════════════════════
 
-git checkout develop-landing
+git checkout dev-landing
          │
          ▼
 git checkout -b landing/hero-redesign
@@ -118,11 +118,11 @@ git push origin landing/hero-redesign
     ✓ Verificas que funciona
          │
          ▼
-git checkout develop-landing
+git checkout dev-landing
 git merge landing/hero-redesign
          │
          ▼
-git push origin develop-landing
+git push origin dev-landing
          │
          ▼
 git push origin --delete landing/hero-redesign
@@ -135,7 +135,7 @@ git push origin --delete landing/hero-redesign
 
 ```bash
 # 1. Crear branch de feature
-git checkout develop-landing
+git checkout dev-landing
 git checkout -b landing/hero-redesign
 
 # 2. Trabajar y commitear
@@ -144,9 +144,9 @@ git commit -m "feat(landing): rediseña hero section"
 git push origin landing/hero-redesign
 
 # 3. Mergear cuando esté listo
-git checkout develop-landing
+git checkout dev-landing
 git merge landing/hero-redesign
-git push origin develop-landing
+git push origin dev-landing
 
 # 4. Limpiar
 git branch -d landing/hero-redesign
@@ -156,7 +156,7 @@ git push origin --delete landing/hero-redesign
 ### Visualización
 
 ```
-develop-landing  •────────────────•
+dev-landing  •────────────────•
                  │                │
                  │  landing/hero  │
                  │  │             │
@@ -177,7 +177,7 @@ develop-landing  •────────────────•
 MARTES-JUEVES: Feature de App
 ═══════════════════════════════════════════════════════
 
-git checkout develop-app
+git checkout dev-app
          │
          ▼
 git checkout -b app/analytics-dashboard
@@ -204,11 +204,11 @@ git push origin app/analytics-dashboard
     [ Testing + Preview ]
          │
          ▼
-git checkout develop-app
+git checkout dev-app
 git merge app/analytics-dashboard
          │
          ▼
-git push origin develop-app
+git push origin dev-app
          │
          ▼
 git push origin --delete app/analytics-dashboard
@@ -221,7 +221,7 @@ git push origin --delete app/analytics-dashboard
 
 ```bash
 # 1. Crear branch de feature
-git checkout develop-app
+git checkout dev-app
 git checkout -b app/analytics-dashboard
 
 # 2. Trabajar varios días con commits incrementales
@@ -238,9 +238,9 @@ git commit -m "feat(app): integra API"
 git push origin app/analytics-dashboard
 
 # 3. Mergear cuando esté listo
-git checkout develop-app
+git checkout dev-app
 git merge app/analytics-dashboard
-git push origin develop-app
+git push origin dev-app
 
 # 4. Limpiar
 git branch -d app/analytics-dashboard
@@ -250,7 +250,7 @@ git push origin --delete app/analytics-dashboard
 ### Visualización
 
 ```
-develop-app     •─────────────────────────•
+dev-app     •─────────────────────────•
                 │                         │
                 │  app/analytics          │
                 │  │                      │
@@ -273,13 +273,13 @@ develop-app     •────────────────────�
 VIERNES: Integrar todo
 ═══════════════════════════════════════════════════════
 
-git checkout develop
-git pull origin develop
+git checkout dev
+git pull origin dev
          │
          ├────────────────────┐
          ▼                    ▼
 git merge            git merge
-develop-landing      develop-app
+dev-landing      dev-app
          │                    │
          └─────────┬──────────┘
                    ▼
@@ -287,7 +287,7 @@ develop-landing      develop-app
             (raro, contextos separados)
                    │
                    ▼
-            git push origin develop
+            git push origin dev
                    │
                    ▼
             [ Deploy a Staging ]
@@ -300,24 +300,24 @@ develop-landing      develop-app
             ✓ Integración funciona
                    │
                    ▼
-            ✅ develop actualizado
+            ✅ dev actualizado
 ```
 
 ### Comandos
 
 ```bash
-# 1. Actualizar develop
-git checkout develop
-git pull origin develop
+# 1. Actualizar dev
+git checkout dev
+git pull origin dev
 
 # 2. Integrar landing
-git merge develop-landing
+git merge dev-landing
 
 # 3. Integrar app
-git merge develop-app
+git merge dev-app
 
 # 4. Subir integración
-git push origin develop
+git push origin dev
 
 # 5. Verificar en staging (automático con Vercel)
 ```
@@ -325,13 +325,13 @@ git push origin develop
 ### Visualización
 
 ```
-develop-landing  •────────────┐
+dev-landing  •────────────┐
                               │
                               ▼
-develop         •─────────────•─────────────→
+dev         •─────────────•─────────────→
                               ▲
                               │
-develop-app     •─────────────┘
+dev-app     •─────────────┘
 ```
 
 ---
@@ -348,7 +348,7 @@ git checkout main
 git pull origin main
          │
          ▼
-git merge develop
+git merge dev
          │
          ▼
     [ Testing final ]
@@ -372,13 +372,13 @@ git push origin main --tags
          │
          ▼
     [ Sincronizar de vuelta ]
-git checkout develop-landing
+git checkout dev-landing
 git merge main
-git push origin develop-landing
+git push origin dev-landing
          │
-git checkout develop-app
+git checkout dev-app
 git merge main
-git push origin develop-app
+git push origin dev-app
          │
          ▼
     ✅ Todo sincronizado
@@ -390,7 +390,7 @@ git push origin develop-app
 # 1. Mergear a main
 git checkout main
 git pull origin main
-git merge develop
+git merge dev
 
 # 2. Crear tag de versión
 git tag -a v0.2.0 -m "Release 0.2.0
@@ -402,13 +402,13 @@ git tag -a v0.2.0 -m "Release 0.2.0
 git push origin main --tags
 
 # 4. Sincronizar branches (opcional pero recomendado)
-git checkout develop-landing
+git checkout dev-landing
 git merge main
-git push origin develop-landing
+git push origin dev-landing
 
-git checkout develop-app
+git checkout dev-app
 git merge main
-git push origin develop-app
+git push origin dev-app
 ```
 
 ### Visualización
@@ -418,7 +418,7 @@ main            •─────────────•  v0.2.0
                 │             │
                 │             ▲
                 │             │
-develop         •─────────────┘
+dev         •─────────────┘
 ```
 
 ---
@@ -428,7 +428,7 @@ develop         •─────────────┘
 ### Lunes
 
 ```
-9:00 AM  │  git checkout develop-landing
+9:00 AM  │  git checkout dev-landing
          │  git checkout -b landing/pricing-update
          │
 10:00 AM │  • Modifico pricing page
@@ -442,9 +442,9 @@ develop         •─────────────┘
 2:00 PM  │  • Reviso preview en Vercel
          │  ✓ Se ve bien
          │
-3:00 PM  │  git checkout develop-landing
+3:00 PM  │  git checkout dev-landing
          │  git merge landing/pricing-update
-         │  git push origin develop-landing
+         │  git push origin dev-landing
          │  git push origin --delete landing/pricing-update
          │
          └─→ ✅ Landing actualizado
@@ -453,7 +453,7 @@ develop         •─────────────┘
 ### Martes - Jueves
 
 ```
-MAR 9:00 │  git checkout develop-app
+MAR 9:00 │  git checkout dev-app
          │  git checkout -b app/export-feature
          │
 MAR 10:00│  • Añado botón exportar
@@ -472,9 +472,9 @@ JUE 11:00│  • Añado tests
          │  git commit -m "test(app): tests export"
          │  git push origin app/export-feature
          │
-JUE 3:00 │  git checkout develop-app
+JUE 3:00 │  git checkout dev-app
          │  git merge app/export-feature
-         │  git push origin develop-app
+         │  git push origin dev-app
          │  git push origin --delete app/export-feature
          │
          └─→ ✅ App actualizada
@@ -483,12 +483,12 @@ JUE 3:00 │  git checkout develop-app
 ### Viernes
 
 ```
-10:00 AM │  git checkout develop
-         │  git pull origin develop
+10:00 AM │  git checkout dev
+         │  git pull origin dev
          │
-         │  git merge develop-landing
-         │  git merge develop-app
-         │  git push origin develop
+         │  git merge dev-landing
+         │  git merge dev-app
+         │  git push origin dev
          │
 11:00 AM │  • Testing en staging
          │  ✓ Landing: pricing funciona
@@ -496,7 +496,7 @@ JUE 3:00 │  git checkout develop-app
          │  ✓ No hay conflictos
          │
 2:00 PM  │  git checkout main
-         │  git merge develop
+         │  git merge dev
          │  git tag v0.3.0
          │  git push origin main --tags
          │
@@ -513,49 +513,49 @@ JUE 3:00 │  git checkout develop-app
 Semana 1:
 ─────────────────────────────────────────────────────
 
-develop-landing  •──┬──┬──→
+dev-landing  •──┬──┬──→
                     │  │
                     │  └─ landing/pricing (3 commits)
                     └─ landing/hero (2 commits)
 
-develop-app      •──┬──→
+dev-app      •──┬──→
                     └─ app/auth (4 commits)
 
 
 Semana 2:
 ─────────────────────────────────────────────────────
 
-develop-landing  •──┬──→
+dev-landing  •──┬──→
                     └─ landing/testimonials (2 commits)
 
-develop-app      •──┬──┬──→
+dev-app      •──┬──┬──→
                     │  └─ app/notifications (5 commits)
                     └─ app/dashboard (3 commits)
 
-develop          •─────→ (merge semanal)
+dev          •─────→ (merge semanal)
 
 
 Semana 3:
 ─────────────────────────────────────────────────────
 
-develop-landing  •──┬──→
+dev-landing  •──┬──→
                     └─ landing/blog (6 commits)
 
-develop-app      •──┬──→
+dev-app      •──┬──→
                     └─ app/export (4 commits)
 
-develop          •─────→ (merge semanal)
+dev          •─────→ (merge semanal)
 
 
 Semana 4:
 ─────────────────────────────────────────────────────
 
-develop-landing  •──→ (solo fixes menores)
+dev-landing  •──→ (solo fixes menores)
 
-develop-app      •──┬──→
+dev-app      •──┬──→
                     └─ app/analytics (7 commits)
 
-develop          •─────→ (merge final)
+dev          •─────→ (merge final)
 
 main             •─────→ (deploy v0.4.0)
 ```
@@ -582,7 +582,7 @@ main             •─────→ (deploy v0.4.0)
         │                │                 │
         ▼                ▼                 ▼
 git checkout      git checkout      git checkout
-develop-landing   develop-app       develop
+dev-landing   dev-app       dev
         │                │                 │
         ▼                ▼                 ▼
 git checkout -b   git checkout -b   git checkout -b
@@ -599,7 +599,7 @@ landing/nombre    app/nombre        shared/nombre
         │                │                 │
         ▼                ▼                 ▼
    [ Merge a        [ Merge a        [ Merge a
-   develop-         develop-         develop ]
+   dev-         dev-         dev ]
    landing ]        app ]                │
         │                │                 │
         └────────────────┴─────────────────┘
@@ -619,7 +619,7 @@ landing/nombre    app/nombre        shared/nombre
               trabajando]     │
                               ▼
                         git checkout main
-                        git merge develop
+                        git merge dev
                         git tag vX.X.X
                               │
                               ▼
@@ -690,27 +690,27 @@ test: añade tests E2E
 
 ```bash
 # Trabajar en landing
-git checkout develop-landing
+git checkout dev-landing
 git checkout -b landing/nueva-feature
 # ... trabajas ...
 git add .
 git commit -m "feat(landing): descripción"
 git push origin landing/nueva-feature
-git checkout develop-landing
+git checkout dev-landing
 git merge landing/nueva-feature
-git push origin develop-landing
+git push origin dev-landing
 git push origin --delete landing/nueva-feature
 
 # Trabajar en app
-git checkout develop-app
+git checkout dev-app
 git checkout -b app/nueva-feature
 # ... trabajas ...
 git add .
 git commit -m "feat(app): descripción"
 git push origin app/nueva-feature
-git checkout develop-app
+git checkout dev-app
 git merge app/nueva-feature
-git push origin develop-app
+git push origin dev-app
 git push origin --delete app/nueva-feature
 ```
 
@@ -718,11 +718,11 @@ git push origin --delete app/nueva-feature
 
 ```bash
 # Integrar todo
-git checkout develop
-git pull origin develop
-git merge develop-landing
-git merge develop-app
-git push origin develop
+git checkout dev
+git pull origin dev
+git merge dev-landing
+git merge dev-app
+git push origin dev
 ```
 
 ### Release
@@ -731,7 +731,7 @@ git push origin develop
 # Deploy a producción
 git checkout main
 git pull origin main
-git merge develop
+git merge dev
 git tag -a v0.X.0 -m "Release vX.X.X
 - Feature 1
 - Feature 2
@@ -750,10 +750,10 @@ git branch
 git log --oneline --graph --all
 
 # Ver diferencias
-git diff develop-landing develop-app
+git diff dev-landing dev-app
 
 # Limpiar branches locales mergeadas
-git branch --merged develop | grep -v "main\|develop\|*" | xargs git branch -d
+git branch --merged dev | grep -v "main\|dev\|*" | xargs git branch -d
 
 # Actualizar referencias remotas
 git fetch --prune
@@ -778,13 +778,13 @@ Añade estos a tu `~/.gitconfig`:
     st = status
     
     # Workflow específico
-    landing = checkout develop-landing
-    app = checkout develop-app
-    dev = checkout develop
+    landing = checkout dev-landing
+    app = checkout dev-app
+    dev = checkout dev
     prod = checkout main
     
     # Limpieza
-    cleanup = "!git branch --merged develop | grep -v 'main\\|develop\\|*' | xargs -r git branch -d"
+    cleanup = "!git branch --merged dev | grep -v 'main\\|dev\\|*' | xargs -r git branch -d"
 ```
 
 ---
@@ -888,16 +888,16 @@ tu-saas/
 
 ```bash
 # Si hay conflictos al integrar
-git checkout develop
-git merge develop-landing
+git checkout dev
+git merge dev-landing
 # CONFLICT en archivo X
 
 # Resolver manualmente o con editor
 # Luego:
 git add .
-git commit -m "merge: integra develop-landing"
+git commit -m "merge: integra dev-landing"
 
-git merge develop-app
+git merge dev-app
 # Si hay más conflictos, repetir
 ```
 
@@ -942,9 +942,9 @@ git commit -m "mensaje"
 
 ## Checklist Pre-Deploy
 
-Antes de hacer `git merge develop` en `main`:
+Antes de hacer `git merge dev` en `main`:
 
-- [ ] ✅ Todas las features mergeadas a `develop`
+- [ ] ✅ Todas las features mergeadas a `dev`
 - [ ] ✅ Testing en ambiente de staging
 - [ ] ✅ Landing page funciona correctamente
 - [ ] ✅ App funciona correctamente
@@ -970,9 +970,9 @@ Antes de hacer `git merge develop` en `main`:
 
 1. **Branch protection rules** (Settings → Branches):
    - Proteger `main`: Require pull request (opcional)
-   - `develop`, `develop-landing`, `develop-app`: Sin restricciones
+   - `dev`, `dev-landing`, `dev-app`: Sin restricciones
 
-2. **Default branch**: Cambiar a `develop`
+2. **Default branch**: Cambiar a `dev`
 
 3. **Auto-delete head branches**: Activar para limpiar automáticamente
 
