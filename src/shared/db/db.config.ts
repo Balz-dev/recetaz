@@ -16,7 +16,7 @@
  */
 
 import Dexie, { Table } from 'dexie';
-import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, PlantillaReceta, MedicamentoCatalogo } from '@/types';
+import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, PlantillaReceta, MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual } from '@/types';
 
 /**
  * Clase principal de la base de datos.
@@ -50,6 +50,12 @@ class RecetasDatabase extends Dexie {
 
     /** Tabla de catálogo de medicamentos */
     medicamentos!: Table<MedicamentoCatalogo>;
+
+    /** Tabla de catálogo de diagnósticos (CIE-11) */
+    diagnosticos!: Table<DiagnosticoCatalogo>;
+
+    /** Tabla de tratamientos habituales (Aprendizaje) */
+    tratamientosHabituales!: Table<TratamientoHabitual>;
 
     constructor() {
         super('RecetasMedicasDB');
@@ -148,6 +154,22 @@ class RecetasDatabase extends Dexie {
             configuracionFinanciera: 'id',
             plantillas: 'id, nombre, activa',
             medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso, *palabrasClave'
+        });
+
+        // Versión 9: Catálogos externos y sistema de aprendizaje
+        // - diagnosticos: Catálogo CIE-11
+        // - tratamientosHabituales: Asociación Diagnóstico -> Tratamiento
+        // - medicamentos: Se agrega índice *especialidad
+        this.version(9).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, cedula',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso, *palabrasClave, *especialidad',
+            diagnosticos: '++id, codigo, nombre, uri, *palabrasClave, *especialidad',
+            tratamientosHabituales: '++id, diagnosticoId, nombreTratamiento, *especialidad, usoCount'
         });
     }
 }
