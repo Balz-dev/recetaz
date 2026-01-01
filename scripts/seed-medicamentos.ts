@@ -1,49 +1,74 @@
+/**
+ * @fileoverview Script para inicializar el catálogo de medicamentos
+ * 
+ * Este script carga el catálogo inicial de medicamentos comunes
+ * Solo se ejecuta si la tabla está vacía
+ * 
+ * Uso: npm run seed:medicamentos
+ */
 
 import 'fake-indexeddb/auto';
 import { db } from '../src/shared/db/db.config';
-import { commonMedications } from '../src/shared/utils/seeds/medicamentos-data';
-import { v4 as uuidv4 } from 'uuid';
+import { catalogoMedicamentosInicial } from '../src/shared/utils/seeds/medicamentos-data';
+import { normalizarTexto } from '../src/shared/services/medicamentos.service';
+import { MedicamentoCatalogo } from '../src/types';
 
+/**
+ * Carga el catálogo inicial de medicamentos en la base de datos
+ */
 async function seedMedicamentos() {
-    console.log('🌱 Iniciando seed de medicamentos...');
-    
-    // Verificar si ya hay medicamentos para no duplicar masivamente
-    const count = await db.medicamentos.count();
-    if (count > 0) {
-        console.log(`ℹ️ Ya existen ${count} medicamentos en la base de datos.`);
-        if (count > 10) {
-            console.log('✅ Saltando seed de medicamentos para preservar datos existentes.');
+    try {
+        console.log('🏥 Iniciando seed de medicamentos...\n');
+
+        // Verificar si ya existen medicamentos
+        const count = await db.medicamentos.count();
+
+        if (count > 0) {
+            console.log(`⚠️  Ya existen ${count} medicamentos en la base de datos.`);
+            console.log('💡 Para recargar el catálogo, elimina la base de datos primero.\n');
             return;
         }
+
+        console.log('📦 Preparando catálogo de medicamentos...');
+        console.log(`   Total de medicamentos a cargar: ${catalogoMedicamentosInicial.length}\n`);
+
+        // Preparar medicamentos con campos calculados
+        const medicamentosParaInsertar: Omit<MedicamentoCatalogo, 'id'>[] = catalogoMedicamentosInicial.map(med => ({
+            ...med,
+            nombreBusqueda: normalizarTexto(med.nombre),
+            vecesUsado: 0,
+            fechaCreacion: new Date(),
+        }));
+
+        // Insertar en lote (más eficiente)
+        await db.medicamentos.bulkAdd(medicamentosParaInsertar as any);
+
+        console.log('✅ Catálogo de medicamentos cargado exitosamente!\n');
+
+        // Mostrar estadísticas por categoría
+        const categorias = new Map<string, number>();
+        medicamentosParaInsertar.forEach(med => {
+            const cat = med.categoria || 'Sin categoría';
+            categorias.set(cat, (categorias.get(cat) || 0) + 1);
+        });
+
+        console.log('📊 Resumen por categoría:');
+        Array.from(categorias.entries())
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([categoria, cantidad]) => {
+                console.log(`   ${categoria}: ${cantidad} medicamentos`);
+            });
+
+        console.log('\n✨ ¡Proceso completado con éxito!\n');
+
+    } catch (error) {
+        console.error('❌ Error al cargar medicamentos:', error);
+        process.exit(1);
+    } finally {
+        // Cerrar conexión
+        db.close();
     }
-
-    const now = new Date();
-    // Usamos una transacción para eficiencia
-    await db.transaction('rw', db.medicamentos, async () => {
-        for (const med of commonMedications) {
-             const existing = await db.medicamentos
-                .where('nombre')
-                .equals(med.nombre)
-                .and(m => m.presentacion === med.presentacion)
-                .first();
-
-            if (!existing) {
-                await db.medicamentos.add({
-                    id: uuidv4(),
-                    nombre: med.nombre,
-                    presentacion: med.presentacion,
-                    createdAt: now,
-                    updatedAt: now
-                });
-            }
-        }
-    });
-
-    console.log(`✅ Seed de medicamentos completado exitosamente.`);
 }
 
-// Ejecutar si se llama directamente
-seedMedicamentos().catch(console.error);
-
-export { seedMedicamentos };
-
+// Ejecutar seed
+seedMedicamentos();

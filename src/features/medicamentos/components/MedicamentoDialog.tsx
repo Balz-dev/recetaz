@@ -27,6 +27,9 @@ import { useEffect } from "react"
 const formSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
     presentacion: z.string().optional(),
+    nombreGenerico: z.string().optional(),
+    categoria: z.string().optional(),
+    palabrasClave: z.string().optional(),
 })
 
 interface MedicamentoDialogProps {
@@ -47,6 +50,9 @@ export function MedicamentoDialog({
         defaultValues: {
             nombre: "",
             presentacion: "",
+            nombreGenerico: "",
+            categoria: "",
+            palabrasClave: "",
         },
     })
 
@@ -55,24 +61,45 @@ export function MedicamentoDialog({
             form.reset({
                 nombre: medicamento.nombre,
                 presentacion: medicamento.presentacion || "",
+                nombreGenerico: medicamento.nombreGenerico || "",
+                categoria: medicamento.categoria || "",
+                palabrasClave: medicamento.palabrasClave ? medicamento.palabrasClave.join(", ") : "",
             })
         } else {
             form.reset({
                 nombre: "",
                 presentacion: "",
+                nombreGenerico: "",
+                categoria: "",
+                palabrasClave: "",
             })
         }
     }, [medicamento, form, open])
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-        await onSubmit(values)
+        // Procesar palabras clave: de string separado por comas a array
+        const palabrasClaveArray = values.palabrasClave
+            ? values.palabrasClave.split(',').map(s => s.trim()).filter(s => s.length > 0)
+            : undefined;
+
+        // Agregar campos requeridos por MedicamentoCatalogoFormData
+        const medicamentoData: MedicamentoCatalogoFormData = {
+            nombre: values.nombre,
+            presentacion: values.presentacion,
+            nombreGenerico: values.nombreGenerico,
+            categoria: values.categoria,
+            palabrasClave: palabrasClaveArray,
+            esPersonalizado: true, // Siempre es personalizado cuando se agrega desde el diálogo
+            sincronizado: false,
+        }
+        await onSubmit(medicamentoData)
         onOpenChange(false)
         form.reset()
     }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[550px]">
                 <DialogHeader>
                     <DialogTitle>
                         {medicamento ? "Editar Medicamento" : "Nuevo Medicamento"}
@@ -80,32 +107,76 @@ export function MedicamentoDialog({
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="nombre"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nombre Comercial / Genérico</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Paracetamol" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="presentacion"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Presentación (Opcional)</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Tabletas 500mg" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="nombre"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>Nombre Comercial</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Tylenol" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="nombreGenerico"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nombre Genérico</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Paracetamol" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="categoria"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Categoría</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Analgésico" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="presentacion"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Presentación</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Caja con 10 tabletas" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="palabrasClave"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Palabras Clave (Opcional)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: fiebre, dolor cabeza, niños" {...field} />
+                                        </FormControl>
+                                        <p className="text-[0.8rem] text-muted-foreground">
+                                            Separa las palabras con comas. Ayudan a encontrar el medicamento más rápido.
+                                        </p>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                                 Cancelar

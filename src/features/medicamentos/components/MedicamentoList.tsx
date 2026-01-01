@@ -16,7 +16,7 @@ import { MedicamentoCatalogo } from "@/types"
 interface MedicamentoListProps {
     medicamentos: MedicamentoCatalogo[]
     onEdit: (medicamento: MedicamentoCatalogo) => void
-    onDelete: (id: string) => void
+    onDelete: (id: number) => void
 }
 
 export function MedicamentoList({ medicamentos, onEdit, onDelete }: MedicamentoListProps) {
@@ -57,7 +57,8 @@ export function MedicamentoList({ medicamentos, onEdit, onDelete }: MedicamentoL
                                         variant="ghost"
                                         size="icon"
                                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                        onClick={() => onDelete(med.id)}
+                                        onClick={() => med.id && onDelete(med.id)}
+                                        disabled={!med.id}
                                         title="Eliminar"
                                     >
                                         <Trash2 className="h-4 w-4" />

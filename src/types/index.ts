@@ -152,23 +152,81 @@ export interface PlantillaReceta {
 
 export type PlantillaRecetaFormData = Omit<PlantillaReceta, 'id' | 'createdAt' | 'updatedAt'>;
 
+/**
+ * Representa un medicamento en el catálogo del sistema.
+ * Optimizado para búsqueda rápida, autocompletado y seguimiento de uso.
+ */
 export interface MedicamentoCatalogo {
-    id: string;
+    /** Identificador único auto-incremental */
+    id?: number;
+
+    /** Nombre comercial o completo del medicamento */
     nombre: string;
+
+    /** Nombre genérico o principio activo (DCI) */
     nombreGenerico?: string;
+
+    /** Nombre normalizado para búsqueda (lowercase, sin acentos) */
+    nombreBusqueda: string;
+
+    /** Presentación del medicamento (ej: "Tabletas 500mg", "Jarabe 120ml") */
     presentacion?: string;
+
+    /** Forma farmacéutica estandarizada */
     formaFarmaceutica?: string;
+
+    /** Concentración del principio activo */
     concentracion?: string;
-    cantidadSurtir?: string;
-    dosis?: string;
-    viaAdministracion?: string;
-    frecuencia?: string;
-    duracion?: string;
-    indicaciones?: string;
-    createdAt: Date;
-    updatedAt: Date;
+
+    /** Categoría terapéutica (ej: "Antibiótico", "Analgésico", "Antihipertensivo") */
+    categoria?: string;
+
+    /** Laboratorio o fabricante */
+    laboratorio?: string;
+
+    // Valores predeterminados clínicos (se autocompletan al seleccionar el medicamento)
+    /** Cantidad a surtir predeterminada */
+    cantidadSurtirDefault?: string;
+
+    /** Dosis predeterminada (ej: "1 tableta", "5ml") */
+    dosisDefault?: string;
+
+    /** Vía de administración predeterminada (ej: "Oral", "Intravenosa") */
+    viaAdministracionDefault?: string;
+
+    /** Frecuencia predeterminada (ej: "Cada 8 horas") */
+    frecuenciaDefault?: string;
+
+    /** Duración predeterminada del tratamiento (ej: "7 días") */
+    duracionDefault?: string;
+
+    /** Indicaciones predeterminadas para el paciente */
+    indicacionesDefault?: string;
+
+    // Metadatos y seguimiento
+    /** True si lo agregó el médico, false si viene del catálogo inicial */
+    esPersonalizado: boolean;
+
+    /** Contador de veces que se ha usado en recetas */
+    vecesUsado: number;
+
+    /** Fecha de creación del registro */
+    fechaCreacion: Date;
+
+    /** Fecha del último uso en una receta */
+    fechaUltimoUso?: Date;
+
+    // Para sincronización futura (opcional)
+    /** Indica si ha sido sincronizado con servidor remoto */
+    sincronizado?: boolean;
+
+    /** ID del medicamento en servidor remoto */
+    idRemoto?: string;
+
+    /** Palabras clave para búsqueda (genérico, comerciales, abreviaturas) */
+    palabrasClave?: string[];
 }
 
-export type MedicamentoCatalogoFormData = Omit<MedicamentoCatalogo, 'id' | 'createdAt' | 'updatedAt'>;
+export type MedicamentoCatalogoFormData = Omit<MedicamentoCatalogo, 'id' | 'nombreBusqueda' | 'vecesUsado' | 'fechaCreacion' | 'fechaUltimoUso'>;
 
 

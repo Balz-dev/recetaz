@@ -32,16 +32,16 @@ import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFina
 class RecetasDatabase extends Dexie {
     /** Tabla de configuración del médico (singleton) */
     medico!: Table<MedicoConfig>;
-    
+
     /** Tabla de pacientes del consultorio */
     pacientes!: Table<Paciente>;
-    
+
     /** Tabla de recetas médicas emitidas */
     recetas!: Table<Receta>;
-    
+
     /** Tabla de movimientos financieros (ingresos y gastos) */
     finanzas!: Table<MovimientoFinanciero>;
-    
+
     /** Tabla de configuración financiera (costos de consulta) */
     configuracionFinanciera!: Table<ConfiguracionFinanciera>;
 
@@ -119,6 +119,35 @@ class RecetasDatabase extends Dexie {
             configuracionFinanciera: 'id',
             plantillas: 'id, nombre, activa',
             medicamentos: 'id, nombre'
+        });
+
+        // Versión 7: Optimización del catálogo de medicamentos
+        // Índices optimizados para búsqueda rápida y autocompletado:
+        // - nombreBusqueda: Búsqueda normalizada (sin acentos, lowercase)
+        // - [nombreBusqueda+esPersonalizado]: Índice compuesto para filtrar catálogo vs personalizados
+        // - categoria: Filtrado por categoría terapéutica
+        // - vecesUsado: Ordenamiento por popularidad
+        // - fechaUltimoUso: Ordenamiento por uso reciente
+        this.version(7).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, cedula',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso'
+        });
+
+        // Versión 8: Búsqueda avanzada de medicamentos
+        // - palabrasClave: Índice MultiEntry para búsqueda eficiente por keywords
+        this.version(8).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, cedula',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso, *palabrasClave'
         });
     }
 }

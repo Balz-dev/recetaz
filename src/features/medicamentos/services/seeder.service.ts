@@ -1,12 +1,16 @@
-
 import { db } from "@/shared/db/db.config";
-import { commonMedications } from "@/shared/utils/seeds/medicamentos-data";
-import { v4 as uuidv4 } from 'uuid';
+import { catalogoMedicamentosInicial } from "@/shared/utils/seeds/medicamentos-data";
+import { normalizarTexto } from "@/shared/services/medicamentos.service";
 
+/**
+ * Servicio de seeding antiguo
+ * @deprecated Usar el script scripts/seed-medicamentos.ts en su lugar
+ */
 export const seederService = {
     /**
      * Pobla la base de datos con un catálogo extenso de medicamentos.
      * @returns Número de medicamentos insertados
+     * @deprecated Usar npm run seed:medicamentos en su lugar
      */
     seedMedicamentos: async (): Promise<number> => {
         try {
@@ -15,50 +19,24 @@ export const seederService = {
             // Verificar si ya hay medicamentos para evitar duplicados masivos
             const count = await db.medicamentos.count();
             if (count > 0) {
-                console.log(`ℹ️ Ya existen ${count} medicamentos. Verificando duplicados...`);
+                console.log(`ℹ️ Ya existen ${count} medicamentos. Saltando seed.`);
+                return 0;
             }
 
             const now = new Date();
             let insertados = 0;
 
-            // Usamos una transacción para eficiencia y consistencia
-            await db.transaction('rw', db.medicamentos, async () => {
-                for (const med of commonMedications) {
-                    // Construir nombre y presentación basados en la nueva estructura
-                    const nombreDisplay = med.nombreComercial
-                        ? `${med.nombreComercial} (${med.nombreGenerico})`
-                        : med.nombreGenerico;
+            // Preparar medicamentos con campos calculados
+            const medicamentosParaInsertar = catalogoMedicamentosInicial.map(med => ({
+                ...med,
+                nombreBusqueda: normalizarTexto(med.nombre),
+                vecesUsado: 0,
+                fechaCreacion: now,
+            }));
 
-                    const presentacionDisplay = `${med.formaFarmaceutica} ${med.concentracion}`;
-
-                    // Verificar si ya existe este medicamento con la misma presentación
-                    const existing = await db.medicamentos
-                        .where('nombre')
-                        .equals(nombreDisplay)
-                        .and(m => m.presentacion === presentacionDisplay)
-                        .first();
-
-                    if (!existing) {
-                        await db.medicamentos.add({
-                            id: uuidv4(),
-                            nombre: nombreDisplay,
-                            nombreGenerico: med.nombreGenerico,
-                            presentacion: presentacionDisplay,
-                            formaFarmaceutica: med.formaFarmaceutica,
-                            concentracion: med.concentracion,
-                            cantidadSurtir: med.cantidadSurtir,
-                            dosis: med.dosis,
-                            viaAdministracion: med.viaAdministracion,
-                            frecuencia: med.frecuencia,
-                            duracion: med.duracion,
-                            indicaciones: med.indicaciones,
-                            createdAt: now,
-                            updatedAt: now
-                        });
-                        insertados++;
-                    }
-                }
-            });
+            // Insertar en lote (más eficiente)
+            await db.medicamentos.bulkAdd(medicamentosParaInsertar as any);
+            insertados = medicamentosParaInsertar.length;
 
             console.log(`✅ Seed completado. Se agregaron ${insertados} nuevos medicamentos.`);
             return insertados;
