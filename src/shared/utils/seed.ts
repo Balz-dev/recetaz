@@ -9,7 +9,8 @@
 import { db } from '@/shared/db/db.config';
 import { v4 as uuidv4 } from 'uuid';
 import type { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, Medicamento, PlantillaReceta } from '@/types';
-import { commonMedications, MedicamentoSeed } from './seeds/medicamentos-data';
+import { catalogoMedicamentosInicial } from './seeds/medicamentos-data';
+import type { MedicamentoCatalogo } from '@/types';
 
 /**
  * Genera datos de ejemplo para el médico
@@ -99,10 +100,10 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
     let recetaCounter = 1;
 
     // Helper para buscar medicamento en la data semillada
-    const buscarMedicamento = (nombre: string): MedicamentoSeed | undefined => {
-        return commonMedications.find(m =>
-            m.nombreGenerico.toLowerCase().includes(nombre.toLowerCase()) ||
-            (m.nombreComercial && m.nombreComercial.toLowerCase().includes(nombre.toLowerCase()))
+    const buscarMedicamento = (nombre: string): typeof catalogoMedicamentosInicial[0] | undefined => {
+        return catalogoMedicamentosInicial.find(m =>
+            m.nombreGenerico?.toLowerCase().includes(nombre.toLowerCase()) ||
+            m.nombre.toLowerCase().includes(nombre.toLowerCase())
         );
     };
 
@@ -131,17 +132,17 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
                 if (medData) {
                     medicamentos.push({
                         id: uuidv4(),
-                        nombre: medData.nombreComercial ? `${medData.nombreComercial} (${medData.nombreGenerico})` : medData.nombreGenerico,
+                        nombre: medData.nombre,
                         nombreGenerico: medData.nombreGenerico,
                         concentracion: medData.concentracion,
-                        presentacion: medData.formaFarmaceutica, // Mapeo de campos
+                        presentacion: medData.presentacion,
                         formaFarmaceutica: medData.formaFarmaceutica,
-                        cantidadSurtir: medData.cantidadSurtir,
-                        dosis: medData.dosis,
-                        frecuencia: medData.frecuencia,
-                        viaAdministracion: medData.viaAdministracion,
-                        duracion: medData.duracion,
-                        indicaciones: medData.indicaciones
+                        cantidadSurtir: medData.cantidadSurtirDefault || '',
+                        dosis: medData.dosisDefault || '',
+                        frecuencia: medData.frecuenciaDefault || '',
+                        viaAdministracion: medData.viaAdministracionDefault || '',
+                        duracion: medData.duracionDefault || '',
+                        indicaciones: medData.indicacionesDefault || ''
                     });
                 } else {
                     // Fallback para medicamentos no encontrados en el catálogo nuevo
@@ -364,10 +365,59 @@ export async function seedDatabase(): Promise<void> {
         console.log(`✅ ${plantillas.length} plantillas insertadas\n`);
 
         console.log(`   - ${plantillas.length} plantillas configuradas`);
+        console.log('💊 Insertando catálogo de medicamentos...');
+
+        // Limpiar catálogo previo
+        await db.medicamentos.clear();
+
+        // Preparar datos para inserción (agregando campos calculados)
+        const now = new Date();
+        const medicamentosParaInsertar = catalogoMedicamentosInicial.map(med => ({
+            ...med,
+            nombreBusqueda: med.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+            vecesUsado: 0,
+            fechaCreacion: now,
+            fechaUltimoUso: undefined
+        }));
+
+        // Insertar en lotes si es muy grande (opcional, pero buena práctica)
+        await db.medicamentos.bulkAdd(medicamentosParaInsertar);
+
+        console.log(`✅ ${medicamentosParaInsertar.length} medicamentos insertados en catálogo\n`);
         console.log(`   - Configuración financiera establecida\n`);
         console.log('🔄 Recarga la página para ver los cambios');
     } catch (error) {
         console.error('❌ Error al poblar la base de datos:', error);
         throw error;
+    }
+}
+
+/**
+ * Inicializa el catálogo de medicamentos si está vacío.
+ * Operación segura que NO borra datos existentes si ya hay medicamentos.
+ */
+export async function inicializarMedicamentosSiVacio(): Promise<void> {
+    try {
+        const count = await db.medicamentos.count();
+        if (count > 0) {
+            return; // Ya hay datos, no hacer nada
+        }
+
+        console.log('💊 Catálogo vacío detectado. Inicializando medicamentos...');
+
+        // Preparar datos para inserción
+        const now = new Date();
+        const medicamentosParaInsertar = catalogoMedicamentosInicial.map(med => ({
+            ...med,
+            nombreBusqueda: med.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+            vecesUsado: 0,
+            fechaCreacion: now,
+            fechaUltimoUso: undefined
+        }));
+
+        await db.medicamentos.bulkAdd(medicamentosParaInsertar);
+        console.log(`✅ ${medicamentosParaInsertar.length} medicamentos insertados automáticamente.`);
+    } catch (error) {
+        console.error('❌ Error al inicializar medicamentos:', error);
     }
 }

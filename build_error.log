@@ -1,0 +1,29 @@
+
+> recetaz-app@1.0.0 build
+> next build --webpack
+
+   ▲ Next.js 16.0.7 (webpack)
+
+   Creating an optimized production build ...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /mnt/HOME/Proyectos/recetaz/node_modules/.pnpm/next-pwa@5.6.0_@babel+core@7.28.5_@types+babel__core@7.20.5_next@16.0.7_@babel+core@7.2_35252d86ef453300439b3808aec3a5a4/node_modules/next-pwa/register.js
+> [PWA] Service worker: /mnt/HOME/Proyectos/recetaz/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+ ✓ Compiled successfully in 10.9s
+   Running TypeScript ...
+Failed to compile.
+
+./src/features/recetas/components/RecetaForm.tsx:313:51
+Type error: Argument of type 'number' is not assignable to parameter of type 'string'.
+
+[0m [90m 311 |[39m                 [90m// Registrar uso del medicamento[39m
+ [90m 312 |[39m                 [36mif[39m (medicamentoId) {
+[31m[1m>[22m[39m[90m 313 |[39m                     [36mawait[39m registrarUsoMedicamento(medicamentoId)
+ [90m     |[39m                                                   [31m[1m^[22m[39m
+ [90m 314 |[39m                 }
+ [90m 315 |[39m             }
+ [90m 316 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

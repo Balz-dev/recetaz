@@ -16,7 +16,7 @@ import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { recetaService } from "@/features/recetas/services/receta.service"
 import { pacienteService } from "@/features/pacientes/services/paciente.service"
-import { medicamentoService } from "@/features/medicamentos/services/medicamento.service"
+import { buscarMedicamentosAutocompletado, agregarMedicamento, registrarUsoMedicamento } from "@/shared/services/medicamentos.service"
 import { RecetaFormData, Paciente, MedicamentoCatalogo } from "@/types"
 import { useState, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
@@ -216,7 +216,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             return
         }
 
-        const results = await medicamentoService.search(query)
+        const results = await buscarMedicamentosAutocompletado(query, 10)
         setMedicamentoSuggestions(results)
         setActiveMedicamentoIndex(index)
     }
@@ -242,28 +242,29 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             form.setValue(`medicamentos.${index}.concentracion`, medicamento.concentracion, { shouldValidate: true })
         }
 
-        if (medicamento.cantidadSurtir) {
-            form.setValue(`medicamentos.${index}.cantidadSurtir`, medicamento.cantidadSurtir, { shouldValidate: true })
+        // Valores predeterminados clínicos (los nuevos campos optimizados)
+        if (medicamento.cantidadSurtirDefault) {
+            form.setValue(`medicamentos.${index}.cantidadSurtir`, medicamento.cantidadSurtirDefault, { shouldValidate: true })
         }
 
-        if (medicamento.viaAdministracion) {
-            form.setValue(`medicamentos.${index}.viaAdministracion`, medicamento.viaAdministracion, { shouldValidate: true })
+        if (medicamento.viaAdministracionDefault) {
+            form.setValue(`medicamentos.${index}.viaAdministracion`, medicamento.viaAdministracionDefault, { shouldValidate: true })
         }
 
-        if (medicamento.dosis) {
-            form.setValue(`medicamentos.${index}.dosis`, medicamento.dosis, { shouldValidate: true })
+        if (medicamento.dosisDefault) {
+            form.setValue(`medicamentos.${index}.dosis`, medicamento.dosisDefault, { shouldValidate: true })
         }
 
-        if (medicamento.frecuencia) {
-            form.setValue(`medicamentos.${index}.frecuencia`, medicamento.frecuencia, { shouldValidate: true })
+        if (medicamento.frecuenciaDefault) {
+            form.setValue(`medicamentos.${index}.frecuencia`, medicamento.frecuenciaDefault, { shouldValidate: true })
         }
 
-        if (medicamento.duracion) {
-            form.setValue(`medicamentos.${index}.duracion`, medicamento.duracion, { shouldValidate: true })
+        if (medicamento.duracionDefault) {
+            form.setValue(`medicamentos.${index}.duracion`, medicamento.duracionDefault, { shouldValidate: true })
         }
 
-        if (medicamento.indicaciones) {
-            form.setValue(`medicamentos.${index}.indicaciones`, medicamento.indicaciones, { shouldValidate: true })
+        if (medicamento.indicacionesDefault) {
+            form.setValue(`medicamentos.${index}.indicaciones`, medicamento.indicacionesDefault, { shouldValidate: true })
         }
 
         setMedicamentoSuggestions([])
@@ -286,9 +287,31 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
     async function onSubmit(values: RecetaFormData) {
         setIsLoading(true)
         try {
-            // 1. Guardar nuevos medicamentos en el catálogo
+            // 1. Procesar medicamentos: agregar nuevos al catálogo y registrar uso
             for (const med of values.medicamentos) {
-                await medicamentoService.findOrCreateByName(med.nombre)
+                // Agregar medicamento al catálogo si no existe (con validación de duplicados)
+                const medicamentoId = await agregarMedicamento({
+                    nombre: med.nombre,
+                    nombreGenerico: med.nombreGenerico,
+                    concentracion: med.concentracion,
+                    formaFarmaceutica: med.formaFarmaceutica,
+                    presentacion: med.presentacion,
+                    categoria: undefined, // Se puede extraer de un campo adicional si se desea
+                    laboratorio: undefined,
+                    cantidadSurtirDefault: med.cantidadSurtir,
+                    dosisDefault: med.dosis,
+                    viaAdministracionDefault: med.viaAdministracion,
+                    frecuenciaDefault: med.frecuencia,
+                    duracionDefault: med.duracion,
+                    indicacionesDefault: med.indicaciones,
+                    esPersonalizado: true, // Marcado como personalizado ya que lo agregó el médico
+                    sincronizado: false,
+                })
+
+                // Registrar uso del medicamento
+                if (medicamentoId) {
+                    await registrarUsoMedicamento(medicamentoId)
+                }
             }
 
             let pacienteId = values.pacienteId
