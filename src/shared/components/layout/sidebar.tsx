@@ -17,7 +17,8 @@ import {
     FolderOpen,
     DollarSign,
     Lock,
-    FileType
+    FileType,
+    Activity
 } from 'lucide-react';
 import { PremiumModal } from '@/shared/components/modals/PremiumModal';
 
@@ -47,6 +48,12 @@ const routes = [
         href: '/medicamentos',
         label: 'Medicamentos',
         icon: Pill,
+        premium: false,
+    },
+    {
+        href: '/diagnosticos',
+        label: 'Diagnósticos',
+        icon: Activity,
         premium: false,
     },
     {

@@ -225,6 +225,41 @@ export interface MedicamentoCatalogo {
 
     /** Palabras clave para búsqueda (genérico, comerciales, abreviaturas) */
     palabrasClave?: string[];
+
+    // Campos adicionales COFEPRIS y Especialidad
+    /** Registro Sanitario (COFEPRIS) */
+    registroSanitario?: string;
+
+    /** Especialidades médicas sugeridas para este medicamento */
+    especialidad?: string[];
+}
+
+/**
+ * Catálogo de diagnósticos basado en CIE-11
+ */
+export interface DiagnosticoCatalogo {
+    id?: number;
+    codigo: string;       // Código CIE-11 (ej: "MG44")
+    nombre: string;       // Título oficial
+    uri?: string;         // URI de la entidad en CIE-11 Foundation
+    sinonimos?: string[]; // Términos alternativos para facilitar búsqueda
+    especialidad?: string[]; // Especialidades relacionadas
+    palabrasClave?: string[]; // Tokens normalizados para búsqueda
+}
+
+/**
+ * Representa un tratamiento habitual aprendido o preconfigurado
+ * Asocia un diagnóstico con una lista de medicamentos e instrucciones.
+ */
+export interface TratamientoHabitual {
+    id?: number;
+    diagnosticoId: string; // Código o ID del diagnóstico asociado
+    nombreTratamiento: string; // Nombre amigable (ej: "Tratamiento estándar faringitis")
+    medicamentos: Partial<Medicamento>[]; // Lista de medicamentos plantilla
+    instrucciones?: string; // Instrucciones generales
+    especialidad?: string; // Especialidad del médico que creó este patrón
+    usoCount: number; // Frecuencia de uso (para ranking)
+    fechaUltimoUso: Date;
 }
 
 export type MedicamentoCatalogoFormData = Omit<MedicamentoCatalogo, 'id' | 'nombreBusqueda' | 'vecesUsado' | 'fechaCreacion' | 'fechaUltimoUso'>;

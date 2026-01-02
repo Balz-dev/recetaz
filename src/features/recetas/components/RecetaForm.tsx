@@ -16,8 +16,11 @@ import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { recetaService } from "@/features/recetas/services/receta.service"
 import { pacienteService } from "@/features/pacientes/services/paciente.service"
-import { buscarMedicamentosAutocompletado, agregarMedicamento, registrarUsoMedicamento } from "@/shared/services/medicamentos.service"
-import { RecetaFormData, Paciente, MedicamentoCatalogo } from "@/types"
+import { buscarMedicamentosAutocompletado, agregarMedicamento, registrarUsoMedicamento } from "@/shared/services/medicamentos.service" // Mantener compatibilidad si existe, pero preferir local service para nueva logica
+import { medicamentoService } from "@/features/medicamentos/services/medicamento.service"
+import { diagnosticoService } from "@/features/diagnosticos/services/diagnostico.service"
+import { treatmentLearningService } from "@/features/recetas/services/treatment-learning.service"
+import { RecetaFormData, Paciente, MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual } from "@/types"
 import { useState, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { Loader2, Save, ArrowLeft, Plus, Trash2, Check, UserPlus } from "lucide-react"
@@ -90,6 +93,12 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
     const [searchQuery, setSearchQuery] = useState("")
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null)
+
+    // Estados para diagnósticos y tratamientos inteligentes
+    const [diagnosticoSuggestions, setDiagnosticoSuggestions] = useState<DiagnosticoCatalogo[]>([])
+    const [showDiagnosticoSuggestions, setShowDiagnosticoSuggestions] = useState(false)
+    const [suggestedTreatments, setSuggestedTreatments] = useState<TratamientoHabitual[]>([])
+    const [activeDiagnosticoIndex, setActiveDiagnosticoIndex] = useState<number | null>(null)
 
     const [isPatientModalOpen, setIsPatientModalOpen] = useState(false)
     const { toast } = useToast()
@@ -207,6 +216,94 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
         setShowSuggestions(false)
     }
 
+    // --- Lógica de Diagnósticos y Tratamientos Inteligentes ---
+
+    const handleDiagnosticoSearch = async (query: string) => {
+        form.setValue("diagnostico", query)
+        if (query.length < 2) {
+            setDiagnosticoSuggestions([])
+            return
+        }
+
+        // Priorizar por especialidad del médico si está configurada
+        const especialidad = specialtyConfig?.specialtyName;
+        const results = await diagnosticoService.search(query, especialidad)
+        setDiagnosticoSuggestions(results)
+        setShowDiagnosticoSuggestions(true)
+    }
+
+    const handleSelectDiagnostico = async (diagnostico: DiagnosticoCatalogo) => {
+        form.setValue("diagnostico", diagnostico.nombre + (diagnostico.codigo ? ` (${diagnostico.codigo})` : ''))
+        setDiagnosticoSuggestions([])
+        setShowDiagnosticoSuggestions(false)
+
+        // Buscar sugerencias de tratamiento
+        const especialidad = specialtyConfig?.specialtyName;
+        // Asumiendo que guardamos el código del diagnóstico en alguna parte si fuera necesario, 
+        // por ahora usamos el código o nombre para buscar
+        const diagId = diagnostico.codigo || diagnostico.nombre;
+        const suggestions = await treatmentLearningService.getSuggestions(diagId, especialidad);
+
+        if (suggestions.length > 0) {
+            setSuggestedTreatments(suggestions)
+
+            // LÓGICA DE AUTOCOMPLETADO AGRESIVO
+            // Si hay una sugerencia "predominante" (mucho uso o marcada manualmente) o es búsqueda exacta, cargarla.
+            // Criterio: Si el tratamiento #1 tiene > 10 usos o es un tratamiento manual (usoCount >= 50), aplicar automágicamente.
+            const bestMsg = suggestions[0];
+            if (bestMsg.usoCount >= 10 || diagnostico.codigo) { // Si hay código oficial, asumimos estándar, o si es muy usado
+                applyTreatment(bestMsg);
+                toast({
+                    title: "Tratamiento sugerido cargado",
+                    description: `Se aplicó el protocolo: ${bestMsg.nombreTratamiento}`,
+                })
+            } else {
+                toast({
+                    title: "Tratamientos sugeridos encontrados",
+                    description: "Se han encontrado tratamientos habituales para este diagnóstico.",
+                })
+            }
+        }
+    }
+
+    const applyTreatment = (treatment: TratamientoHabitual) => {
+        // Reemplazar medicamentos actuales con los del tratamiento sugerido
+        // O preguntar al usuario (por ahora reemplazamos o agregamos si está vacío)
+
+        // Limpiar medicamentos actuales si solo hay uno vacío
+        const currentMeds = form.getValues("medicamentos");
+        if (currentMeds.length === 1 && !currentMeds[0].nombre) {
+            remove(0);
+        }
+
+        // Agregar medicamentos del tratamiento en lote
+        append(treatment.medicamentos.map(med => ({
+            nombre: med.nombre || "",
+            nombreGenerico: med.nombreGenerico || "",
+            presentacion: med.presentacion || "",
+            formaFarmaceutica: med.formaFarmaceutica || "",
+            concentracion: med.concentracion || "",
+            cantidadSurtir: med.cantidadSurtir || "",
+            dosis: med.dosis || "",
+            viaAdministracion: med.viaAdministracion || "",
+            frecuencia: med.frecuencia || "",
+            duracion: med.duracion || "",
+            indicaciones: med.indicaciones || ""
+        })));
+
+        if (treatment.instrucciones) {
+            form.setValue("instrucciones", treatment.instrucciones);
+        }
+
+        setSuggestedTreatments([]); // Ocultar sugerencias tras aplicar
+        toast({
+            title: "Tratamiento aplicado",
+            description: `Se han cargado ${treatment.medicamentos.length} medicamentos.`,
+        })
+    }
+
+    // --- Fin Lógica Diagnósticos ---
+
     const handleMedicamentoSearch = async (query: string, index: number) => {
         form.setValue(`medicamentos.${index}.nombre`, query)
 
@@ -216,7 +313,10 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             return
         }
 
-        const results = await buscarMedicamentosAutocompletado(query, 10)
+        // Usar el nuevo servicio con prioridad por especialidad
+        const especialidad = specialtyConfig?.specialtyName;
+        const results = await medicamentoService.searchWithPriority(query, especialidad)
+
         setMedicamentoSuggestions(results)
         setActiveMedicamentoIndex(index)
     }
@@ -361,6 +461,28 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 recetaFormDataForService,
                 pacienteData
             )
+
+            // 2. Aprender tratamiento (Gestión de diagnóstico centralizada en servicio)
+            const diagInput = values.diagnostico.trim();
+            const codeMatch = diagInput.match(/\(([^)]+)\)$/);
+            // Pasar el código si existe, o el nombre completo si es nuevo
+            const diagIdentifier = codeMatch ? codeMatch[1] : diagInput;
+
+            try {
+                // Esperar a que el aprendizaje se complete para asegurar consistencia
+                await treatmentLearningService.learn(
+                    diagIdentifier,
+                    values.medicamentos.map(m => ({
+                        ...m,
+                        nombre: m.nombre,
+                        nombreGenerico: m.nombreGenerico
+                    }) as any),
+                    values.instrucciones || "",
+                    specialtyConfig?.specialtyName
+                );
+            } catch (err) {
+                console.error('Error al registrar aprendizaje de tratamiento:', err);
+            }
 
             toast({
                 title: "Receta creada",
@@ -544,11 +666,55 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                 control={form.control}
                                 name="diagnostico"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="relative">
                                         <FormLabel>Diagnóstico *</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Diagnóstico principal" {...field} />
+                                            <Input
+                                                placeholder="Diagnóstico principal (CIE-11 o nombre)"
+                                                {...field}
+                                                onChange={(e) => handleDiagnosticoSearch(e.target.value)}
+                                                onBlur={() => setTimeout(() => setShowDiagnosticoSuggestions(false), 200)}
+                                            />
                                         </FormControl>
+
+                                        {/* Sugerencias de Diagnóstico */}
+                                        {showDiagnosticoSuggestions && diagnosticoSuggestions.length > 0 && (
+                                            <div className="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                                                {diagnosticoSuggestions.map((diag) => (
+                                                    <button
+                                                        key={diag.id || diag.codigo}
+                                                        type="button"
+                                                        className="w-full px-4 py-2 text-left hover:bg-slate-100 block"
+                                                        onClick={() => handleSelectDiagnostico(diag)}
+                                                    >
+                                                        <span className="font-medium">{diag.nombre}</span>
+                                                        {diag.codigo && <span className="text-xs text-slate-500 ml-2">({diag.codigo})</span>}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Sugerencias de Tratamientos Habituales */}
+                                        {suggestedTreatments.length > 0 && (
+                                            <div className="mt-2 space-y-2">
+                                                <div className="text-xs font-semibold text-blue-600">Tratamientos sugeridos:</div>
+                                                <div className="flex gap-2 flex-wrap">
+                                                    {suggestedTreatments.map((t, idx) => (
+                                                        <Button
+                                                            key={idx}
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-xs bg-blue-50 hover:bg-blue-100 border-blue-200"
+                                                            onClick={() => applyTreatment(t)}
+                                                        >
+                                                            {t.nombreTratamiento || `Opción ${idx + 1}`} ({t.medicamentos.length} meds)
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <FormMessage />
                                     </FormItem>
                                 )}

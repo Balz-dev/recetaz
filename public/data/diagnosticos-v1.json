@@ -1,0 +1,361 @@
+[
+    {
+        "id": "diag-001",
+        "codigo": "MG44",
+        "nombre": "Dolor crónico, no especificado",
+        "uri": "http://id.who.int/icd/entity/123456",
+        "sinonimos": [
+            "Dolor persistente",
+            "Algia crónica"
+        ],
+        "especialidad": [
+            "Medicina General",
+            "Traumatología",
+            "Reumatología"
+        ]
+    },
+    {
+        "id": "diag-002",
+        "codigo": "1A00",
+        "nombre": "Cólera",
+        "uri": "http://id.who.int/icd/entity/cholera-uri",
+        "sinonimos": [
+            "Infección por Vibrio cholerae"
+        ],
+        "especialidad": [
+            "Infectología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-003",
+        "codigo": "1C60.0",
+        "nombre": "Sepsis debida a Escherichia coli",
+        "uri": "http://id.who.int/icd/entity/sepsis-ecoli",
+        "sinonimos": [
+            "Septicemia por E. coli"
+        ],
+        "especialidad": [
+            "Infectología",
+            "Medicina Interna"
+        ]
+    },
+    {
+        "id": "diag-004",
+        "codigo": "BA00",
+        "nombre": "Hipertensión esencial",
+        "uri": "http://id.who.int/icd/entity/hypertension-uri",
+        "sinonimos": [
+            "Presión arterial alta",
+            "Hipertensión arterial sistémica"
+        ],
+        "especialidad": [
+            "Cardiología",
+            "Medicina Interna",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-005",
+        "codigo": "5A10",
+        "nombre": "Diabetes mellitus tipo 1",
+        "uri": "http://id.who.int/icd/entity/dm1",
+        "sinonimos": [
+            "Diabetes juvenil",
+            "Diabetes insulinodependiente"
+        ],
+        "especialidad": [
+            "Endocrinología",
+            "Medicina Interna",
+            "Pediatría"
+        ]
+    },
+    {
+        "id": "diag-006",
+        "codigo": "5A11",
+        "nombre": "Diabetes mellitus tipo 2",
+        "uri": "http://id.who.int/icd/entity/dm2",
+        "sinonimos": [
+            "Diabetes del adulto",
+            "Diabetes no insulinodependiente"
+        ],
+        "especialidad": [
+            "Endocrinología",
+            "Medicina Interna",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-007",
+        "codigo": "CA23",
+        "nombre": "Asma bronquial",
+        "uri": "http://id.who.int/icd/entity/asthma",
+        "sinonimos": [
+            "Asma alérgica",
+            "Hiperreactividad bronquial"
+        ],
+        "especialidad": [
+            "Neumología",
+            "Alergología",
+            "Pediatría"
+        ]
+    },
+    {
+        "id": "diag-008",
+        "codigo": "CA40",
+        "nombre": "Neumonía bacteriana, no especificada",
+        "uri": "http://id.who.int/icd/entity/pneumonia",
+        "sinonimos": [
+            "Infección pulmonar",
+            "Bronconeumonía"
+        ],
+        "especialidad": [
+            "Neumología",
+            "Infectología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-009",
+        "codigo": "ME05",
+        "nombre": "Tos",
+        "uri": "http://id.who.int/icd/entity/cough",
+        "sinonimos": [
+            "Tos seca",
+            "Tos productiva"
+        ],
+        "especialidad": [
+            "Medicina General",
+            "Neumología"
+        ]
+    },
+    {
+        "id": "diag-010",
+        "codigo": "1F00",
+        "nombre": "Gripe estacional por virus influenza",
+        "uri": "http://id.who.int/icd/entity/flu",
+        "sinonimos": [
+            "Influenza",
+            "Gripa"
+        ],
+        "especialidad": [
+            "Medicina General",
+            "Pediatría"
+        ]
+    },
+    {
+        "id": "diag-011",
+        "codigo": "CA00",
+        "nombre": "Rinitis alérgica",
+        "uri": "http://id.who.int/icd/entity/rhinitis",
+        "sinonimos": [
+            "Alergia nasal",
+            "Fiebre del heno"
+        ],
+        "especialidad": [
+            "Alergología",
+            "Otorrinolaringología"
+        ]
+    },
+    {
+        "id": "diag-012",
+        "codigo": "AA00",
+        "nombre": "Faringitis aguda",
+        "uri": "http://id.who.int/icd/entity/pharyngitis",
+        "sinonimos": [
+            "Dolor de garganta",
+            "Infección de garganta"
+        ],
+        "especialidad": [
+            "Medicina General",
+            "Otorrinolaringología",
+            "Pediatría"
+        ]
+    },
+    {
+        "id": "diag-013",
+        "codigo": "DA00",
+        "nombre": "Enfermedad por reflujo gastroesofágico",
+        "uri": "http://id.who.int/icd/entity/gerd",
+        "sinonimos": [
+            "ERGE",
+            "Reflujo",
+            "Agruras"
+        ],
+        "especialidad": [
+            "Gastroenterología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-014",
+        "codigo": "DA40",
+        "nombre": "Gastritis aguda",
+        "uri": "http://id.who.int/icd/entity/gastritis",
+        "sinonimos": [
+            "Inflamación estomacal",
+            "Dispepsia"
+        ],
+        "especialidad": [
+            "Gastroenterología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-015",
+        "codigo": "ME10",
+        "nombre": "Dolor abdominal, no especificado",
+        "uri": "http://id.who.int/icd/entity/abdominal-pain",
+        "sinonimos": [
+            "Dolor de panza",
+            "Cólico estomacal"
+        ],
+        "especialidad": [
+            "Medicina General",
+            "Gastroenterología",
+            "Urgencias"
+        ]
+    },
+    {
+        "id": "diag-016",
+        "codigo": "FB32",
+        "nombre": "Artritis reumatoide",
+        "uri": "http://id.who.int/icd/entity/ra",
+        "sinonimos": [
+            "Reumatismo",
+            "Inflamación articular"
+        ],
+        "especialidad": [
+            "Reumatología",
+            "Medicina Interna"
+        ]
+    },
+    {
+        "id": "diag-017",
+        "codigo": "FA00",
+        "nombre": "Osteoartritis de rodilla",
+        "uri": "http://id.who.int/icd/entity/oa-knee",
+        "sinonimos": [
+            "Gonartrosis",
+            "Desgaste de rodilla"
+        ],
+        "especialidad": [
+            "Traumatología",
+            "Reumatología",
+            "Geriatría"
+        ]
+    },
+    {
+        "id": "diag-018",
+        "codigo": "ME80",
+        "nombre": "Cefalea",
+        "uri": "http://id.who.int/icd/entity/headache",
+        "sinonimos": [
+            "Dolor de cabeza",
+            "Jaqueca"
+        ],
+        "especialidad": [
+            "Neurología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-019",
+        "codigo": "8A80",
+        "nombre": "Migraña",
+        "uri": "http://id.who.int/icd/entity/migraine",
+        "sinonimos": [
+            "Hemicránea",
+            "Jaqueca vascular"
+        ],
+        "especialidad": [
+            "Neurología"
+        ]
+    },
+    {
+        "id": "diag-020",
+        "codigo": "6A70",
+        "nombre": "Trastorno depresivo mayor",
+        "uri": "http://id.who.int/icd/entity/depression",
+        "sinonimos": [
+            "Depresión clínica"
+        ],
+        "especialidad": [
+            "Psiquiatría",
+            "Psicología"
+        ]
+    },
+    {
+        "id": "diag-021",
+        "codigo": "6A00",
+        "nombre": "Trastorno de ansiedad generalizada",
+        "uri": "http://id.who.int/icd/entity/anxiety",
+        "sinonimos": [
+            "TAG",
+            "Ansiedad crónica"
+        ],
+        "especialidad": [
+            "Psiquiatría",
+            "Psicología"
+        ]
+    },
+    {
+        "id": "diag-022",
+        "codigo": "NC72",
+        "nombre": "Esguince de tobillo",
+        "uri": "http://id.who.int/icd/entity/ankle-sprain",
+        "sinonimos": [
+            "Torcedura de tobillo"
+        ],
+        "especialidad": [
+            "Traumatología",
+            "Urgencias",
+            "Medicina Deportiva"
+        ]
+    },
+    {
+        "id": "diag-023",
+        "codigo": "EK02",
+        "nombre": "Dermatitis atópica",
+        "uri": "http://id.who.int/icd/entity/atopic-dermatitis",
+        "sinonimos": [
+            "Eccema atópico"
+        ],
+        "especialidad": [
+            "Dermatología",
+            "Pediatría",
+            "Alergología"
+        ]
+    },
+    {
+        "id": "diag-024",
+        "codigo": "1A-COVID",
+        "nombre": "COVID-19",
+        "uri": "http://id.who.int/icd/entity/covid19",
+        "sinonimos": [
+            "Infección por SARS-CoV-2",
+            "Coronavirus"
+        ],
+        "especialidad": [
+            "Infectología",
+            "Neumología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "diag-025",
+        "codigo": "GC08",
+        "nombre": "Infección de vías urinarias",
+        "uri": "http://id.who.int/icd/entity/uti",
+        "sinonimos": [
+            "IVU",
+            "Cistitis",
+            "Infección urinaria"
+        ],
+        "especialidad": [
+            "Urología",
+            "Ginecología",
+            "Medicina General"
+        ]
+    }
+]
