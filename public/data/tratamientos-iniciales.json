@@ -1,0 +1,86 @@
+[
+    {
+        "diagnosticoId": "CA02",
+        "nombreTratamiento": "Faringitis Aguda - Estándar Adulto",
+        "especialidad": "Medicina General",
+        "instrucciones": "Beber abundantes líquidos. Evitar cambios bruscos de temperatura.",
+        "medicamentos": [
+            {
+                "nombre": "Amoxicilina / Ácido Clavulánico",
+                "nombreGenerico": "Amoxicilina con Ácido Clavulánico",
+                "presentacion": "Tabletas 875mg / 125mg",
+                "dosis": "1 tableta",
+                "frecuencia": "Cada 12 horas",
+                "duracion": "7 días",
+                "viaAdministracion": "Oral",
+                "indicaciones": "Tomar al inicio de los alimentos para evitar molestias gástricas."
+            },
+            {
+                "nombre": "Paracetamol",
+                "nombreGenerico": "Paracetamol",
+                "presentacion": "Tabletas 500mg",
+                "dosis": "1 o 2 tabletas",
+                "frecuencia": "Cada 6 u 8 horas",
+                "duracion": "3 a 5 días",
+                "viaAdministracion": "Oral",
+                "indicaciones": "Solo en caso de dolor o fiebre mayor a 38°C."
+            }
+        ]
+    },
+    {
+        "diagnosticoId": "GC08",
+        "nombreTratamiento": "Infección Vías Urinarias no complicada",
+        "especialidad": "Medicina General",
+        "instrucciones": "Completar el esquema antibiótico aunque desaparezcan los síntomas.",
+        "medicamentos": [
+            {
+                "nombre": "Ciprofloxacino",
+                "nombreGenerico": "Ciprofloxacino",
+                "presentacion": "Tabletas 500mg",
+                "dosis": "1 tableta",
+                "frecuencia": "Cada 12 horas",
+                "duracion": "5 a 7 días",
+                "viaAdministracion": "Oral",
+                "indicaciones": "Evitar tomar con lácteos o antiácidos."
+            },
+            {
+                "nombre": "Fenazopiridina",
+                "nombreGenerico": "Fenazopiridina",
+                "presentacion": "Tabletas 100mg",
+                "dosis": "1 tableta",
+                "frecuencia": "Cada 8 horas",
+                "duracion": "2 días",
+                "viaAdministracion": "Oral",
+                "indicaciones": "La orina cambiará a color naranja/rojizo (es normal)."
+            }
+        ]
+    },
+    {
+        "diagnosticoId": "DA42",
+        "nombreTratamiento": "Gastritis Aguda - Alivio Sintomático",
+        "especialidad": "Medicina General",
+        "instrucciones": "Evitar irritantes, grasas, café, alcohol y tabaco.",
+        "medicamentos": [
+            {
+                "nombre": "Omeprazol",
+                "nombreGenerico": "Omeprazol",
+                "presentacion": "Cápsulas 20mg",
+                "dosis": "1 cápsula",
+                "frecuencia": "Cada 24 horas",
+                "duracion": "14 días",
+                "viaAdministracion": "Oral",
+                "indicaciones": "Tomar en ayunas, 30 min antes del desayuno."
+            },
+            {
+                "nombre": "Magaldrato / Dimeticona",
+                "nombreGenerico": "Magaldrato / Dimeticona",
+                "presentacion": "Gel / Suspensión",
+                "dosis": "10 ml",
+                "frecuencia": "Cada 8 horas",
+                "duracion": "5 días",
+                "viaAdministracion": "Oral",
+                "indicaciones": "Tomar 1 hora después de los alimentos."
+            }
+        ]
+    }
+]

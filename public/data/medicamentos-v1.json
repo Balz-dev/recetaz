@@ -1,0 +1,396 @@
+[
+    {
+        "id": "med-001",
+        "nombre": "Tempra",
+        "nombreGenerico": "Paracetamol",
+        "registroSanitario": "123M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "500 mg",
+        "presentacion": "Caja con 20 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 8 horas",
+        "duracion": "3 a 5 días",
+        "indicaciones": "Tomar con alimentos. No exceder dosis diaria.",
+        "especialidad": [
+            "Medicina General",
+            "Pediatría",
+            "Medicina Interna"
+        ]
+    },
+    {
+        "id": "med-002",
+        "nombre": "Amoxil",
+        "nombreGenerico": "Amoxicilina",
+        "registroSanitario": "456M2023 SSA",
+        "formaFarmaceutica": "Cápsulas",
+        "concentracion": "500 mg",
+        "presentacion": "Caja con 12 cápsulas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 cápsula",
+        "frecuencia": "Cada 8 horas",
+        "duracion": "7 días",
+        "indicaciones": "Completar el tratamiento antibiótico. Tomar con alimentos.",
+        "especialidad": [
+            "Medicina General",
+            "Infectología",
+            "Otorrinolaringología"
+        ]
+    },
+    {
+        "id": "med-003",
+        "nombre": "Augmentin",
+        "nombreGenerico": "Amoxicilina / Ácido Clavulánico",
+        "registroSanitario": "789M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "875 mg / 125 mg",
+        "presentacion": "Caja con 14 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 12 horas",
+        "duracion": "7 días",
+        "indicaciones": "Tomar al inicio de las comidas para mejorar absorción y reducir molestias.",
+        "especialidad": [
+            "Medicina General",
+            "Infectología",
+            "Neumología"
+        ]
+    },
+    {
+        "id": "med-004",
+        "nombre": "Aspirina Protect",
+        "nombreGenerico": "Ácido Acetilsalicílico",
+        "registroSanitario": "101M2023 SSA",
+        "formaFarmaceutica": "Tabletas de liberación retardada",
+        "concentracion": "100 mg",
+        "presentacion": "Caja con 28 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "Indefinido",
+        "indicaciones": "Tomar con el almuerzo principal.",
+        "especialidad": [
+            "Cardiología",
+            "Medicina Interna",
+            "Geriatría"
+        ]
+    },
+    {
+        "id": "med-005",
+        "nombre": "Lipitor",
+        "nombreGenerico": "Atorvastatina",
+        "registroSanitario": "102M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "20 mg",
+        "presentacion": "Caja con 30 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "Indefinido",
+        "indicaciones": "Tomar preferentemente por la noche.",
+        "especialidad": [
+            "Cardiología",
+            "Medicina Interna",
+            "Endocrinología"
+        ]
+    },
+    {
+        "id": "med-006",
+        "nombre": "Cozaar",
+        "nombreGenerico": "Losartán",
+        "registroSanitario": "103M2023 SSA",
+        "formaFarmaceutica": "Grageas",
+        "concentracion": "50 mg",
+        "presentacion": "Caja con 30 grageas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 gragea",
+        "frecuencia": "Cada 12 horas",
+        "duracion": "Indefinido",
+        "indicaciones": "Monitorear presión arterial regularmente.",
+        "especialidad": [
+            "Cardiología",
+            "Medicina Interna",
+            "Nefrología"
+        ]
+    },
+    {
+        "id": "med-007",
+        "nombre": "Glucophage",
+        "nombreGenerico": "Metformina",
+        "registroSanitario": "104M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "850 mg",
+        "presentacion": "Caja con 60 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 12 horas",
+        "duracion": "Indefinido",
+        "indicaciones": "Tomar junto con o inmediatamente después de las comidas.",
+        "especialidad": [
+            "Endocrinología",
+            "Medicina Interna",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "med-008",
+        "nombre": "Ventolin",
+        "nombreGenerico": "Salbutamol",
+        "registroSanitario": "105M2023 SSA",
+        "formaFarmaceutica": "Suspensión en aerosol",
+        "concentracion": "100 mcg/dosis",
+        "presentacion": "Frasco con 200 dosis y dispositivo",
+        "viaAdministracion": "Inhalatoria",
+        "cantidadSurtir": "1 frasco",
+        "dosis": "2 disparos (inhalaciones)",
+        "frecuencia": "Cada 6 u 8 horas",
+        "duracion": "5 a 7 días o PRN",
+        "indicaciones": "Agitar bien antes de usar. Usar aerocámara si es posible.",
+        "especialidad": [
+            "Neumología",
+            "Pediatría",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "med-009",
+        "nombre": "Seretide Diskus",
+        "nombreGenerico": "Salmeterol / Fluticasona",
+        "registroSanitario": "106M2023 SSA",
+        "formaFarmaceutica": "Polvo para inhalación",
+        "concentracion": "50 mcg / 250 mcg",
+        "presentacion": "Dispositivo con 60 dosis",
+        "viaAdministracion": "Inhalatoria",
+        "cantidadSurtir": "1 dispositivo",
+        "dosis": "1 inhalación",
+        "frecuencia": "Cada 12 horas",
+        "duracion": "30 días",
+        "indicaciones": "Enjuagar la boca con agua después de cada uso.",
+        "especialidad": [
+            "Neumología",
+            "Alergología"
+        ]
+    },
+    {
+        "id": "med-010",
+        "nombre": "Tylex",
+        "nombreGenerico": "Paracetamol / Codeína",
+        "registroSanitario": "107M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "500 mg / 30 mg",
+        "presentacion": "Caja con 20 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 8 horas",
+        "duracion": "3 a 5 días",
+        "indicaciones": "Puede causar somnolencia. Evitar consumo de alcohol.",
+        "especialidad": [
+            "Traumatología",
+            "Medicina del Dolor",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "med-011",
+        "nombre": "Voltaren Retard",
+        "nombreGenerico": "Diclofenaco Sódico",
+        "registroSanitario": "108M2023 SSA",
+        "formaFarmaceutica": "Grageas de liberación prolongada",
+        "concentracion": "100 mg",
+        "presentacion": "Caja con 20 grageas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 gragea",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "5 a 7 días",
+        "indicaciones": "No masticar. Tomar con abundante agua.",
+        "especialidad": [
+            "Traumatología",
+            "Reumatología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "med-012",
+        "nombre": "Buscapina",
+        "nombreGenerico": "Butilhioscina",
+        "registroSanitario": "109M2023 SSA",
+        "formaFarmaceutica": "Grageas",
+        "concentracion": "10 mg",
+        "presentacion": "Caja con 36 grageas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 a 2 grageas",
+        "frecuencia": "Cada 8 horas",
+        "duracion": "3 días o si hay dolor",
+        "indicaciones": "Para dolor cólico.",
+        "especialidad": [
+            "Gastroenterología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "med-013",
+        "nombre": "Nexium",
+        "nombreGenerico": "Esomeprazol",
+        "registroSanitario": "110M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "40 mg",
+        "presentacion": "Caja con 14 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "14 a 28 días",
+        "indicaciones": "Tomar en ayunas, al menos 30 min antes del desayuno.",
+        "especialidad": [
+            "Gastroenterología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "med-014",
+        "nombre": "Keflex",
+        "nombreGenerico": "Cefalexina",
+        "registroSanitario": "111M2023 SSA",
+        "formaFarmaceutica": "Cápsulas",
+        "concentracion": "500 mg",
+        "presentacion": "Caja con 20 cápsulas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 cápsula",
+        "frecuencia": "Cada 6 horas",
+        "duracion": "7 días",
+        "indicaciones": "Antibiótico. Completar esquema.",
+        "especialidad": [
+            "Dermatología",
+            "Medicina General",
+            "Urología"
+        ]
+    },
+    {
+        "id": "med-015",
+        "nombre": "Rocephin",
+        "nombreGenerico": "Ceftriaxona",
+        "registroSanitario": "112M2023 SSA",
+        "formaFarmaceutica": "Solución Inyectable",
+        "concentracion": "1 g",
+        "presentacion": "Caja con 1 frasco ámpula y diluyente (IM)",
+        "viaAdministracion": "Intramuscular",
+        "cantidadSurtir": "3 cajas",
+        "dosis": "1 g",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "3 días",
+        "indicaciones": "Aplicación profunda en glúteo.",
+        "especialidad": [
+            "Medicina General",
+            "Urología",
+            "Infectología"
+        ]
+    },
+    {
+        "id": "med-016",
+        "nombre": "Vibramicina",
+        "nombreGenerico": "Doxiciclina",
+        "registroSanitario": "113M2023 SSA",
+        "formaFarmaceutica": "Cápsulas",
+        "concentracion": "100 mg",
+        "presentacion": "Caja con 10 cápsulas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 cápsula",
+        "frecuencia": "Cada 12 horas",
+        "duracion": "7 a 14 días",
+        "indicaciones": "Tomar con abundante agua. No recostarse inmediatamente. Evitar exposición solar.",
+        "especialidad": [
+            "Dermatología",
+            "Infectología"
+        ]
+    },
+    {
+        "id": "med-017",
+        "nombre": "Allegra",
+        "nombreGenerico": "Fexofenadina",
+        "registroSanitario": "114M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "180 mg",
+        "presentacion": "Caja con 10 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "10 días",
+        "indicaciones": "Para alergia. No causa sueño.",
+        "especialidad": [
+            "Alergología",
+            "Dermatología",
+            "Medicina General"
+        ]
+    },
+    {
+        "id": "med-018",
+        "nombre": "Avamys",
+        "nombreGenerico": "Furoato de Fluticasona",
+        "registroSanitario": "115M2023 SSA",
+        "formaFarmaceutica": "Suspensión nasal",
+        "concentracion": "27.5 mcg/dosis",
+        "presentacion": "Frasco nebulizador con 120 dosis",
+        "viaAdministracion": "Nasal",
+        "cantidadSurtir": "1 frasco",
+        "dosis": "2 disparos en cada fosa nasal",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "30 días",
+        "indicaciones": "Agitar antes de usar. Limpiar nariz antes de aplicar.",
+        "especialidad": [
+            "Otorrinolaringología",
+            "Alergología",
+            "Pediatría"
+        ]
+    },
+    {
+        "id": "med-019",
+        "nombre": "Rivotril",
+        "nombreGenerico": "Clonazepam",
+        "registroSanitario": "116M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "2 mg",
+        "presentacion": "Caja con 30 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1/2 tableta",
+        "frecuencia": "Por la noche",
+        "duracion": "Según indicación médica",
+        "indicaciones": "Medicamento controlado. No suspender abruptamente.",
+        "especialidad": [
+            "Psiquiatría",
+            "Neurología"
+        ]
+    },
+    {
+        "id": "med-020",
+        "nombre": "Lexapro",
+        "nombreGenerico": "Escitalopram",
+        "registroSanitario": "117M2023 SSA",
+        "formaFarmaceutica": "Tabletas",
+        "concentracion": "10 mg",
+        "presentacion": "Caja con 28 tabletas",
+        "viaAdministracion": "Oral",
+        "cantidadSurtir": "1 caja",
+        "dosis": "1 tableta",
+        "frecuencia": "Cada 24 horas",
+        "duracion": "Continuo",
+        "indicaciones": "Puede tomarse con o sin alimentos. Efecto completo en 2-4 semanas.",
+        "especialidad": [
+            "Psiquiatría",
+            "Medicina General"
+        ]
+    }
+]
