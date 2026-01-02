@@ -248,6 +248,78 @@ interface RecetaPDFTemplateProps {
     plantilla?: PlantillaReceta | null;
 }
 
+// Funciones auxiliares para formato COFEPRIS
+const obtenerVerbo = (via?: string): string => {
+    if (!via) return "Administrar";
+    const v = via.toLowerCase();
+    if (v.includes("oral") || v.includes("sublingual") || v.includes("boca")) return "Tomar";
+    if (v.includes("tópica") || v.includes("cutánea") || v.includes("piel") || v.includes("oftálmica") || v.includes("ótica") || v.includes("nasal") || v.includes("vaginal") || v.includes("rectal")) return "Aplicar";
+    if (v.includes("inhal")) return "Inhalar";
+    if (v.includes("intravenosa") || v.includes("intramuscular") || v.includes("subcutánea") || v.includes("parenteral")) return "Administrar";
+    return "Administrar";
+};
+
+const limpiarNumero = (str: string): number | null => {
+    const match = str.match(/(\d+(\.\d+)?)/);
+    return match ? parseFloat(match[0]) : null;
+};
+
+const calcularCantidad = (med: any): string => {
+    // Si ya viene calculada o manual, respetarla si no es nula
+    if (med.cantidadSurtir) return med.cantidadSurtir;
+
+    const dosis = limpiarNumero(med.dosis || '');
+    const duracionStr = med.duracion?.toLowerCase() || '';
+    const frecuenciaStr = med.frecuencia?.toLowerCase() || '';
+
+    if (!dosis) return "Según indicaciones";
+
+    // Calcular duración en días
+    let dias = 0;
+    if (duracionStr.includes("semana")) dias = (limpiarNumero(duracionStr) || 0) * 7;
+    else if (duracionStr.includes("mes")) dias = (limpiarNumero(duracionStr) || 0) * 30;
+    else if (duracionStr.includes("dia") || duracionStr.includes("día")) dias = limpiarNumero(duracionStr) || 0;
+
+    // Si es dosis única
+    if (dosis && (!med.frecuencia || med.frecuencia.toLowerCase().includes("unica") || med.frecuencia.toLowerCase().includes("única"))) {
+        // Determinamos unidad básica
+        const unidad = med.formaFarmaceutica?.toLowerCase().includes("jarabe") || med.formaFarmaceutica?.toLowerCase().includes("susp") ? "ml" : (med.formaFarmaceutica || "unidades");
+        return `${dosis} ${unidad}`;
+    }
+
+    // Calcular tomas por día
+    let tomasDiarias = 0;
+    if (frecuenciaStr.includes("cada")) {
+        const horas = limpiarNumero(frecuenciaStr);
+        if (horas) tomasDiarias = 24 / horas;
+    } else if (frecuenciaStr.includes("veces")) {
+        tomasDiarias = limpiarNumero(frecuenciaStr) || 0;
+    } else if (frecuenciaStr.includes("horas")) {
+        // Asumir que solo puso el número de horas "8 horas"
+        const horas = limpiarNumero(frecuenciaStr);
+        if (horas) tomasDiarias = 24 / horas;
+    }
+
+    if (dosis && dias && tomasDiarias) {
+        const total = Math.ceil(dosis * tomasDiarias * dias);
+
+        let unidad = "unidades";
+        const forma = (med.formaFarmaceutica || '').toLowerCase();
+
+        if (forma.includes("tab") || forma.includes("comp") || forma.includes("cap") || forma.includes("cáp") || forma.includes("gragea")) {
+            unidad = med.formaFarmaceutica || "tabletas";
+        } else if (forma.includes("jarabe") || forma.includes("susp") || forma.includes("sol")) {
+            unidad = "ml"; // Díficil estimar frascos sin saber ml por frasco, devolvemos ml totales
+        } else if (forma.includes("iny")) {
+            unidad = "ampolletas/frascos";
+        }
+
+        return `${total} ${unidad}`;
+    }
+
+    return "1 caja / frasco (Suficiente para tratamiento)";
+};
+
 export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: RecetaPDFTemplateProps) => {
 
     // Si hay una plantilla activa, usar el renderizado dinámico
@@ -316,6 +388,7 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                                 break;
                             case 'instrucciones':
                             case 'instrucciones_lista':
+                            case 'instrucciones_generales':
                             case 'sugerencias':
                                 content = receta.instrucciones || "";
                                 break;
@@ -334,37 +407,72 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                                 );
                                 break;
 
-                            // Grupo Tratamiento Estilizado
+                            // Grupo Tratamiento Estilizado (Formato COFEPRIS)
                             case 'tratamiento_grupo':
+                            case 'tratamiento_completo':
                                 content = (
                                     <View style={styles.tratamientoSection}>
-                                        <View style={styles.tratamientoHeader}>
-                                            <Text style={styles.tratamientoTitle}>Tratamiento</Text>
-                                        </View>
-                                        <View style={styles.tratamientoDivider} />
-                                        
-                                        {receta.medicamentos.map((med, idx) => (
-                                            <View key={med.id || idx} style={styles.medicationRow}>
-                                                <View style={styles.medHeaderLine}>
-                                                    <Text style={styles.medName}>{med.nombre}</Text>
-                                                    <View style={styles.medBadgeContainer}>
-                                                        <Text style={styles.medBadgeText}>{med.dosis}</Text>
-                                                    </View>
-                                                </View>
-                                                
-                                                <Text style={styles.medInstructions}>
-                                                    <Text style={{fontWeight: 'bold'}}>Tomar: </Text>
-                                                    {med.frecuencia ? `${med.frecuencia} ` : ''}
-                                                    {med.duracion ? `durante ${med.duracion}` : ''}
-                                                </Text>
-                                                
-                                                {med.indicaciones && (
-                                                    <Text style={styles.medNote}>
-                                                        Nota: {med.indicaciones}
+                                        {receta.medicamentos.map((med, idx) => {
+                                            // 1. Nombre Genérico + Conc + Forma + (Comercial)
+                                            // Limpieza de datos
+                                            const nombreGenerico = med.nombreGenerico || med.nombre;
+                                            // Solo mostrar nombre comercial si es sustancialmente diferente y no es una repetición
+                                            const nombreComercial = (med.nombre && med.nombre !== nombreGenerico && !med.nombre.toLowerCase().includes(nombreGenerico.toLowerCase()))
+                                                ? med.nombre
+                                                : '';
+
+                                            const linea1 = `${nombreGenerico} ${med.concentracion || ''} ${med.formaFarmaceutica || ''} ${nombreComercial ? `(${nombreComercial})` : ''}`.replace(/\s+/g, ' ').trim();
+
+                                            // 2. Verbo + Dosis + Frecuencia + Duración
+                                            const verbo = obtenerVerbo(med.viaAdministracion);
+                                            // Limpiar prefijo "cada" si ya viene en la frecuencia
+                                            const frecLimpia = (med.frecuencia || '').replace(/^cada\s+/i, '');
+                                            const durLimpia = (med.duracion || '').replace(/^por\s+/i, '');
+
+                                            const linea2 = `${verbo} ${med.dosis} ${frecLimpia ? `cada ${frecLimpia}` : ''} ${durLimpia ? `por ${durLimpia}` : ''}`;
+
+                                            // 3. Vía de administración
+                                            const viaLimpia = (med.viaAdministracion || 'Oral').replace(/^vía\s+/i, '');
+                                            const linea3 = `Vía ${viaLimpia}`;
+
+                                            // 4. Cantidad
+                                            const cantidad = calcularCantidad(med);
+                                            const linea4 = `Cantidad: ${cantidad}`;
+
+                                            return (
+                                                <View key={med.id || idx} style={{ marginBottom: 16, paddingBottom: 8, borderBottom: idx < receta.medicamentos.length - 1 ? '0.5px solid #e0e0e0' : 'none' }}>
+                                                    <Text style={{ fontSize: 10, lineHeight: 1.0 }}>
+                                                        <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 11 }}>
+                                                            {linea1}
+                                                        </Text>
+                                                        {'\n'}
+                                                        <Text style={{ fontFamily: 'Helvetica' }}>
+                                                            {linea2}
+                                                        </Text>
+                                                        {'\n'}
+                                                        <Text style={{ fontFamily: 'Helvetica' }}>
+                                                            {linea3}
+                                                        </Text>
+                                                        {'\n'}
+                                                        <Text style={{ fontFamily: 'Helvetica-Bold' }}>
+                                                            {linea4}
+                                                        </Text>
+                                                        {med.indicaciones && (
+                                                            <>
+                                                                {'\n'}
+                                                                <Text style={{ fontFamily: 'Helvetica-Oblique', fontSize: 9, color: '#555' }}>
+                                                                    Observaciones: {med.indicaciones}
+                                                                </Text>
+                                                            </>
+                                                        )}
                                                     </Text>
-                                                )}
-                                            </View>
-                                        ))}
+                                                    {/* Salto de línea adicional para separar medicamentos */}
+                                                    {idx < receta.medicamentos.length - 1 && (
+                                                        <Text style={{ fontSize: 10 }}>{'\n\n'}</Text>
+                                                    )}
+                                                </View>
+                                            );
+                                        })}
                                     </View>
                                 );
                                 break;
@@ -434,7 +542,15 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                                 break;
 
                             default:
-                                content = "";
+                                // Manejo de campos dinámicos (datos_*)
+                                if (campo.id.startsWith('datos_')) {
+                                    // Intentar buscar en datosEspecificos de la receta
+                                    const key = campo.id.replace('datos_', '');
+                                    // @ts-ignore: Acceso dinámico
+                                    content = receta.datosEspecificos?.[key] || paciente.datosEspecificos?.[key] || "";
+                                } else {
+                                    content = "";
+                                }
                         }
                         // Renderizar imágenes si el tipo es 'imagen' y no se manejó antes
                         if (campo.tipo === 'imagen' && campo.src) {
@@ -442,13 +558,17 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                         }
 
                         // Estilo posicional absoluto
+                        // FIX: Para tratamiento_completo, ignoramos el 'height' fijo para evitar truncamiento
+                        // permitiendo que la lista crezca hacia abajo tanto como sea necesario.
+                        const ignoreHeight = campo.id === 'tratamiento_completo' || campo.id === 'tratamiento_grupo';
+
                         const fieldStyle = {
                             position: 'absolute' as const,
                             left: `${campo.x}%`,
                             top: `${campo.y}%`,
                             width: `${campo.ancho}%`,
-                            // Si es lista y tiene alto definido
-                            ...(campo.alto ? { height: `${campo.alto}%` } : {}),
+                            // Solo aplicamos alto si NO es uno de los campos que deben crecer libremente
+                            ...(campo.alto && !ignoreHeight ? { height: `${campo.alto}%` } : {}),
                         };
 
                         // Renderizado según tipo de contenido
