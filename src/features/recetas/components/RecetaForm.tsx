@@ -246,10 +246,23 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
         if (suggestions.length > 0) {
             setSuggestedTreatments(suggestions)
-            toast({
-                title: "Tratamientos sugeridos encontrados",
-                description: "Se han encontrado tratamientos habituales para este diagnóstico.",
-            })
+
+            // LÓGICA DE AUTOCOMPLETADO AGRESIVO
+            // Si hay una sugerencia "predominante" (mucho uso o marcada manualmente) o es búsqueda exacta, cargarla.
+            // Criterio: Si el tratamiento #1 tiene > 10 usos o es un tratamiento manual (usoCount >= 50), aplicar automágicamente.
+            const bestMsg = suggestions[0];
+            if (bestMsg.usoCount >= 10 || diagnostico.codigo) { // Si hay código oficial, asumimos estándar, o si es muy usado
+                applyTreatment(bestMsg);
+                toast({
+                    title: "Tratamiento sugerido cargado",
+                    description: `Se aplicó el protocolo: ${bestMsg.nombreTratamiento}`,
+                })
+            } else {
+                toast({
+                    title: "Tratamientos sugeridos encontrados",
+                    description: "Se han encontrado tratamientos habituales para este diagnóstico.",
+                })
+            }
         }
     }
 
@@ -263,22 +276,20 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             remove(0);
         }
 
-        // Agregar medicamentos del tratamiento
-        treatment.medicamentos.forEach(med => {
-            append({
-                nombre: med.nombre || "",
-                nombreGenerico: med.nombreGenerico || "",
-                presentacion: med.presentacion || "",
-                formaFarmaceutica: med.formaFarmaceutica || "",
-                concentracion: med.concentracion || "",
-                cantidadSurtir: med.cantidadSurtir || "",
-                dosis: med.dosis || "",
-                viaAdministracion: med.viaAdministracion || "",
-                frecuencia: med.frecuencia || "",
-                duracion: med.duracion || "",
-                indicaciones: med.indicaciones || ""
-            })
-        });
+        // Agregar medicamentos del tratamiento en lote
+        append(treatment.medicamentos.map(med => ({
+            nombre: med.nombre || "",
+            nombreGenerico: med.nombreGenerico || "",
+            presentacion: med.presentacion || "",
+            formaFarmaceutica: med.formaFarmaceutica || "",
+            concentracion: med.concentracion || "",
+            cantidadSurtir: med.cantidadSurtir || "",
+            dosis: med.dosis || "",
+            viaAdministracion: med.viaAdministracion || "",
+            frecuencia: med.frecuencia || "",
+            duracion: med.duracion || "",
+            indicaciones: med.indicaciones || ""
+        })));
 
         if (treatment.instrucciones) {
             form.setValue("instrucciones", treatment.instrucciones);
@@ -451,26 +462,27 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 pacienteData
             )
 
-            // APRENDIZAJE: Registrar este tratamiento como habitual
-            // Extraer código del diagnóstico si es posible, o usar el string completo
-            // Una mejora sería guardar el ID real del diagnóstico seleccionado en un estado oculto
-            const diagString = values.diagnostico;
-            // Intentar extraer código entre paréntesis si existe "Faringitis (J00)" -> "J00"
-            const match = diagString.match(/\(([^)]+)\)$/);
-            const diagCode = match ? match[1] : diagString;
+            // 2. Aprender tratamiento (Gestión de diagnóstico centralizada en servicio)
+            const diagInput = values.diagnostico.trim();
+            const codeMatch = diagInput.match(/\(([^)]+)\)$/);
+            // Pasar el código si existe, o el nombre completo si es nuevo
+            const diagIdentifier = codeMatch ? codeMatch[1] : diagInput;
 
-            // Aprender en segundo plano
-            treatmentLearningService.learn(
-                diagCode,
-                // Convertir items del form a tipo Medicamento (partial)
-                values.medicamentos.map(m => ({
-                    ...m,
-                    cantidadSurtirDefault: m.cantidadSurtir, // Mapeo temporal para compatibilidad
-                    dosisDefault: m.dosis // etc
-                }) as any),
-                values.instrucciones || "",
-                specialtyConfig?.specialtyName
-            ).catch(console.error);
+            try {
+                // Esperar a que el aprendizaje se complete para asegurar consistencia
+                await treatmentLearningService.learn(
+                    diagIdentifier,
+                    values.medicamentos.map(m => ({
+                        ...m,
+                        nombre: m.nombre,
+                        nombreGenerico: m.nombreGenerico
+                    }) as any),
+                    values.instrucciones || "",
+                    specialtyConfig?.specialtyName
+                );
+            } catch (err) {
+                console.error('Error al registrar aprendizaje de tratamiento:', err);
+            }
 
             toast({
                 title: "Receta creada",

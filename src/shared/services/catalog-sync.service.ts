@@ -1,6 +1,9 @@
-
 import { db } from "@/shared/db/db.config";
-import { MedicamentoCatalogo, DiagnosticoCatalogo } from "@/types";
+import { MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual } from "@/types";
+
+const MEDICAMENTOS_URL = '/data/medicamentos-v1.json';
+const DIAGNOSTICOS_URL = '/data/diagnosticos-v1.json';
+const TRATAMIENTOS_URL = '/data/tratamientos-iniciales.json';
 
 /**
  * Servicio encargado de sincronizar los catálogos estáticos (JSON)
@@ -16,11 +19,44 @@ export const catalogSyncService = {
         try {
             await Promise.all([
                 this.syncMedicamentos(),
-                this.syncDiagnosticos()
+                this.syncDiagnosticos(),
+                this.syncTratamientos()
             ]);
             console.log('✅ Sincronización de catálogos completada.');
         } catch (error) {
             console.error('❌ Error general en sincronización de catálogos:', error);
+        }
+    },
+
+    async syncTratamientos() {
+        try {
+            const count = await db.tratamientosHabituales.count();
+            if (count > 0) {
+                // Si ya hay tratamientos (aprendidos o cargados), no sobrescribimos para no borrar aprendizaje usuario
+                // En una versión más avanzada podríamos hacer merge inteligente
+                return;
+            }
+
+            console.log('📥 Cargando tratamientos iniciales...');
+            const response = await fetch(TRATAMIENTOS_URL);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const data: TratamientoHabitual[] = await response.json();
+
+            // Agregar fecha de creación/uso
+            const tratamientosConFecha = data.map(t => ({
+                ...t,
+                usoCount: 1, // Inicializar con 1 uso para que aparezcan
+                fechaUltimoUso: new Date()
+            }));
+
+            await db.transaction('rw', db.tratamientosHabituales, async () => {
+                await db.tratamientosHabituales.bulkAdd(tratamientosConFecha);
+            });
+            console.log(`✅ ${data.length} tratamientos iniciales cargados.`);
+
+        } catch (error) {
+            console.error('Errors syncing tratamientos:', error);
         }
     },
 
@@ -29,7 +65,7 @@ export const catalogSyncService = {
      */
     async syncMedicamentos() {
         try {
-            const response = await fetch('/data/medicamentos-v1.json');
+            const response = await fetch(MEDICAMENTOS_URL);
             if (!response.ok) throw new Error('No se pudo cargar el JSON de medicamentos');
 
             const medicamentosExternos: any[] = await response.json();
@@ -77,6 +113,10 @@ export const catalogSyncService = {
 
         } catch (error) {
             console.error('Error sincronizando medicamentos:', error);
+            if (error instanceof Error) {
+                console.error('Mensaje:', error.message);
+                console.error('Stack:', error.stack);
+            }
         }
     },
 
@@ -85,10 +125,10 @@ export const catalogSyncService = {
      */
     async syncDiagnosticos() {
         try {
-            const response = await fetch('/data/diagnosticos-v1.json');
-            if (!response.ok) throw new Error('No se pudo cargar el JSON de diagnósticos');
+            const response = await fetch(DIAGNOSTICOS_URL);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-            const diagnosticosExternos: any[] = await response.json();
+            const diagnosticosExternos: DiagnosticoCatalogo[] = await response.json();
 
             await db.transaction('rw', db.diagnosticos, async () => {
                 for (const diag of diagnosticosExternos) {

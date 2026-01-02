@@ -14,6 +14,39 @@ export const treatmentLearningService = {
     async learn(diagnosticoId: string, medicamentos: Medicamento[], instrucciones: string, especialidad?: string) {
         if (!diagnosticoId || medicamentos.length === 0) return;
 
+        // VERIFICACIÓN Y CREACIÓN AUTOMÁTICA DE DIAGNÓSTICO
+        // Verificar si el diagnosticoId es un código existente o un texto libre
+        let resolvedCode = diagnosticoId;
+
+        // Intentar buscar por código exacto primero
+        let diagEntry = await db.diagnosticos.where('codigo').equals(diagnosticoId).first();
+
+        if (!diagEntry) {
+            // Si no es código, buscar por nombre exacto
+            diagEntry = await db.diagnosticos.where('nombre').equals(diagnosticoId).first();
+
+            if (diagEntry) {
+                resolvedCode = diagEntry.codigo;
+            } else {
+                // NO EXISTE: Crear nuevo diagnóstico personalizado en el catálogo
+                const timestamp = Date.now().toString().slice(-6);
+                resolvedCode = `CUST-${timestamp}`;
+
+                // Generar keywords simples para el nuevo diagnóstico
+                const keywords = [resolvedCode.toLowerCase(), ...diagnosticoId.toLowerCase().split(' ')];
+
+                await db.diagnosticos.add({
+                    codigo: resolvedCode,
+                    nombre: diagnosticoId, // Usamos el input como nombre
+                    especialidad: especialidad ? [especialidad] : ['General'],
+                    palabrasClave: keywords,
+                    sinonimos: []
+                });
+
+                console.log(`[Learning] Nuevo diagnóstico creado: ${diagnosticoId} (${resolvedCode})`);
+            }
+        }
+
         // Generar una firma del tratamiento (medicamentos) para ver si ya existe algo similar
         // Simplificación: usaremos el nombre del tratamiento como una cadena ordenada de IDs o nombres
         const medsSignature = medicamentos
@@ -26,7 +59,7 @@ export const treatmentLearningService = {
         // Buscar si ya existe este patrón para este diagnóstico y esta especialidad (o general)
         let existing = await db.tratamientosHabituales
             .where('diagnosticoId')
-            .equals(diagnosticoId)
+            .equals(resolvedCode)
             // .and(t => t.nombreTratamiento === nombreTratamiento) // Esto sería muy estricto, mejor buscar similitud
             .toArray();
 
@@ -50,7 +83,7 @@ export const treatmentLearningService = {
         } else {
             // Aprender nuevo tratamiento
             const nuevoTratamiento: TratamientoHabitual = {
-                diagnosticoId,
+                diagnosticoId: resolvedCode,
                 nombreTratamiento: medsSignature,
                 medicamentos: medicamentos.map(m => ({
                     nombre: m.nombre,
@@ -67,6 +100,7 @@ export const treatmentLearningService = {
                 fechaUltimoUso: new Date()
             };
             await db.tratamientosHabituales.add(nuevoTratamiento);
+            console.log(`[Learning] Nuevo tratamiento aprendido para ${resolvedCode}`);
         }
     },
 
@@ -93,5 +127,34 @@ export const treatmentLearningService = {
         });
 
         return suggestions.slice(0, 5); // Top 5 sugerencias
+    },
+
+    /**
+     * Obtiene todos los tratamientos asociados a un diagnóstico (para gestión manual)
+     */
+    async getAllByDiagnostico(diagnosticoId: string): Promise<TratamientoHabitual[]> {
+        return await db.tratamientosHabituales
+            .where('diagnosticoId')
+            .equals(diagnosticoId)
+            .toArray();
+    },
+
+    /**
+     * Guarda un tratamiento creado manualmente desde el catálogo.
+     * Se le asigna un uso alto inicial para que aparezca como sugerencia prioritaria.
+     */
+    async saveManual(tratamiento: Omit<TratamientoHabitual, 'id' | 'usoCount' | 'fechaUltimoUso'>): Promise<number> {
+        return await db.tratamientosHabituales.add({
+            ...tratamiento,
+            usoCount: 50, // Peso inicial alto para que sea la primera sugerencia
+            fechaUltimoUso: new Date()
+        });
+    },
+
+    /**
+     * Elimina un tratamiento habitual
+     */
+    async delete(id: number): Promise<void> {
+        await db.tratamientosHabituales.delete(id);
     }
 };

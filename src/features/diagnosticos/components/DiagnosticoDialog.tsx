@@ -22,8 +22,11 @@ import { Input } from "@/shared/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { DiagnosticoCatalogo } from "@/types"
-import { useEffect } from "react"
+import { DiagnosticoCatalogo, TratamientoHabitual } from "@/types"
+import { useEffect, useState } from "react"
+import { TratamientoForm } from "./TratamientoForm"
+import { treatmentLearningService } from "@/features/recetas/services/treatment-learning.service"
+import { Plus, Trash2 } from "lucide-react"
 
 // Esquema de validación
 const formSchema = z.object({
@@ -56,6 +59,9 @@ export function DiagnosticoDialog({
         },
     })
 
+    const [tratamientos, setTratamientos] = useState<TratamientoHabitual[]>([])
+    const [showTratamientoForm, setShowTratamientoForm] = useState(false)
+
     // Resetear formulario al abrir/recibir datos
     useEffect(() => {
         if (diagnostico) {
@@ -65,6 +71,10 @@ export function DiagnosticoDialog({
                 sinonimos: diagnostico.sinonimos?.join(", ") || "",
                 especialidad: diagnostico.especialidad?.join(", ") || "",
             })
+            // Cargar tratamientos si existe código
+            if (diagnostico.codigo) {
+                loadTratamientos(diagnostico.codigo)
+            }
         } else {
             form.reset({
                 codigo: "",
@@ -72,8 +82,28 @@ export function DiagnosticoDialog({
                 sinonimos: "",
                 especialidad: ""
             })
+            setTratamientos([])
+            setShowTratamientoForm(false)
         }
     }, [diagnostico, form, open])
+
+    const loadTratamientos = async (codigo: string) => {
+        const data = await treatmentLearningService.getAllByDiagnostico(codigo)
+        setTratamientos(data)
+    }
+
+    const handleSaveTratamiento = async (t: Omit<TratamientoHabitual, 'id' | 'usoCount' | 'fechaUltimoUso'>) => {
+        await treatmentLearningService.saveManual(t)
+        setShowTratamientoForm(false)
+        if (diagnostico?.codigo) await loadTratamientos(diagnostico.codigo)
+    }
+
+    const handleDeleteTratamiento = async (id: number) => {
+        if (confirm("¿Eliminar este tratamiento?")) {
+            await treatmentLearningService.delete(id)
+            if (diagnostico?.codigo) await loadTratamientos(diagnostico.codigo)
+        }
+    }
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
         // Procesar arrays
@@ -177,11 +207,51 @@ export function DiagnosticoDialog({
                             />
                         </div>
 
+                        {/* SECCIÓN TRATAMIENTOS (Solo si ya existe el diagnóstico) */}
+                        {diagnostico?.codigo && (
+                            <div className="border-t pt-4 mt-4 space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-semibold text-slate-900">Tratamientos Habituales</h3>
+                                    {!showTratamientoForm && (
+                                        <Button type="button" variant="outline" size="sm" onClick={() => setShowTratamientoForm(true)}>
+                                            <Plus className="h-4 w-4 mr-2" /> Agregar Tratamiento
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {showTratamientoForm ? (
+                                    <TratamientoForm
+                                        diagnosticoId={diagnostico.codigo}
+                                        onSave={handleSaveTratamiento}
+                                        onCancel={() => setShowTratamientoForm(false)}
+                                    />
+                                ) : (
+                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                        {tratamientos.length === 0 ? (
+                                            <p className="text-sm text-slate-500 italic text-center py-2">No hay tratamientos configurados.</p>
+                                        ) : (
+                                            tratamientos.map(t => (
+                                                <div key={t.id} className="flex justify-between items-center bg-slate-50 p-3 rounded border text-sm">
+                                                    <div>
+                                                        <div className="font-medium">{t.nombreTratamiento}</div>
+                                                        <div className="text-slate-500 text-xs">{t.medicamentos.length} medicamentos</div>
+                                                    </div>
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => handleDeleteTratamiento(t.id!)}>
+                                                        <Trash2 className="h-4 w-4 text-red-400" />
+                                                    </Button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                                Cancelar
+                                Cerrar
                             </Button>
-                            <Button type="submit">Guardar</Button>
+                            <Button type="submit">Guardar Diagnóstico</Button>
                         </DialogFooter>
                     </form>
                 </Form>
@@ -189,3 +259,7 @@ export function DiagnosticoDialog({
         </Dialog>
     )
 }
+
+// Imports adicionales necesarios (TratamientoForm, TratamientoHabitual, useState, etc) al inicio del archivo
+// Se requiere actualizar los imports y agregar el estado 'tratamientos' y 'showTratamientoForm'
+

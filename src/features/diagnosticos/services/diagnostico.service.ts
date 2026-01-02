@@ -50,6 +50,16 @@ export const diagnosticoService = {
     },
 
     /**
+     * Busca un diagnóstico por nombre exacto (case insensitive)
+     */
+    async findByExactName(nombre: string): Promise<DiagnosticoCatalogo | undefined> {
+        return await db.diagnosticos
+            .where('nombre')
+            .equals(nombre)
+            .first();
+    },
+
+    /**
      * Obtiene todos los diagnósticos paginados
      */
     async getAll(offset = 0, limit = 50): Promise<DiagnosticoCatalogo[]> {
