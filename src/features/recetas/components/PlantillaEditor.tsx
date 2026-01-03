@@ -53,6 +53,7 @@ function getExampleText(id: string): string {
         paciente_talla: "1.65 m",
         receta_folio: "12345",
         receta_fecha: "16/10/2025",
+        diagnostico: "Infección respiratoria aguda (J00)",
         tratamiento_completo: "1. AMOXICILINA (Amoxil) - 500 mg\n   Cápsulas. Oral.\n   Tomar: 1 cápsula cada 8 horas por 7 días.\n   Indicaciones: Tomar con alimentos.\n\n2. PARACETAMOL - 500 mg\n   Tabletas. Oral.\n   Tomar: 1 tableta cada 6 horas si hay dolor.",
         instrucciones_generales: "RECOMENDACIONES:\n• Beber abundantes líquidos.\n• Reposo relativo por 3 días.\n• Evitar cambios bruscos de temperatura.\n• Si presenta fiebre mayor a 38°C acudir a urgencias."
     };
@@ -127,6 +128,7 @@ const BASE_FIELDS_DEF: EditorFieldDef[] = [
     { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
 
     // Bloques Consolidados
+    { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', defaultW: 60, defaultH: 5 },
     { id: 'tratamiento_completo', etiqueta: 'Tratamiento Completo', tipo: 'lista', defaultW: 90, defaultH: 40 },
     { id: 'instrucciones_generales', etiqueta: 'Instrucciones Generales', tipo: 'texto', defaultW: 90, defaultH: 20 },
 ] as EditorFieldDef[];
@@ -177,6 +179,7 @@ function canResizeHeight(field: CampoPlantilla): boolean {
 
     // Lista explícita de campos multilinea
     const MULTILINE_IDS = [
+        'diagnostico',
         'tratamiento_completo',
         'instrucciones_generales',
         'medico_domicilio',
