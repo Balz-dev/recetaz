@@ -23,7 +23,7 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
-import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload } from "lucide-react"
+import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -51,33 +51,24 @@ function getExampleText(id: string): string {
         paciente_edad: "34 años",
         paciente_peso: "68 kg",
         paciente_talla: "1.65 m",
-        diagnostico: "Infección Respiratoria Aguda",
-        alergias: "Penicilina, Sulfa",
         receta_folio: "12345",
         receta_fecha: "16/10/2025",
-        medicamento_nombre: "Amoxicilina",
-        medicamento_generico: "Amoxicilina",
-        medicamento_marca: "Amoxil",
-        medicamento_forma: "Cápsulas",
-        medicamento_dosis: "500 mg",
-        medicamento_presentacion: "Caja con 12",
-        medicamento_via: "Oral",
-    medicamento_posologia: "Tomar 1 cápsula cada 8 horas por 7 días...",
-    medicamentos_lista: "• Amoxicilina - 500mg\n• Paracetamol - 500mg",
-    instrucciones_lista: "Beber abundantes líquidos.\nReposo relativo.",
-        sugerencias: "Evitar cambios bruscos de temperatura.",
-        tratamiento_grupo: "💊 Tratamiento\n--------------------------------\nMetformina          850 mg\nTomar: Cada 12h...\n\nAtorvastatina        20 mg\nTomar: Cada 24h..."
+        tratamiento_completo: "1. AMOXICILINA (Amoxil) - 500 mg\n   Cápsulas. Oral.\n   Tomar: 1 cápsula cada 8 horas por 7 días.\n   Indicaciones: Tomar con alimentos.\n\n2. PARACETAMOL - 500 mg\n   Tabletas. Oral.\n   Tomar: 1 tableta cada 6 horas si hay dolor.",
+        instrucciones_generales: "RECOMENDACIONES:\n• Beber abundantes líquidos.\n• Reposo relativo por 3 días.\n• Evitar cambios bruscos de temperatura.\n• Si presenta fiebre mayor a 38°C acudir a urgencias."
     };
-    
+
     // Fallback genérico para campos dinámicos
     if (!examples[id]) {
         if (id.startsWith('datos_personales_')) return "Dato Personal";
         if (id.startsWith('datos_medicos_')) return "Dato Médico";
-        if (id.startsWith('exploracion_')) return "Hallazgo Normal";
+        if (id.startsWith('exploracion_')) return "Exploración";
         if (id.startsWith('obstetricos_')) return "Dato Obstétrico";
+        if (id.startsWith('gineco_')) return "Gineco-Obstétrico";
+        if (id.startsWith('salud_')) return "Salud Mental";
+        if (id.startsWith('antecedentes_')) return "Antecedente";
         return "Texto de Ejemplo";
     }
-    
+
     return examples[id];
 }
 
@@ -111,7 +102,7 @@ interface EditorFieldDef {
  * Los anchos se calculan automáticamente basándose en el contenido de ejemplo.
  */
 const BASE_FIELDS_DEF: EditorFieldDef[] = [
-    // Datos del Médico
+    // Datos del Médico (Visible en summary cerrado)
     { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
@@ -124,34 +115,20 @@ const BASE_FIELDS_DEF: EditorFieldDef[] = [
     { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'medico_logo', etiqueta: 'Logo / Imagen', tipo: 'imagen', defaultW: 20, defaultH: 15 },
 
-    // Datos del Paciente
-    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'fecha', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    // Datos del Paciente (Prioridad Alta)
+    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 5 },
-    { id: 'alergias', etiqueta: 'Alergias', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
 
-    // Datos de la Receta
+    // Datos de la Receta / Cuerpo
     { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
     { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
 
-    // Cuerpo de la Receta
-    { id: 'medicamento_nombre', etiqueta: 'Medicamento', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medicamento_generico', etiqueta: 'Denominación Genérica', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medicamento_marca', etiqueta: 'Marca Comercial', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medicamento_forma', etiqueta: 'Forma Farmacéutica', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medicamento_dosis', etiqueta: 'Dosis/Concentración', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medicamento_presentacion', etiqueta: 'Presentación', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medicamento_via', etiqueta: 'Vía de Admin.', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medicamento_posologia', etiqueta: 'Posología (Instrucciones)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 10 },
-
-    // Legacy / Composites
-    { id: 'medicamentos_lista', etiqueta: 'Lista Completa (Tabla)', tipo: 'lista', defaultW: 90, defaultH: 40 },
-    { id: 'instrucciones_lista', etiqueta: 'Instrucciones (Bloque)', tipo: 'texto', defaultW: 90, defaultH: 20 },
-    { id: 'tratamiento_grupo', etiqueta: 'Tratamiento (Grupo Estilizado)', tipo: 'lista', defaultW: 90, defaultH: 40 },
-    { id: 'sugerencias', etiqueta: 'Sugerencias / Notas', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 10 },
+    // Bloques Consolidados
+    { id: 'tratamiento_completo', etiqueta: 'Tratamiento Completo', tipo: 'lista', defaultW: 90, defaultH: 40 },
+    { id: 'instrucciones_generales', etiqueta: 'Instrucciones Generales', tipo: 'texto', defaultW: 90, defaultH: 20 },
 ] as EditorFieldDef[];
 
 /**
@@ -200,11 +177,12 @@ function canResizeHeight(field: CampoPlantilla): boolean {
 
     // Lista explícita de campos multilinea
     const MULTILINE_IDS = [
-        'diagnostico',
-        'medicamento_posologia',
-        'instrucciones_lista',
-        'sugerencias',
-        'medico_domicilio'
+        'tratamiento_completo',
+        'instrucciones_generales',
+        'medico_domicilio',
+        // Dinámicos tipo textarea
+        'datos_factoresRiesgo',
+        'datos_antecedentes'
     ];
 
     return MULTILINE_IDS.includes(field.id);
@@ -414,6 +392,34 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
 }
 
 /**
+ * Componente de sección colapsable "Accordion" para el Sidebar.
+ */
+function SidebarAccordion({ title, icon, children, defaultOpen = false }: { title: string, icon: React.ReactNode, children: React.ReactNode, defaultOpen?: boolean }) {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+
+    return (
+        <Card className="overflow-hidden">
+            <div
+                className="flex items-center justify-between p-3 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors border-b"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <div className="flex items-center font-medium text-sm text-slate-700">
+                    <span className="mr-2 text-slate-500">{icon}</span>
+                    {title}
+                </div>
+                {isOpen ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+            </div>
+
+            {isOpen && (
+                <div className="p-3 bg-white animate-in slide-in-from-top-1 duration-200">
+                    {children}
+                </div>
+            )}
+        </Card>
+    );
+}
+
+/**
  * Overlay visual que se muestra durante el arrastre de un campo.
  * Muestra una vista previa minimalista con el texto de ejemplo y un ancla visual.
  * 
@@ -425,7 +431,7 @@ function DragItemOverlay({ field }: { field: any }) {
     if (!field) return null;
 
     const text = getExampleText(field.id);
-    const textShort = text.length > 25 ? text.substring(0, 25) + "..." : text;
+    const textShort = text.length > 40 ? text.substring(0, 40) + "..." : text;
 
     return (
         // El DragOverlay de dnd-kit coloca el (0,0) del componente en la posición del puntero.
@@ -439,12 +445,13 @@ function DragItemOverlay({ field }: { field: any }) {
                 <div
                     style={{
                         fontFamily: 'Helvetica, Arial, sans-serif',
-                        fontSize: '14px',
+                        fontSize: '12px',
                         lineHeight: '1',
                         color: '#000',
-                        whiteSpace: 'nowrap',
+                        whiteSpace: 'pre-wrap',
+                        maxWidth: '200px'
                     }}
-                    className="bg-white/90 border border-slate-300 px-1 py-0.5 rounded shadow-sm mb-0.5"
+                    className="bg-white/90 border border-slate-300 px-2 py-1 rounded shadow-sm mb-0.5"
                 >
                     {textShort}
                 </div>
@@ -543,30 +550,30 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             if (config) {
                 const key = config.especialidadKey || 'general';
                 const specialtyConfig = SPECIALTIES_CONFIG[key];
-                
+
                 if (specialtyConfig) {
                     const newFields: EditorFieldDef[] = [];
 
-                     // Mapear campos de paciente
+                    // Mapear campos de paciente
                     specialtyConfig.patientFields?.forEach(f => {
-                         newFields.push({
-                             id: `datos_${f.id}`, // Convención: datos_ + id de especialidad
-                             etiqueta: f.label,
-                             tipo: 'texto',
-                             defaultW: 20,
-                             defaultH: f.type === 'textarea' ? 5 : 2.5
-                         });
+                        newFields.push({
+                            id: `datos_${f.id}`, // Convención: datos_ + id de especialidad
+                            etiqueta: f.label,
+                            tipo: 'texto',
+                            defaultW: 20,
+                            defaultH: f.type === 'textarea' ? 5 : 2.5
+                        });
                     });
 
                     // Mapear campos de receta
                     specialtyConfig.prescriptionFields?.forEach(f => {
                         newFields.push({
-                             id: `datos_${f.id}`,
-                             etiqueta: f.label,
-                             tipo: 'texto',
-                             defaultW: 20,
-                             defaultH: f.type === 'textarea' ? 5 : 2.5
-                         });
+                            id: `datos_${f.id}`,
+                            etiqueta: f.label,
+                            tipo: 'texto',
+                            defaultW: 20,
+                            defaultH: f.type === 'textarea' ? 5 : 2.5
+                        });
                     });
 
                     setAvailableFields([...BASE_FIELDS_DEF, ...newFields]);
@@ -856,8 +863,12 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
                     <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 pb-10">
                         {/* Config Panels */}
-                        <Card>
-                            <CardContent className="pt-6 space-y-4">
+                        <SidebarAccordion
+                            title="Configuración General"
+                            icon={<Settings className="h-4 w-4" />}
+                            defaultOpen={true}
+                        >
+                            <div className="space-y-4 pt-2">
                                 <div className="space-y-2">
                                     <Label>Nombre de Plantilla</Label>
                                     <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Receta Privada" />
@@ -873,96 +884,149 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     </Select>
                                 </div>
                                 <div className="flex items-center justify-between border p-2 rounded">
-                                    <Label htmlFor="active" className="cursor-pointer">Plantilla Activa</Label>
+                                    <Label htmlFor="active" className="cursor-pointer font-normal">Activa</Label>
                                     <Switch id="active" checked={activa} onCheckedChange={setActiva} />
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="pt-6 space-y-4">
-                                <h3 className="font-semibold flex items-center"><Layout className="mr-2 h-4 w-4" /> Imagen de Fondo</h3>
-                                <div className="space-y-2">
-                                    <Label>Imagen de la Plantilla</Label>
+                                <div className="space-y-2 border-t pt-2">
+                                    <Label>Fondo</Label>
                                     <div className="flex flex-col gap-2">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full h-auto py-4 border-dashed border-2 flex flex-col gap-2 items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-400 bg-slate-50 hover:bg-blue-50 transition-colors"
-                                            onClick={() => document.getElementById('bg-image-upload')?.click()}
-                                        >
-                                            <Upload className="h-8 w-8 mb-1" />
-                                            <span className="text-sm font-medium">Seleccionar imagen de fondo</span>
-                                            <span className="text-xs text-slate-400">Clic para subir (JPG, PNG)</span>
-                                        </Button>
-                                        <Input
-                                            id="bg-image-upload"
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={handleImageUpload}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between border p-2 rounded bg-slate-50">
-                                    <div className="flex flex-col">
-                                        <Label htmlFor="print-bg" className="text-sm font-medium">Imprimir Fondo</Label>
-                                        <span className="text-[10px] text-muted-foreground">{imprimirFondo ? "Se imprimirá en el PDF final" : "Solo visible en editor"}</span>
-                                    </div>
-                                    <Switch id="print-bg" checked={imprimirFondo} onCheckedChange={setImprimirFondo} />
-                                </div>
-                                {imagenFondo && (
-                                    <div className="mt-2 relative group rounded-md overflow-hidden border shadow-sm">
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                                            <span className="text-white text-xs font-medium">Vista Previa</span>
+                                        {!imagenFondo ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full border-dashed"
+                                                onClick={() => document.getElementById('bg-image-upload')?.click()}
+                                            >
+                                                <Upload className="h-3 w-3 mr-2" />
+                                                Subir Imagen
+                                            </Button>
+                                        ) : (
+                                            <div className="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                                <span className="text-xs text-blue-600 truncate max-w-[120px]">Imagen Cargada</span>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 text-red-500"
+                                                    onClick={() => setImagenFondo(undefined)}
+                                                >
+                                                    <Trash className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                        <Input id="bg-image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="print-bg" className="text-xs">Imprimir Fondo</Label>
+                                            <Switch id="print-bg" checked={imprimirFondo} onCheckedChange={setImprimirFondo} className="scale-75 origin-right" />
                                         </div>
-                                        <img src={imagenFondo} alt="Fondo" className="w-full h-32 object-cover bg-white" />
-                                        <Button
-                                            variant="destructive"
-                                            size="icon"
-                                            className="absolute top-2 right-2 h-7 w-7 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                                            onClick={() => setImagenFondo(undefined)}
-                                        >
-                                            <Trash className="h-4 w-4" />
-                                        </Button>
                                     </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="pt-6 space-y-2">
-                                <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Datos Paciente y Tratamiento</h3>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {availableFields.filter(f =>
-                                        f.id.startsWith('paciente_') ||
-                                        ['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id) ||
-                                        // Incluir campos dinámicos de paciente (suelen tener sección en config)
-                                        // Por convención simple, si no es 'medico_' ni 'receta_' ni 'medicamento_', puede ir aquí o en el otro.
-                                        // O podemos ser más específicos si supiéramos el origen.
-                                        f.id.startsWith('datos_') // Asumiendo que 'datos_' son los dinámicos
-                                    ).map(def => {
-                                        const isAdded = campos.some(c => c.id === def.id);
-                                        return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
-                                    })}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </SidebarAccordion>
 
-                        <Card>
-                            <CardContent className="pt-6 space-y-2">
-                                <h3 className="font-semibold flex items-center mb-4"><Type className="mr-2 h-4 w-4" /> Datos Médico y Receta</h3>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {availableFields.filter(f =>
-                                        !f.id.startsWith('paciente_') &&
-                                        !['diagnostico', 'alergias', 'medicamento_posologia', 'medicamentos_lista', 'instrucciones_lista', 'sugerencias'].includes(f.id) &&
-                                        !f.id.startsWith('datos_') // Excluir los que pusimos arriba
-                                    ).map(def => {
-                                        const isAdded = campos.some(c => c.id === def.id);
-                                        return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
-                                    })}
+                        <SidebarAccordion
+                            title="Datos del Paciente"
+                            icon={<UserCircle className="h-4 w-4" />}
+                            defaultOpen={true}
+                        >
+                            <div className="grid grid-cols-1 gap-2">
+                                {availableFields.filter(f =>
+                                    f.id.startsWith('paciente_') || f.id.startsWith('datos_') || f.id === 'fecha'
+                                ).map(def => {
+                                    const isAdded = campos.some(c => c.id === def.id);
+                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                })}
+                            </div>
+                        </SidebarAccordion>
+
+                        <SidebarAccordion
+                            title="Cuerpo de la Receta"
+                            icon={<FileText className="h-4 w-4" />}
+                            defaultOpen={true}
+                        >
+                            <div className="grid grid-cols-1 gap-2">
+                                {availableFields.filter(f =>
+                                    ['tratamiento_completo', 'instrucciones_generales', 'receta_folio', 'receta_fecha'].includes(f.id)
+                                ).map(def => {
+                                    const isAdded = campos.some(c => c.id === def.id);
+                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                })}
+                            </div>
+                        </SidebarAccordion>
+
+                        <SidebarAccordion
+                            title="Datos del Médico"
+                            icon={<Stethoscope className="h-4 w-4" />}
+                            defaultOpen={false}
+                        >
+                            <div className="grid grid-cols-1 gap-2">
+                                {availableFields.filter(f =>
+                                    f.id.startsWith('medico_')
+                                ).map(def => {
+                                    const isAdded = campos.some(c => c.id === def.id);
+                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                })}
+                            </div>
+                        </SidebarAccordion>
+
+                        <SidebarAccordion
+                            title="Configuración General"
+                            icon={<Settings className="h-4 w-4" />}
+                            defaultOpen={false}
+                        >
+                            <div className="space-y-4 pt-2">
+                                <div className="space-y-2">
+                                    <Label>Nombre de Plantilla</Label>
+                                    <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Receta Privada" />
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <div className="space-y-2">
+                                    <Label>Tamaño de Papel</Label>
+                                    <Select value={tamanoPapel} onValueChange={(v: any) => setTamanoPapel(v)}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="carta">Carta (8.5 x 11 in)</SelectItem>
+                                            <SelectItem value="media_carta">Media Carta (8.5 x 5.5 in)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center justify-between border p-2 rounded">
+                                    <Label htmlFor="active" className="cursor-pointer font-normal">Activa</Label>
+                                    <Switch id="active" checked={activa} onCheckedChange={setActiva} />
+                                </div>
+                                <div className="space-y-2 border-t pt-2">
+                                    <Label>Fondo</Label>
+                                    <div className="flex flex-col gap-2">
+                                        {!imagenFondo ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full border-dashed"
+                                                onClick={() => document.getElementById('bg-image-upload')?.click()}
+                                            >
+                                                <Upload className="h-3 w-3 mr-2" />
+                                                Subir Imagen
+                                            </Button>
+                                        ) : (
+                                            <div className="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                                <span className="text-xs text-blue-600 truncate max-w-[120px]">Imagen Cargada</span>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 text-red-500"
+                                                    onClick={() => setImagenFondo(undefined)}
+                                                >
+                                                    <Trash className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                        <Input id="bg-image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="print-bg" className="text-xs">Imprimir Fondo</Label>
+                                            <Switch id="print-bg" checked={imprimirFondo} onCheckedChange={setImprimirFondo} className="scale-75 origin-right" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </SidebarAccordion>
                     </div>
 
                     {/* Canvas Area */}
