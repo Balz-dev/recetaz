@@ -30,3 +30,8 @@ coverage/
 .gitignore
 .agent/rules/git-workflow.md
 next-env.d.ts
+
+# PWA files
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
