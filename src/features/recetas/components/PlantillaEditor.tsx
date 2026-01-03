@@ -968,7 +968,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             </div>
                         </SidebarAccordion>
 
-                        <SidebarAccordion
+                        {/* <SidebarAccordion
                             title="Configuración General"
                             icon={<Settings className="h-4 w-4" />}
                             defaultOpen={false}
@@ -1026,7 +1026,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     </div>
                                 </div>
                             </div>
-                        </SidebarAccordion>
+                        </SidebarAccordion> */}
                     </div>
 
                     {/* Canvas Area */}
