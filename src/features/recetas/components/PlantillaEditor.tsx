@@ -129,12 +129,12 @@ function calcularAnchoOptimo(id: string): number {
     const lineas = texto.split('\n');
     const maxLineLength = Math.max(...lineas.map(l => l.length));
 
-    // Aproximación: ~0.6% por carácter (considerando font-size 14px)
-    const anchoPorCaracter = 0.6;
-    const anchoCalculado = maxLineLength * anchoPorCaracter + 2; // +2% para padding
+    // Aproximación: ~0.85% por carácter (ajustado para fuentes proporcionales)
+    const anchoPorCaracter = 0.85;
+    const anchoCalculado = maxLineLength * anchoPorCaracter + 4; // +4% para padding seguro
 
-    // Límites razonables
-    return Math.max(5, Math.min(95, anchoCalculado));
+    // Límites razonables (mínimo 10% para asegurar visibilidad)
+    return Math.max(10, Math.min(95, anchoCalculado));
 }
 
 /**
