@@ -441,27 +441,23 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
 
                                             return (
                                                 <View key={med.id || idx} style={{ marginBottom: 16, paddingBottom: 8, borderBottom: idx < receta.medicamentos.length - 1 ? '0.5px solid #e0e0e0' : 'none' }}>
-                                                    <Text style={{ fontSize: 10, lineHeight: 1.0 }}>
+                                                    <Text style={{ fontSize: 10, lineHeight: 1. }}>
                                                         <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 11 }}>
                                                             {linea1}
                                                         </Text>
                                                         {'\n'}
                                                         <Text style={{ fontFamily: 'Helvetica' }}>
-                                                            {linea2}
+                                                            {linea3}{' : '} {linea2}
                                                         </Text>
                                                         {'\n'}
                                                         <Text style={{ fontFamily: 'Helvetica' }}>
-                                                            {linea3}
-                                                        </Text>
-                                                        {'\n'}
-                                                        <Text style={{ fontFamily: 'Helvetica-Bold' }}>
                                                             {linea4}
                                                         </Text>
                                                         {med.indicaciones && (
                                                             <>
                                                                 {'\n'}
                                                                 <Text style={{ fontFamily: 'Helvetica-Oblique', fontSize: 9, color: '#555' }}>
-                                                                    Observaciones: {med.indicaciones}
+                                                                    Nota: {med.indicaciones}
                                                                 </Text>
                                                             </>
                                                         )}
