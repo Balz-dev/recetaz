@@ -394,6 +394,22 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                     {...listeners}
                     {...attributes}
                 />
+
+                {/* Capa de interacción directa para Botones/Acciones (Z-30) - Encima del Drag */}
+                {isSelected && field.tipo === 'imagen' && (
+                    <div
+                        className="absolute inset-0 z-30 flex items-center justify-center"
+                        onMouseDown={(e) => e.stopPropagation()} // Importante: Parar propagación para que no inicie el drag
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                        }}
+                    >
+                        <div className="absolute inset-0 bg-blue-500/10 opacity-0 hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center">
+                            <span className="bg-white text-xs px-2 py-1 rounded shadow text-blue-600 font-medium">Cambiar Imagen</span>
+                        </div>
+                    </div>
+                )}
                 {/* Visual Anchor Point (Esquina INFERIOR izquierda - Baseline) */}
                 <div className={cn(
                     "absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-red-600 z-50 -translate-x-[1px] translate-y-[1px]",
@@ -420,15 +436,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                                 </div>
                             )}
 
-                            {isSelected && (
-                                <div
-                                    className="absolute inset-0 bg-blue-500/10 cursor-pointer flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                                    onMouseDown={(e) => e.stopPropagation()} // Stop drag to allow click
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    <span className="bg-white text-xs px-2 py-1 rounded shadow text-blue-600 font-medium">Cambiar Imagen</span>
-                                </div>
-                            )}
+
                             <input
                                 ref={fileInputRef}
                                 type="file"
