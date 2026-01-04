@@ -55,8 +55,51 @@ function getExampleText(id: string): string {
         receta_fecha: "16/10/2025",
         diagnostico: "Infección respiratoria aguda (J00)",
         tratamiento_completo: "1. AMOXICILINA (Amoxil) - 500 mg\n   Cápsulas. Oral.\n   Tomar: 1 cápsula cada 8 horas por 7 días.\n   Indicaciones: Tomar con alimentos.\n\n2. PARACETAMOL - 500 mg\n   Tabletas. Oral.\n   Tomar: 1 tableta cada 6 horas si hay dolor.",
-        instrucciones_generales: "RECOMENDACIONES:\n• Beber abundantes líquidos.\n• Reposo relativo por 3 días.\n• Evitar cambios bruscos de temperatura.\n• Si presenta fiebre mayor a 38°C acudir a urgencias."
+        instrucciones_generales: "RECOMENDACIONES GENERALES:\n• Beber abundantes líquidos. Reposo relativo por 3 días. Si presenta fiebre mayor a 38°C acudir a urgencias."
     };
+
+    const lowerId = id.toLowerCase();
+
+    // Signos Vitales y Medidas (Comunes y Específicos)
+    if (lowerId.includes('presion') || lowerId.includes('t_a') || lowerId.includes('ta_brazo') || lowerId.includes('tension')) return "120/80 mmHg";
+    if (lowerId.includes('temp')) return "36.5 °C";
+    if (lowerId.includes('frecuenciacardiaca') || lowerId.includes('fc') || lowerId.includes('frecuencia_c')) return "75 lpm";
+    if (lowerId.includes('frecuenciarespiratoria') || lowerId.includes('fr') || lowerId.includes('frecuencia_r')) return "18 rpm";
+    if (lowerId.includes('sat') || lowerId.includes('oxigeno') || lowerId.includes('saturacion')) return "98%";
+    if (lowerId.includes('glucosa')) return "95 mg/dL";
+    if (lowerId.includes('talla') || lowerId.includes('estatura')) return "1.75 m";
+    if (lowerId.includes('peso')) return "75 kg";
+    if (lowerId.includes('perimetrocefalico')) return "45 cm";
+    if (lowerId.includes('imc')) return "24.5";
+
+    // Oftalmología
+    if (lowerId.includes('av_od') || lowerId.includes('av_oi')) return "20/20";
+    if (lowerId.includes('pio_od') || lowerId.includes('pio_oi')) return "15 mmHg";
+
+    // Traumatología
+    if (lowerId.includes('zonaafectada')) return "Rodilla Derecha";
+    if (lowerId.includes('limitacionmovimiento')) return "Moderada";
+    if (lowerId.includes('tipodolor')) return "Punzante";
+    if (lowerId.includes('actividadfisica')) return "Sedentario";
+
+    // Salud Mental
+    if (lowerId.includes('estadoanimo')) return "Ansioso";
+    if (lowerId.includes('riesgosuicida')) return "Bajo";
+    if (lowerId.includes('alteracionessueno')) return "Insomnio de conciliación";
+
+    // Antecedentes y Datos Médicos
+    if (lowerId.includes('alergia')) return "Niega alergias conocidas";
+    if (lowerId.includes('sangre') || lowerId.includes('gruposanguineo')) return "O Positivo";
+    if (lowerId.includes('antecedentes') || lowerId.includes('factoresriesgo')) return "HAS controlada, DM2 en tratamiento";
+    if (lowerId.includes('ocupacion')) return "Empleado de oficina";
+
+    // Gineco-Obstetricia
+    if (lowerId.includes('fum') || lowerId.includes('menstruacion') || lowerId.includes('fechaultimamenstruacion')) return "15/09/2025";
+    if (lowerId.includes('gestas')) return "2";
+    if (lowerId.includes('partos')) return "1";
+    if (lowerId.includes('abortos')) return "0";
+    if (lowerId.includes('cesareas')) return "1";
+    if (lowerId.includes('sddg') || lowerId.includes('semanas')) return "34 SDG";
 
     // Fallback genérico para campos dinámicos
     if (!examples[id]) {
@@ -81,12 +124,29 @@ function getExampleText(id: string): string {
  */
 function calcularAnchoOptimo(id: string): number {
     const texto = getExampleText(id);
+
+    // Si hay saltos de línea, calculamos el ancho basado en la línea más larga
+    const lineas = texto.split('\n');
+    const maxLineLength = Math.max(...lineas.map(l => l.length));
+
     // Aproximación: ~0.6% por carácter (considerando font-size 14px)
     const anchoPorCaracter = 0.6;
-    const anchoCalculado = texto.length * anchoPorCaracter + 2; // +2% para padding
+    const anchoCalculado = maxLineLength * anchoPorCaracter + 2; // +2% para padding
 
     // Límites razonables
     return Math.max(5, Math.min(95, anchoCalculado));
+}
+
+/**
+ * Calcula el alto óptimo de un campo basado en su texto de ejemplo.
+ * Usado para asegurar que el campo tenga altura suficiente para el contenido.
+ */
+function calcularAltoOptimo(id: string): number {
+    const texto = getExampleText(id);
+    const lineas = texto.split('\n').length;
+    // Aproximación: 3.5% de altura por línea
+    // Mínimo 4% para asegurar usabilidad y visibilidad
+    return Math.max(4, Math.min(100, lineas * 3.5));
 }
 
 interface EditorFieldDef {
@@ -104,33 +164,33 @@ interface EditorFieldDef {
  */
 const BASE_FIELDS_DEF: EditorFieldDef[] = [
     // Datos del Médico (Visible en summary cerrado)
-    { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_cedula_gral', etiqueta: 'Cédula (Gral)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_institucion_esp', etiqueta: 'Institución (Esp)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_cedula_esp', etiqueta: 'Cédula (Esp)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_domicilio', etiqueta: 'Domicilio Consultorio', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 5 },
-    { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'medico_nombre', etiqueta: 'Nombre del Médico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_especialidad', etiqueta: 'Especialidad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_institucion_gral', etiqueta: 'Institución (Gral)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_cedula_gral', etiqueta: 'Cédula (Gral)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_institucion_esp', etiqueta: 'Institución (Esp)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_cedula_esp', etiqueta: 'Cédula (Esp)', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_domicilio', etiqueta: 'Domicilio Consultorio', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_contacto', etiqueta: 'Número de Contacto', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_correo', etiqueta: 'Correo Electrónico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'medico_web', etiqueta: 'Sitio Web', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
     { id: 'medico_logo', etiqueta: 'Logo / Imagen', tipo: 'imagen', defaultW: 20, defaultH: 15 },
 
     // Datos del Paciente (Prioridad Alta)
-    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'fecha', etiqueta: 'Fecha de Consulta', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'paciente_nombre', etiqueta: 'Nombre Paciente', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'paciente_edad', etiqueta: 'Edad', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'paciente_peso', etiqueta: 'Peso', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'paciente_talla', etiqueta: 'Talla', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
 
     // Datos de la Receta / Cuerpo
-    { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
-    { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, defaultH: 2.5 },
+    { id: 'receta_folio', etiqueta: 'Folio Receta', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'receta_fecha', etiqueta: 'Fecha de Emisión', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
 
     // Bloques Consolidados
-    { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', defaultW: 60, defaultH: 5 },
-    { id: 'tratamiento_completo', etiqueta: 'Tratamiento Completo', tipo: 'lista', defaultW: 90, defaultH: 40 },
-    { id: 'instrucciones_generales', etiqueta: 'Instrucciones Generales', tipo: 'texto', defaultW: 90, defaultH: 20 },
+    { id: 'diagnostico', etiqueta: 'Diagnóstico', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'tratamiento_completo', etiqueta: 'Tratamiento Completo', tipo: 'lista', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
+    { id: 'instrucciones_generales', etiqueta: 'Instrucciones Generales', tipo: 'texto', get defaultW() { return calcularAnchoOptimo(this.id); }, get defaultH() { return calcularAltoOptimo(this.id); } },
 ] as EditorFieldDef[];
 
 /**
@@ -251,6 +311,17 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
             reader.readAsDataURL(file);
         }
     };
+
+    // Auto-trigger upload if it's an image field and empty
+    React.useEffect(() => {
+        if (field.tipo === 'imagen' && !field.src && isSelected) {
+            // Pequeño timeout para asegurar que el DOM está listo y no interferir con el drag
+            const timer = setTimeout(() => {
+                fileInputRef.current?.click();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [field.tipo, field.src, isSelected]);
 
     /**
      * Convierte las dimensiones del campo de porcentajes a píxeles.
@@ -559,23 +630,25 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                     // Mapear campos de paciente
                     specialtyConfig.patientFields?.forEach(f => {
+                        const dynamicId = `datos_${f.id}`;
                         newFields.push({
-                            id: `datos_${f.id}`, // Convención: datos_ + id de especialidad
+                            id: dynamicId,
                             etiqueta: f.label,
                             tipo: 'texto',
-                            defaultW: 20,
-                            defaultH: f.type === 'textarea' ? 5 : 2.5
+                            get defaultW() { return calcularAnchoOptimo(this.id); },
+                            get defaultH() { return calcularAltoOptimo(this.id); }
                         });
                     });
 
                     // Mapear campos de receta
                     specialtyConfig.prescriptionFields?.forEach(f => {
+                        const dynamicId = `datos_${f.id}`;
                         newFields.push({
-                            id: `datos_${f.id}`,
+                            id: dynamicId,
                             etiqueta: f.label,
                             tipo: 'texto',
-                            defaultW: 20,
-                            defaultH: f.type === 'textarea' ? 5 : 2.5
+                            get defaultW() { return calcularAnchoOptimo(this.id); },
+                            get defaultH() { return calcularAltoOptimo(this.id); }
                         });
                     });
 
@@ -948,7 +1021,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         >
                             <div className="grid grid-cols-1 gap-2">
                                 {availableFields.filter(f =>
-                                    ['tratamiento_completo', 'instrucciones_generales', 'receta_folio', 'receta_fecha'].includes(f.id)
+                                    ['tratamiento_completo', 'instrucciones_generales', 'receta_folio', 'receta_fecha', 'diagnostico'].includes(f.id)
                                 ).map(def => {
                                     const isAdded = campos.some(c => c.id === def.id);
                                     return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
@@ -971,65 +1044,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             </div>
                         </SidebarAccordion>
 
-                        {/* <SidebarAccordion
-                            title="Configuración General"
-                            icon={<Settings className="h-4 w-4" />}
-                            defaultOpen={false}
-                        >
-                            <div className="space-y-4 pt-2">
-                                <div className="space-y-2">
-                                    <Label>Nombre de Plantilla</Label>
-                                    <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Receta Privada" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Tamaño de Papel</Label>
-                                    <Select value={tamanoPapel} onValueChange={(v: any) => setTamanoPapel(v)}>
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="carta">Carta (8.5 x 11 in)</SelectItem>
-                                            <SelectItem value="media_carta">Media Carta (8.5 x 5.5 in)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="flex items-center justify-between border p-2 rounded">
-                                    <Label htmlFor="active" className="cursor-pointer font-normal">Activa</Label>
-                                    <Switch id="active" checked={activa} onCheckedChange={setActiva} />
-                                </div>
-                                <div className="space-y-2 border-t pt-2">
-                                    <Label>Fondo</Label>
-                                    <div className="flex flex-col gap-2">
-                                        {!imagenFondo ? (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full border-dashed"
-                                                onClick={() => document.getElementById('bg-image-upload')?.click()}
-                                            >
-                                                <Upload className="h-3 w-3 mr-2" />
-                                                Subir Imagen
-                                            </Button>
-                                        ) : (
-                                            <div className="flex items-center justify-between bg-slate-50 p-2 rounded">
-                                                <span className="text-xs text-blue-600 truncate max-w-[120px]">Imagen Cargada</span>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-6 w-6 p-0 text-red-500"
-                                                    onClick={() => setImagenFondo(undefined)}
-                                                >
-                                                    <Trash className="h-3 w-3" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                        <Input id="bg-image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                                        <div className="flex items-center justify-between">
-                                            <Label htmlFor="print-bg" className="text-xs">Imprimir Fondo</Label>
-                                            <Switch id="print-bg" checked={imprimirFondo} onCheckedChange={setImprimirFondo} className="scale-75 origin-right" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </SidebarAccordion> */}
+
                     </div>
 
                     {/* Canvas Area */}
