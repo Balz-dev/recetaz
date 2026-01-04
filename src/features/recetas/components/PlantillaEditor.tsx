@@ -397,16 +397,17 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
 
                 {/* Capa de interacción directa para Botones/Acciones (Z-30) - Encima del Drag */}
                 {isSelected && field.tipo === 'imagen' && (
-                    <div
-                        className="absolute inset-0 z-30 flex items-center justify-center"
-                        onMouseDown={(e) => e.stopPropagation()} // Importante: Parar propagación para que no inicie el drag
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            fileInputRef.current?.click();
-                        }}
-                    >
-                        <div className="absolute inset-0 bg-blue-500/10 opacity-0 hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center">
-                            <span className="bg-white text-xs px-2 py-1 rounded shadow text-blue-600 font-medium">Cambiar Imagen</span>
+                    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+                        <div
+                            className="bg-white hover:bg-slate-50 text-blue-600 border border-blue-200 shadow-md px-3 py-1.5 rounded cursor-pointer pointer-events-auto transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
+                            onMouseDown={(e) => e.stopPropagation()} // Stop drag ONLY on button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                fileInputRef.current?.click();
+                            }}
+                        >
+                            <Upload className="w-3 h-3" />
+                            <span className="text-xs font-bold">Cambiar Imagen</span>
                         </div>
                     </div>
                 )}
