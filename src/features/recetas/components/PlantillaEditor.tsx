@@ -508,13 +508,13 @@ function DragItemOverlay({ field }: { field: any }) {
     const textShort = text.length > 40 ? text.substring(0, 40) + "..." : text;
 
     return (
-        // El DragOverlay de dnd-kit coloca el (0,0) del componente en la posición del puntero.
-        // Desplazamos el contenido hacia arriba el 100% de su altura para que
-        // la esquina inferior izquierda coincida con el cursor.
-        <div className="flex flex-col items-start justify-end pointer-events-none opacity-90 origin-bottom-left"
-            style={{ transform: 'translate(0, -100%)' }}
-        >
+        // El DragOverlay de dnd-kit coloca el (0,0) del componente en la posición del puntero (con el modificador snapToCursor).
+        // Usamos alineación Top-Left estándar para evitar desfases.
+        <div className="flex flex-col items-start justify-start pointer-events-none opacity-90 origin-top-left">
             <div className="relative">
+                {/* Ancla visual en la esquina SUPERIOR izquierda */}
+                <div className="w-3 h-3 border-l-2 border-t-2 border-red-600 absolute -top-1 -left-1 z-50 rounded-tl-sm bg-transparent" />
+
                 {/* Vista previa del contenido */}
                 <div
                     style={{
@@ -525,13 +525,10 @@ function DragItemOverlay({ field }: { field: any }) {
                         whiteSpace: 'pre-wrap',
                         maxWidth: '200px'
                     }}
-                    className="bg-white/90 border border-slate-300 px-2 py-1 rounded shadow-sm mb-0.5"
+                    className="bg-white/90 border border-slate-300 px-2 py-1 rounded shadow-sm mb-0.5 ml-1 mt-1"
                 >
                     {textShort}
                 </div>
-
-                {/* Ancla visual en la esquina inferior izquierda */}
-                <div className="w-3 h-3 border-l-2 border-b-2 border-red-600 absolute -bottom-1 -left-1 z-50 rounded-bl-sm bg-transparent" />
             </div>
         </div>
     )
@@ -817,22 +814,19 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             const dropY = cursorStartRef.current.y + delta.y;
 
             // Coordenadas relativas al canvas.
-            // El dropX, dropY corresponden a la posición del cursor (que es la esquina inferior izquierda visual)
-            const baselineY = dropY - containerRect.top;
-            const baselineX = dropX - containerRect.left;
+            // dropX/Y corresponden a la posición del cursor, que gracias al snapToCursor y el overlay Top-Left
+            // corresponden a la esquina SUPERIOR IZQUIERDA del elemento.
+            const topPx = dropY - containerRect.top;
+            const leftPx = dropX - containerRect.left;
 
             const fieldDef = active.data.current?.field;
             if (!fieldDef) return;
 
             // Altura por defecto del campo
             const targetHPercent = fieldDef.defaultH || (canResizeHeight({ ...fieldDef, id: fieldDef.id } as any) ? 10 : 2.5);
-            const fieldHeightPx = (targetHPercent / 100) * containerRect.height;
-
-            // Field.y (Top) = BaselineY - Height
-            const topPx = baselineY - fieldHeightPx;
 
             // Convertir a %
-            let xPercent = (baselineX / containerRect.width) * 100;
+            let xPercent = (leftPx / containerRect.width) * 100;
             let yPercent = (topPx / containerRect.height) * 100;
 
             xPercent = Math.max(0, Math.min(100 - (fieldDef.defaultW || 10), xPercent));
