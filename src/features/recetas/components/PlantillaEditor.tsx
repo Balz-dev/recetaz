@@ -903,7 +903,9 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
     if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin h-8 w-8" /></div>;
 
-    const paperAspect = tamanoPapel === 'carta' ? '8.5/11' : '8.5/5.5';
+    const paperAspect = tamanoPapel === 'carta'
+        ? '8.5 / 11' // Ratio vertical estándar
+        : '8.5 / 5.5'; // Media carta horizontal;
 
     return (
         <DndContext
