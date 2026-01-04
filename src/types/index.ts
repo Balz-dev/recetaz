@@ -22,6 +22,8 @@ export interface MedicoConfig {
     cedula: string;
     telefono: string;
     direccion?: string;
+    institucion_gral?: string;
+    correo?: string;
     logo?: string; // Base64 string de imagen del logo institucional
     createdAt: Date;
     updatedAt: Date;

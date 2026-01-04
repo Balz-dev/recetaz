@@ -12,6 +12,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import Image from "next/image";
+import { getMedicoLogo } from "@/shared/constants/logo-default";
 import { pdf } from "@react-pdf/renderer";
 import { RecetaPDFTemplate } from "@/features/recetas/components/RecetaPdfTemplate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
@@ -279,15 +281,31 @@ export default function DetalleRecetaPage() {
             {/* Vista previa de impresión */}
             <Card className="print:shadow-none print:border-none">
                 <CardHeader className="border-b pb-6">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="text-xl font-bold text-blue-700">{medico?.nombre || "Nombre del Médico"}</h3>
-                            <p className="text-sm text-slate-600">{medico?.especialidad}</p>
-                            <p className="text-sm text-slate-500">Ced: {medico?.cedula}</p>
+                    <div className="flex gap-6 items-center">
+                        {/* Logo */}
+                        <div className="flex-shrink-0 w-24 h-24 relative opacity-90">
+                            {medico?.logo && (
+                                <Image
+                                    src={getMedicoLogo(medico.logo)}
+                                    alt="Logotipo"
+                                    fill
+                                    className="object-contain"
+                                />
+                            )}
                         </div>
-                        <div className="text-right text-sm text-slate-500">
-                            <p>{medico?.direccion}</p>
-                            <p>Tel: {medico?.telefono}</p>
+
+                        {/* Datos del Médico */}
+                        <div className="flex-1 flex justify-between items-start">
+                            <div>
+                                <h3 className="text-xl font-bold text-blue-700">{medico?.nombre || "Nombre del Médico"}</h3>
+                                <p className="text-sm text-slate-600 font-medium">{medico?.especialidad}</p>
+                                <p className="text-sm text-slate-500">Ced: {medico?.cedula}</p>
+                            </div>
+                            <div className="text-right text-sm text-slate-500">
+                                <p className="font-medium text-slate-700">{medico?.institucion_gral || medico?.direccion}</p>
+                                <p>Tel: {medico?.telefono}</p>
+                                {medico?.correo && <p>{medico.correo}</p>}
+                            </div>
                         </div>
                     </div>
                 </CardHeader>
