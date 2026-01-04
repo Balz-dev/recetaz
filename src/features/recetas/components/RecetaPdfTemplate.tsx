@@ -331,7 +331,7 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
 
         return (
             <Document>
-                <Page size={pageSize} style={{ position: 'relative' }}>
+                <Page size={pageSize} style={{ position: 'relative', padding: 0 }}>
                     {/* Imagen de fondo opcional */}
                     {plantilla.imprimirFondo && plantilla.imagenFondo && (
                         <Image
@@ -558,17 +558,25 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                         }
 
                         // Estilo posicional absoluto
-                        // FIX: Para tratamiento_completo, ignoramos el 'height' fijo para evitar truncamiento
-                        // permitiendo que la lista crezca hacia abajo tanto como sea necesario.
-                        const ignoreHeight = campo.id === 'tratamiento_completo' || campo.id === 'tratamiento_grupo';
+                        // FIX: Ajuste fino de coordenadas. 
+                        // react-pdf usa pt, el editor usa % relativo.
+                        // Al renderizar en PDF, puede haber desviaciones si no se maneja el box-sizing o margins por defecto.
+                        // Aplicamos userSelect: 'none' visualmente y aseguramos coordenadas limpias.
+
+                        const ignoreHeight = campo.id === 'tratamiento_completo' || campo.id === 'tratamiento_grupo' || campo.id === 'instrucciones_generales' || campo.id === 'diagnostico';
 
                         const fieldStyle = {
                             position: 'absolute' as const,
                             left: `${campo.x}%`,
                             top: `${campo.y}%`,
                             width: `${campo.ancho}%`,
-                            // Solo aplicamos alto si NO es uno de los campos que deben crecer libremente
+                            // Compensación visual para coincidir con el editor (aprox 5px)
+                            paddingLeft: 2,
+                            paddingTop: 2,
+                            // Altura condicional para permitir crecimiento hacia abajo en bloques largos
                             ...(campo.alto && !ignoreHeight ? { height: `${campo.alto}%` } : {}),
+
+                            // Debug (opcional en dev): border: '1px solid red'
                         };
 
                         // Renderizado según tipo de contenido
@@ -577,11 +585,20 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                             // Imágenes se renderizan directamente
                             renderedContent = content;
                         } else if (campo.id === 'medicamentos' || campo.id === 'medicamentos_lista' || campo.id === 'tratamiento_grupo') {
-                            // Listas y grupos complejos se renderizan directamente (ya son View con Text)
+                            // Listas complejas
                             renderedContent = content;
                         } else {
                             // Texto normal
-                            renderedContent = <Text style={styles.dynamicText}>{content as string}</Text>;
+                            // FIX: fontSize 10 estándar, asegurando que el lineHeight no empuje el texto visualmente
+                            renderedContent = (
+                                <Text style={{
+                                    fontSize: 10,
+                                    fontFamily: 'Helvetica',
+                                    lineHeight: 1.2
+                                }}>
+                                    {content as string}
+                                </Text>
+                            );
                         }
 
                         return (
