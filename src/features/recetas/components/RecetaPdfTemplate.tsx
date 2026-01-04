@@ -570,6 +570,9 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                             left: `${campo.x}%`,
                             top: `${campo.y}%`,
                             width: `${campo.ancho}%`,
+                            // Compensación visual para coincidir con el editor (aprox 5px)
+                            paddingLeft: 2,
+                            paddingTop: 2,
                             // Altura condicional para permitir crecimiento hacia abajo en bloques largos
                             ...(campo.alto && !ignoreHeight ? { height: `${campo.alto}%` } : {}),
 
