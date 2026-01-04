@@ -12,9 +12,12 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import Image from "next/image";
+import { getMedicoLogo } from "@/shared/constants/logo-default";
 import { pdf } from "@react-pdf/renderer";
 import { RecetaPDFTemplate } from "@/features/recetas/components/RecetaPdfTemplate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
+import { obtenerVerbo, calcularCantidad } from "@/features/recetas/utils/receta-formatters";
 import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
 
@@ -278,15 +281,31 @@ export default function DetalleRecetaPage() {
             {/* Vista previa de impresión */}
             <Card className="print:shadow-none print:border-none">
                 <CardHeader className="border-b pb-6">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h3 className="text-xl font-bold text-blue-700">{medico?.nombre || "Nombre del Médico"}</h3>
-                            <p className="text-sm text-slate-600">{medico?.especialidad}</p>
-                            <p className="text-sm text-slate-500">Ced: {medico?.cedula}</p>
+                    <div className="flex gap-6 items-center">
+                        {/* Logo */}
+                        <div className="flex-shrink-0 w-24 h-24 relative opacity-90">
+                            {medico?.logo && (
+                                <Image
+                                    src={getMedicoLogo(medico.logo)}
+                                    alt="Logotipo"
+                                    fill
+                                    className="object-contain"
+                                />
+                            )}
                         </div>
-                        <div className="text-right text-sm text-slate-500">
-                            <p>{medico?.direccion}</p>
-                            <p>Tel: {medico?.telefono}</p>
+
+                        {/* Datos del Médico */}
+                        <div className="flex-1 flex justify-between items-start">
+                            <div>
+                                <h3 className="text-xl font-bold text-blue-700">{medico?.nombre || "Nombre del Médico"}</h3>
+                                <p className="text-sm text-slate-600 font-medium">{medico?.especialidad}</p>
+                                <p className="text-sm text-slate-500">Ced: {medico?.cedula}</p>
+                            </div>
+                            <div className="text-right text-sm text-slate-500">
+                                <p className="font-medium text-slate-700">{medico?.institucion_gral || medico?.direccion}</p>
+                                <p>Tel: {medico?.telefono}</p>
+                                {medico?.correo && <p>{medico.correo}</p>}
+                            </div>
                         </div>
                     </div>
                 </CardHeader>
@@ -326,24 +345,45 @@ export default function DetalleRecetaPage() {
                             Tratamiento
                         </h4>
                         <div className="space-y-6">
-                            {receta.medicamentos.map((med, index) => (
-                                <div key={index} className="pl-4 border-l-2 border-blue-200">
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <span className="font-bold text-lg">{med.nombre}</span>
-                                        <span className="text-sm font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
-                                            {med.dosis}
-                                        </span>
+                            {receta.medicamentos.map((med, index) => {
+                                // 1. Nombre Genérico + Conc + Forma + (Comercial)
+                                const nombreGenerico = med.nombreGenerico || med.nombre;
+                                const nombreComercial = (med.nombre && med.nombre !== nombreGenerico && !med.nombre.toLowerCase().includes(nombreGenerico.toLowerCase()))
+                                    ? med.nombre
+                                    : '';
+
+                                const linea1 = `${nombreGenerico} ${med.concentracion || ''} ${med.formaFarmaceutica || ''} ${nombreComercial ? `(${nombreComercial})` : ''}`.replace(/\s+/g, ' ').trim();
+
+                                // 2. Verbo + Dosis + Frecuencia + Duración
+                                const verbo = obtenerVerbo(med.viaAdministracion);
+                                const frecLimpia = (med.frecuencia || '').replace(/^cada\s+/i, '');
+                                const durLimpia = (med.duracion || '').replace(/^por\s+/i, '');
+                                const linea2 = `${verbo} ${med.dosis} ${frecLimpia ? `cada ${frecLimpia}` : ''} ${durLimpia ? `por ${durLimpia}` : ''}`;
+
+                                // 3. Vía de administración
+                                const viaLimpia = (med.viaAdministracion || 'Oral').replace(/^vía\s+/i, '');
+                                const linea3 = `Vía ${viaLimpia}`;
+
+                                // 4. Cantidad
+                                const cantidad = calcularCantidad(med);
+
+                                return (
+                                    <div key={index} className="pl-4 border-l-2 border-blue-200">
+                                        <div className="mb-1">
+                                            <span className="font-bold text-lg text-slate-900">{linea1}</span>
+                                        </div>
+                                        <div className="text-slate-700 space-y-0.5">
+                                            <p><span className="font-medium">{linea3} :</span> {linea2}</p>
+                                            <p className="font-medium text-slate-900">Cantidad: {cantidad}</p>
+                                        </div>
+                                        {med.indicaciones && (
+                                            <p className="text-sm text-slate-500 mt-1 italic">
+                                                Nota: {med.indicaciones}
+                                            </p>
+                                        )}
                                     </div>
-                                    <p className="text-slate-700">
-                                        <span className="font-medium">Tomar:</span> {med.frecuencia} durante {med.duracion}
-                                    </p>
-                                    {med.indicaciones && (
-                                        <p className="text-sm text-slate-500 mt-1 italic">
-                                            Nota: {med.indicaciones}
-                                        </p>
-                                    )}
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 

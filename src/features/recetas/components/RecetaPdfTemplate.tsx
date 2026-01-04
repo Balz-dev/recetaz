@@ -4,6 +4,7 @@ import { Receta, Paciente, MedicoConfig, PlantillaReceta } from '@/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { getMedicoLogo } from '@/shared/constants/logo-default';
+import { obtenerVerbo, calcularCantidad } from '@/features/recetas/utils/receta-formatters';
 
 // Estilos por defecto (Legacy)
 const styles = StyleSheet.create({
@@ -249,76 +250,7 @@ interface RecetaPDFTemplateProps {
 }
 
 // Funciones auxiliares para formato COFEPRIS
-const obtenerVerbo = (via?: string): string => {
-    if (!via) return "Administrar";
-    const v = via.toLowerCase();
-    if (v.includes("oral") || v.includes("sublingual") || v.includes("boca")) return "Tomar";
-    if (v.includes("tópica") || v.includes("cutánea") || v.includes("piel") || v.includes("oftálmica") || v.includes("ótica") || v.includes("nasal") || v.includes("vaginal") || v.includes("rectal")) return "Aplicar";
-    if (v.includes("inhal")) return "Inhalar";
-    if (v.includes("intravenosa") || v.includes("intramuscular") || v.includes("subcutánea") || v.includes("parenteral")) return "Administrar";
-    return "Administrar";
-};
 
-const limpiarNumero = (str: string): number | null => {
-    const match = str.match(/(\d+(\.\d+)?)/);
-    return match ? parseFloat(match[0]) : null;
-};
-
-const calcularCantidad = (med: any): string => {
-    // Si ya viene calculada o manual, respetarla si no es nula
-    if (med.cantidadSurtir) return med.cantidadSurtir;
-
-    const dosis = limpiarNumero(med.dosis || '');
-    const duracionStr = med.duracion?.toLowerCase() || '';
-    const frecuenciaStr = med.frecuencia?.toLowerCase() || '';
-
-    if (!dosis) return "Según indicaciones";
-
-    // Calcular duración en días
-    let dias = 0;
-    if (duracionStr.includes("semana")) dias = (limpiarNumero(duracionStr) || 0) * 7;
-    else if (duracionStr.includes("mes")) dias = (limpiarNumero(duracionStr) || 0) * 30;
-    else if (duracionStr.includes("dia") || duracionStr.includes("día")) dias = limpiarNumero(duracionStr) || 0;
-
-    // Si es dosis única
-    if (dosis && (!med.frecuencia || med.frecuencia.toLowerCase().includes("unica") || med.frecuencia.toLowerCase().includes("única"))) {
-        // Determinamos unidad básica
-        const unidad = med.formaFarmaceutica?.toLowerCase().includes("jarabe") || med.formaFarmaceutica?.toLowerCase().includes("susp") ? "ml" : (med.formaFarmaceutica || "unidades");
-        return `${dosis} ${unidad}`;
-    }
-
-    // Calcular tomas por día
-    let tomasDiarias = 0;
-    if (frecuenciaStr.includes("cada")) {
-        const horas = limpiarNumero(frecuenciaStr);
-        if (horas) tomasDiarias = 24 / horas;
-    } else if (frecuenciaStr.includes("veces")) {
-        tomasDiarias = limpiarNumero(frecuenciaStr) || 0;
-    } else if (frecuenciaStr.includes("horas")) {
-        // Asumir que solo puso el número de horas "8 horas"
-        const horas = limpiarNumero(frecuenciaStr);
-        if (horas) tomasDiarias = 24 / horas;
-    }
-
-    if (dosis && dias && tomasDiarias) {
-        const total = Math.ceil(dosis * tomasDiarias * dias);
-
-        let unidad = "unidades";
-        const forma = (med.formaFarmaceutica || '').toLowerCase();
-
-        if (forma.includes("tab") || forma.includes("comp") || forma.includes("cap") || forma.includes("cáp") || forma.includes("gragea")) {
-            unidad = med.formaFarmaceutica || "tabletas";
-        } else if (forma.includes("jarabe") || forma.includes("susp") || forma.includes("sol")) {
-            unidad = "ml"; // Díficil estimar frascos sin saber ml por frasco, devolvemos ml totales
-        } else if (forma.includes("iny")) {
-            unidad = "ampolletas/frascos";
-        }
-
-        return `${total} ${unidad}`;
-    }
-
-    return "1 caja / frasco (Suficiente para tratamiento)";
-};
 
 export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: RecetaPDFTemplateProps) => {
 
@@ -441,27 +373,23 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
 
                                             return (
                                                 <View key={med.id || idx} style={{ marginBottom: 16, paddingBottom: 8, borderBottom: idx < receta.medicamentos.length - 1 ? '0.5px solid #e0e0e0' : 'none' }}>
-                                                    <Text style={{ fontSize: 10, lineHeight: 1.0 }}>
+                                                    <Text style={{ fontSize: 10, lineHeight: 1. }}>
                                                         <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 11 }}>
                                                             {linea1}
                                                         </Text>
                                                         {'\n'}
                                                         <Text style={{ fontFamily: 'Helvetica' }}>
-                                                            {linea2}
+                                                            {linea3}{' : '} {linea2}
                                                         </Text>
                                                         {'\n'}
                                                         <Text style={{ fontFamily: 'Helvetica' }}>
-                                                            {linea3}
-                                                        </Text>
-                                                        {'\n'}
-                                                        <Text style={{ fontFamily: 'Helvetica-Bold' }}>
                                                             {linea4}
                                                         </Text>
                                                         {med.indicaciones && (
                                                             <>
                                                                 {'\n'}
                                                                 <Text style={{ fontFamily: 'Helvetica-Oblique', fontSize: 9, color: '#555' }}>
-                                                                    Observaciones: {med.indicaciones}
+                                                                    Nota: {med.indicaciones}
                                                                 </Text>
                                                             </>
                                                         )}
