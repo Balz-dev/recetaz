@@ -23,7 +23,7 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
-import { ToggleLeft, Trash2, Copy } from "lucide-react"
+import { ToggleLeft, Trash2, Copy, Download } from "lucide-react"
 import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
 import { ToolbarPropiedades } from "./ToolbarPropiedades"
 import { useRouter } from "next/navigation"
@@ -1032,6 +1032,38 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     }
 
     /**
+     * Exporta la configuración actual de la plantilla a un archivo JSON.
+     * Este archivo puede ser compartido o usado para crear copias de seguridad.
+     * Descarga el archivo automáticamente en el dispositivo del usuario.
+     */
+    const handleExportJson = () => {
+        const datosExportacion = {
+            nombre,
+            tamanoPapel,
+            imagenFondo,
+            imprimirFondo,
+            campos,
+            activa: false, // Por defecto al exportar, inactiva
+        };
+
+        const jsonString = JSON.stringify(datosExportacion, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${nombre.replace(/\s+/g, "_") || "plantilla"}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: "Exportado",
+            description: "Plantilla exportada a JSON correctamente.",
+        });
+    };
+
+    /**
      * Añade un campo al centro del canvas (Click-to-Add).
      */
     const handleAddField = (def: EditorFieldDef) => {
@@ -1112,6 +1144,10 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600">
                             {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                             Guardar Plantilla
+                        </Button>
+                        <Button variant="outline" onClick={handleExportJson}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar Plantilla
                         </Button>
                     </div>
                 </div>

@@ -1,0 +1,33 @@
+{
+    "nombre": "Plantilla Demo Corporativa",
+    "tamanoPapel": "carta",
+    "activa": false,
+    "imprimirFondo": true,
+    "campos": [
+        {
+            "id": "medico_nombre",
+            "etiqueta": "Nombre del Médico",
+            "tipo": "texto",
+            "visible": true,
+            "x": 10,
+            "y": 10,
+            "ancho": 40,
+            "alto": 5,
+            "zIndex": 10
+        },
+        {
+            "id": "decorativo_linea_header",
+            "etiqueta": "Línea Header",
+            "tipo": "linea",
+            "visible": true,
+            "x": 10,
+            "y": 15,
+            "ancho": 80,
+            "alto": 1,
+            "color": "#000000",
+            "grosor": 2,
+            "zIndex": 20
+        }
+    ],
+    "imagenFondo": ""
+}
