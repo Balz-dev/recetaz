@@ -279,262 +279,301 @@ export const RecetaPDFTemplate = ({ receta, paciente, medico, plantilla }: Recet
                         />
                     )}
 
-                    {/* Campos dinámicos */}
-                    {plantilla.campos.filter(c => c.visible).map((campo) => {
-                        let content: React.ReactNode = null;
+                    {/* Campos dinámicos (Ordenados por Z-Index) */}
+                    {[...plantilla.campos]
+                        .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
+                        .filter(c => c.visible)
+                        .map((campo) => {
+                            let content: React.ReactNode = null;
 
-                        // Mapeo de datos
-                        switch (campo.id) {
-                            // Fechas
-                            case 'fecha':
-                                content = receta.fechaEmision
-                                    ? format(new Date(receta.fechaEmision), "dd MMM yyyy", { locale: es })
-                                    : "";
-                                break;
-                            case 'receta_fecha':
-                                content = receta.fechaEmision
-                                    ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es })
-                                    : "";
-                                break;
+                            // Mapeo de datos
+                            switch (campo.id) {
+                                // Fechas
+                                case 'fecha':
+                                    content = receta.fechaEmision
+                                        ? format(new Date(receta.fechaEmision), "dd MMM yyyy", { locale: es })
+                                        : "";
+                                    break;
+                                case 'receta_fecha':
+                                    content = receta.fechaEmision
+                                        ? format(new Date(receta.fechaEmision), "dd/MM/yyyy", { locale: es })
+                                        : "";
+                                    break;
 
-                            // Datos del Paciente
-                            case 'paciente_nombre':
-                                content = paciente.nombre || "";
-                                break;
-                            case 'paciente_edad':
-                                content = paciente.edad ? `${paciente.edad} años` : "";
-                                break;
-                            case 'paciente_peso':
-                                content = receta.peso || paciente.peso || "";
-                                break;
-                            case 'paciente_talla':
-                                content = receta.talla || paciente.talla || "";
-                                break;
-                            case 'alergias':
-                                content = paciente.alergias || "";
-                                break;
+                                // Datos del Paciente
+                                case 'paciente_nombre':
+                                    content = paciente.nombre || "";
+                                    break;
+                                case 'paciente_edad':
+                                    content = paciente.edad ? `${paciente.edad} años` : "";
+                                    break;
+                                case 'paciente_peso':
+                                    content = receta.peso || paciente.peso || "";
+                                    break;
+                                case 'paciente_talla':
+                                    content = receta.talla || paciente.talla || "";
+                                    break;
+                                case 'alergias':
+                                    content = paciente.alergias || "";
+                                    break;
 
-                            // Diagnóstico y tratamiento
-                            case 'diagnostico':
-                                content = receta.diagnostico || "";
-                                break;
-                            case 'instrucciones':
-                            case 'instrucciones_lista':
-                            case 'instrucciones_generales':
-                            case 'sugerencias':
-                                content = receta.instrucciones || "";
-                                break;
+                                // Diagnóstico y tratamiento
+                                case 'diagnostico':
+                                    content = receta.diagnostico || "";
+                                    break;
+                                case 'instrucciones':
+                                case 'instrucciones_lista':
+                                case 'instrucciones_generales':
+                                case 'sugerencias':
+                                    content = receta.instrucciones || "";
+                                    break;
 
-                            // Lista de medicamentos
-                            case 'medicamentos':
-                            case 'medicamentos_lista':
-                                content = (
-                                    <View>
-                                        {receta.medicamentos.map((med, idx) => (
-                                            <Text key={med.id || idx} style={{ fontSize: 9, marginBottom: 2 }}>
-                                                {`• ${med.nombre} - ${med.dosis} (${med.frecuencia} / ${med.duracion})`}
-                                            </Text>
-                                        ))}
-                                    </View>
-                                );
-                                break;
+                                // Lista de medicamentos
+                                case 'medicamentos':
+                                case 'medicamentos_lista':
+                                    content = (
+                                        <View>
+                                            {receta.medicamentos.map((med, idx) => (
+                                                <Text key={med.id || idx} style={{ fontSize: 9, marginBottom: 2 }}>
+                                                    {`• ${med.nombre} - ${med.dosis} (${med.frecuencia} / ${med.duracion})`}
+                                                </Text>
+                                            ))}
+                                        </View>
+                                    );
+                                    break;
 
-                            // Grupo Tratamiento Estilizado (Formato COFEPRIS)
-                            case 'tratamiento_grupo':
-                            case 'tratamiento_completo':
-                                content = (
-                                    <View style={styles.tratamientoSection}>
-                                        {receta.medicamentos.map((med, idx) => {
-                                            // 1. Nombre Genérico + Conc + Forma + (Comercial)
-                                            // Limpieza de datos
-                                            const nombreGenerico = med.nombreGenerico || med.nombre;
-                                            // Solo mostrar nombre comercial si es sustancialmente diferente y no es una repetición
-                                            const nombreComercial = (med.nombre && med.nombre !== nombreGenerico && !med.nombre.toLowerCase().includes(nombreGenerico.toLowerCase()))
-                                                ? med.nombre
-                                                : '';
+                                // Grupo Tratamiento Estilizado (Formato COFEPRIS)
+                                case 'tratamiento_grupo':
+                                case 'tratamiento_completo':
+                                    content = (
+                                        <View style={styles.tratamientoSection}>
+                                            {receta.medicamentos.map((med, idx) => {
+                                                // 1. Nombre Genérico + Conc + Forma + (Comercial)
+                                                // Limpieza de datos
+                                                const nombreGenerico = med.nombreGenerico || med.nombre;
+                                                // Solo mostrar nombre comercial si es sustancialmente diferente y no es una repetición
+                                                const nombreComercial = (med.nombre && med.nombre !== nombreGenerico && !med.nombre.toLowerCase().includes(nombreGenerico.toLowerCase()))
+                                                    ? med.nombre
+                                                    : '';
 
-                                            const linea1 = `${nombreGenerico} ${med.concentracion || ''} ${med.formaFarmaceutica || ''} ${nombreComercial ? `(${nombreComercial})` : ''}`.replace(/\s+/g, ' ').trim();
+                                                const linea1 = `${nombreGenerico} ${med.concentracion || ''} ${med.formaFarmaceutica || ''} ${nombreComercial ? `(${nombreComercial})` : ''}`.replace(/\s+/g, ' ').trim();
 
-                                            // 2. Verbo + Dosis + Frecuencia + Duración
-                                            const verbo = obtenerVerbo(med.viaAdministracion);
-                                            // Limpiar prefijo "cada" si ya viene en la frecuencia
-                                            const frecLimpia = (med.frecuencia || '').replace(/^cada\s+/i, '');
-                                            const durLimpia = (med.duracion || '').replace(/^por\s+/i, '');
+                                                // 2. Verbo + Dosis + Frecuencia + Duración
+                                                const verbo = obtenerVerbo(med.viaAdministracion);
+                                                // Limpiar prefijo "cada" si ya viene en la frecuencia
+                                                const frecLimpia = (med.frecuencia || '').replace(/^cada\s+/i, '');
+                                                const durLimpia = (med.duracion || '').replace(/^por\s+/i, '');
 
-                                            const linea2 = `${verbo} ${med.dosis} ${frecLimpia ? `cada ${frecLimpia}` : ''} ${durLimpia ? `por ${durLimpia}` : ''}`;
+                                                const linea2 = `${verbo} ${med.dosis} ${frecLimpia ? `cada ${frecLimpia}` : ''} ${durLimpia ? `por ${durLimpia}` : ''}`;
 
-                                            // 3. Vía de administración
-                                            const viaLimpia = (med.viaAdministracion || 'Oral').replace(/^vía\s+/i, '');
-                                            const linea3 = `Vía ${viaLimpia}`;
+                                                // 3. Vía de administración
+                                                const viaLimpia = (med.viaAdministracion || 'Oral').replace(/^vía\s+/i, '');
+                                                const linea3 = `Vía ${viaLimpia}`;
 
-                                            // 4. Cantidad
-                                            const cantidad = calcularCantidad(med);
-                                            const linea4 = `Cantidad: ${cantidad}`;
+                                                // 4. Cantidad
+                                                const cantidad = calcularCantidad(med);
+                                                const linea4 = `Cantidad: ${cantidad}`;
 
-                                            return (
-                                                <View key={med.id || idx} style={{ marginBottom: 16, paddingBottom: 8, borderBottom: idx < receta.medicamentos.length - 1 ? '0.5px solid #e0e0e0' : 'none' }}>
-                                                    <Text style={{ fontSize: 10, lineHeight: 1. }}>
-                                                        <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 11 }}>
-                                                            {linea1}
+                                                return (
+                                                    <View key={med.id || idx} style={{ marginBottom: 16, paddingBottom: 8, borderBottom: idx < receta.medicamentos.length - 1 ? '0.5px solid #e0e0e0' : 'none' }}>
+                                                        <Text style={{ fontSize: 10, lineHeight: 1. }}>
+                                                            <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 11 }}>
+                                                                {linea1}
+                                                            </Text>
+                                                            {'\n'}
+                                                            <Text style={{ fontFamily: 'Helvetica' }}>
+                                                                {linea3}{' : '} {linea2}
+                                                            </Text>
+                                                            {'\n'}
+                                                            <Text style={{ fontFamily: 'Helvetica' }}>
+                                                                {linea4}
+                                                            </Text>
+                                                            {med.indicaciones && (
+                                                                <>
+                                                                    {'\n'}
+                                                                    <Text style={{ fontFamily: 'Helvetica-Oblique', fontSize: 9, color: '#555' }}>
+                                                                        Nota: {med.indicaciones}
+                                                                    </Text>
+                                                                </>
+                                                            )}
                                                         </Text>
-                                                        {'\n'}
-                                                        <Text style={{ fontFamily: 'Helvetica' }}>
-                                                            {linea3}{' : '} {linea2}
-                                                        </Text>
-                                                        {'\n'}
-                                                        <Text style={{ fontFamily: 'Helvetica' }}>
-                                                            {linea4}
-                                                        </Text>
-                                                        {med.indicaciones && (
-                                                            <>
-                                                                {'\n'}
-                                                                <Text style={{ fontFamily: 'Helvetica-Oblique', fontSize: 9, color: '#555' }}>
-                                                                    Nota: {med.indicaciones}
-                                                                </Text>
-                                                            </>
+                                                        {/* Salto de línea adicional para separar medicamentos */}
+                                                        {idx < receta.medicamentos.length - 1 && (
+                                                            <Text style={{ fontSize: 10 }}>{'\n\n'}</Text>
                                                         )}
-                                                    </Text>
-                                                    {/* Salto de línea adicional para separar medicamentos */}
-                                                    {idx < receta.medicamentos.length - 1 && (
-                                                        <Text style={{ fontSize: 10 }}>{'\n\n'}</Text>
-                                                    )}
-                                                </View>
-                                            );
-                                        })}
+                                                    </View>
+                                                );
+                                            })}
+                                        </View>
+                                    );
+                                    break;
+
+                                // Campos individuales de medicamento (primer medicamento)
+                                case 'medicamento_nombre':
+                                    content = receta.medicamentos[0]?.nombre || "";
+                                    break;
+                                case 'medicamento_generico':
+                                    content = receta.medicamentos[0]?.nombre || ""; // No hay campo genérico en modelo
+                                    break;
+                                case 'medicamento_marca':
+                                    content = ""; // No hay campo marca en modelo
+                                    break;
+                                case 'medicamento_forma':
+                                    content = ""; // No hay campo forma en modelo
+                                    break;
+                                case 'medicamento_dosis':
+                                    content = receta.medicamentos[0]?.dosis || "";
+                                    break;
+                                case 'medicamento_presentacion':
+                                    content = receta.medicamentos[0]?.presentacion || "";
+                                    break;
+                                case 'medicamento_via':
+                                    content = ""; // No hay campo vía en modelo
+                                    break;
+                                case 'medicamento_posologia':
+                                    content = receta.medicamentos[0]?.indicaciones || "";
+                                    break;
+
+                                // Folio
+                                case 'receta_folio':
+                                    content = receta.numeroReceta || "";
+                                    break;
+
+                                // Campos de médico
+                                case 'medico_nombre':
+                                    content = medico.nombre || "";
+                                    break;
+                                case 'medico_especialidad':
+                                    content = medico.especialidad || "";
+                                    break;
+                                case 'medico_cedula_gral':
+                                case 'medico_cedula_esp':
+                                    content = medico.cedula || "";
+                                    break;
+                                case 'medico_institucion_gral':
+                                case 'medico_institucion_esp':
+                                    content = medico.direccion || "";
+                                    break;
+                                case 'medico_domicilio':
+                                    content = medico.direccion || "";
+                                    break;
+                                case 'medico_contacto':
+                                    content = medico.telefono || "";
+                                    break;
+                                case 'medico_correo':
+                                    content = ""; // No disponible en MedicoConfig
+                                    break;
+                                case 'medico_web':
+                                    content = ""; // No disponible en MedicoConfig
+                                    break;
+                                case 'medico_logo':
+                                    content = campo.src ? (
+                                        <Image
+                                            src={campo.src}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: campo.ajusteImagen || 'contain',
+                                                transform: campo.rotation ? `rotate(${campo.rotation}deg)` : undefined
+                                            }}
+                                        />
+                                    ) : null;
+                                    break;
+
+                                default:
+                                    // Manejo de campos dinámicos (datos_*)
+                                    if (campo.id.startsWith('datos_')) {
+                                        // Intentar buscar en datosEspecificos de la receta
+                                        const key = campo.id.replace('datos_', '');
+                                        // @ts-ignore: Acceso dinámico
+                                        content = receta.datosEspecificos?.[key] || paciente.datosEspecificos?.[key] || "";
+                                    } else {
+                                        content = "";
+                                    }
+                            }
+                            // Renderizar imágenes si el tipo es 'imagen' y no se manejó antes
+                            if (campo.tipo === 'imagen' && campo.src) {
+                                content = (
+                                    <Image
+                                        src={campo.src}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: campo.ajusteImagen || 'contain',
+                                            transform: campo.rotation ? `rotate(${campo.rotation}deg)` : undefined
+                                        }}
+                                    />
+                                );
+                            }
+
+                            // Estilo posicional absoluto
+                            // FIX: Ajuste fino de coordenadas. 
+                            // react-pdf usa pt, el editor usa % relativo.
+                            // Al renderizar en PDF, puede haber desviaciones si no se maneja el box-sizing o margins por defecto.
+                            // Aplicamos userSelect: 'none' visualmente y aseguramos coordenadas limpias.
+
+                            const ignoreHeight = campo.id === 'tratamiento_completo' || campo.id === 'tratamiento_grupo' || campo.id === 'instrucciones_generales' || campo.id === 'diagnostico';
+
+                            const fieldStyle = {
+                                position: 'absolute' as const,
+                                left: `${campo.x}%`,
+                                top: `${campo.y}%`,
+                                width: `${campo.ancho}%`,
+                                // Compensación visual para coincidir con el editor (aprox 5px)
+                                paddingLeft: 2,
+                                paddingTop: 2,
+                                // Altura condicional para permitir crecimiento hacia abajo en bloques largos
+                                ...(campo.alto && !ignoreHeight ? { height: `${campo.alto}%` } : {}),
+
+                                // Debug (opcional en dev): border: '1px solid red'
+                            };
+
+
+                            // Renderizado según tipo de contenido
+                            let renderedContent: React.ReactNode;
+
+                            if (campo.tipo === 'linea') {
+                                renderedContent = (
+                                    <View style={{ width: '100%', height: '100%', justifyContent: 'center' }}>
+                                        <View style={{ width: '100%', height: 2, backgroundColor: campo.color || '#000000' }} />
                                     </View>
                                 );
-                                break;
+                            } else if (campo.tipo === 'cuadrado') {
+                                renderedContent = (
+                                    <View style={{ width: '100%', height: '100%', backgroundColor: campo.color || '#e5e7eb', borderRadius: 2 }} />
+                                );
+                            } else if (campo.tipo === 'textoDecorativo') {
+                                renderedContent = (
+                                    <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: campo.color || '#000000' }}>
+                                        {campo.contenido || 'Texto'}
+                                    </Text>
+                                );
+                            } else if (campo.tipo === 'imagen' || campo.id === 'medico_logo') {
+                                // Imágenes se renderizan directamente
+                                renderedContent = content;
+                            } else if (campo.id === 'medicamentos' || campo.id === 'medicamentos_lista' || campo.id === 'tratamiento_grupo') {
+                                // Listas complejas
+                                renderedContent = content;
+                            } else {
+                                // Texto normal con Estilos Dinámicos
+                                renderedContent = (
+                                    <Text style={{
+                                        fontSize: campo.fontSize || 10,
+                                        fontFamily: 'Helvetica',
+                                        lineHeight: 1.2,
+                                        color: campo.color || '#000000'
+                                    }}>
+                                        {content as string}
+                                    </Text>
+                                );
+                            }
 
-                            // Campos individuales de medicamento (primer medicamento)
-                            case 'medicamento_nombre':
-                                content = receta.medicamentos[0]?.nombre || "";
-                                break;
-                            case 'medicamento_generico':
-                                content = receta.medicamentos[0]?.nombre || ""; // No hay campo genérico en modelo
-                                break;
-                            case 'medicamento_marca':
-                                content = ""; // No hay campo marca en modelo
-                                break;
-                            case 'medicamento_forma':
-                                content = ""; // No hay campo forma en modelo
-                                break;
-                            case 'medicamento_dosis':
-                                content = receta.medicamentos[0]?.dosis || "";
-                                break;
-                            case 'medicamento_presentacion':
-                                content = receta.medicamentos[0]?.presentacion || "";
-                                break;
-                            case 'medicamento_via':
-                                content = ""; // No hay campo vía en modelo
-                                break;
-                            case 'medicamento_posologia':
-                                content = receta.medicamentos[0]?.indicaciones || "";
-                                break;
-
-                            // Folio
-                            case 'receta_folio':
-                                content = receta.numeroReceta || "";
-                                break;
-
-                            // Campos de médico
-                            case 'medico_nombre':
-                                content = medico.nombre || "";
-                                break;
-                            case 'medico_especialidad':
-                                content = medico.especialidad || "";
-                                break;
-                            case 'medico_cedula_gral':
-                            case 'medico_cedula_esp':
-                                content = medico.cedula || "";
-                                break;
-                            case 'medico_institucion_gral':
-                            case 'medico_institucion_esp':
-                                content = medico.direccion || "";
-                                break;
-                            case 'medico_domicilio':
-                                content = medico.direccion || "";
-                                break;
-                            case 'medico_contacto':
-                                content = medico.telefono || "";
-                                break;
-                            case 'medico_correo':
-                                content = ""; // No disponible en MedicoConfig
-                                break;
-                            case 'medico_web':
-                                content = ""; // No disponible en MedicoConfig
-                                break;
-                            case 'medico_logo':
-                                content = campo.src ? (
-                                    <Image src={campo.src} style={{ width: '100%', height: '100%' }} />
-                                ) : null;
-                                break;
-
-                            default:
-                                // Manejo de campos dinámicos (datos_*)
-                                if (campo.id.startsWith('datos_')) {
-                                    // Intentar buscar en datosEspecificos de la receta
-                                    const key = campo.id.replace('datos_', '');
-                                    // @ts-ignore: Acceso dinámico
-                                    content = receta.datosEspecificos?.[key] || paciente.datosEspecificos?.[key] || "";
-                                } else {
-                                    content = "";
-                                }
-                        }
-                        // Renderizar imágenes si el tipo es 'imagen' y no se manejó antes
-                        if (campo.tipo === 'imagen' && campo.src) {
-                            content = <Image src={campo.src} style={{ width: '100%', height: '100%' }} />;
-                        }
-
-                        // Estilo posicional absoluto
-                        // FIX: Ajuste fino de coordenadas. 
-                        // react-pdf usa pt, el editor usa % relativo.
-                        // Al renderizar en PDF, puede haber desviaciones si no se maneja el box-sizing o margins por defecto.
-                        // Aplicamos userSelect: 'none' visualmente y aseguramos coordenadas limpias.
-
-                        const ignoreHeight = campo.id === 'tratamiento_completo' || campo.id === 'tratamiento_grupo' || campo.id === 'instrucciones_generales' || campo.id === 'diagnostico';
-
-                        const fieldStyle = {
-                            position: 'absolute' as const,
-                            left: `${campo.x}%`,
-                            top: `${campo.y}%`,
-                            width: `${campo.ancho}%`,
-                            // Compensación visual para coincidir con el editor (aprox 5px)
-                            paddingLeft: 2,
-                            paddingTop: 2,
-                            // Altura condicional para permitir crecimiento hacia abajo en bloques largos
-                            ...(campo.alto && !ignoreHeight ? { height: `${campo.alto}%` } : {}),
-
-                            // Debug (opcional en dev): border: '1px solid red'
-                        };
-
-                        // Renderizado según tipo de contenido
-                        let renderedContent: React.ReactNode;
-                        if (campo.tipo === 'imagen' || campo.id === 'medico_logo') {
-                            // Imágenes se renderizan directamente
-                            renderedContent = content;
-                        } else if (campo.id === 'medicamentos' || campo.id === 'medicamentos_lista' || campo.id === 'tratamiento_grupo') {
-                            // Listas complejas
-                            renderedContent = content;
-                        } else {
-                            // Texto normal
-                            // FIX: fontSize 10 estándar, asegurando que el lineHeight no empuje el texto visualmente
-                            renderedContent = (
-                                <Text style={{
-                                    fontSize: 10,
-                                    fontFamily: 'Helvetica',
-                                    lineHeight: 1.2
-                                }}>
-                                    {content as string}
-                                </Text>
+                            return (
+                                <View key={campo.id} style={fieldStyle}>
+                                    {renderedContent}
+                                </View>
                             );
-                        }
-
-                        return (
-                            <View key={campo.id} style={fieldStyle}>
-                                {renderedContent}
-                            </View>
-                        );
-                    })}
+                        })}
                 </Page>
             </Document>
         );
