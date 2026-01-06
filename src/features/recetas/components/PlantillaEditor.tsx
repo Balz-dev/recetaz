@@ -1179,17 +1179,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             </div>
                         </SidebarAccordion>
 
-                        <SidebarAccordion
-                            title="Elementos Decorativos"
-                            icon={<Palette className="h-4 w-4" />}
-                            defaultOpen={true}
-                        >
-                            <div className="grid grid-cols-2 gap-2">
-                                {DECORATIVE_FIELDS.map(def => (
-                                    <SidebarIconItem key={def.id} field={def} onAdd={() => handleAddField(def)} />
-                                ))}
-                            </div>
-                        </SidebarAccordion>
+
 
                         <SidebarAccordion
                             title="Datos del Paciente"
@@ -1239,91 +1229,112 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                     </div>
 
-                    {/* Canvas Area */}
-                    <div
-                        className="lg:col-span-2 bg-slate-100 rounded-lg border shadow-inner overflow-auto p-8 flex items-start justify-center relative touch-none"
-                    >
-                        {/* Wrapper for Droppable */}
-                        <div
-                            ref={(node) => {
-                                containerRef.current = node;
-                                setDroppableRef(node);
-                            }}
-                            className={cn(
-                                "relative bg-white shadow-lg transition-all duration-300",
-                            )}
-                            style={{
-                                width: '100%',
-                                maxWidth: '800px',
-                                aspectRatio: paperAspect
-                            }}
-                            onClick={() => {
-                                setSelectedFieldId(null)
-                            }}
-                        >
-                            {imagenFondo && (
-                                <img src={imagenFondo} className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-50" alt="Guía" />
-                            )}
-
-                            <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 pointer-events-none opacity-10">
-                                {[...Array(10)].map((_, i) => <div key={`v-${i}`} className="border-r border-black h-full" />)}
-                                {[...Array(10)].map((_, i) => <div key={`h-${i}`} className="border-b border-black w-full" />)}
+                    {/* Canvas Area Container */}
+                    <div className="lg:col-span-2 flex flex-col gap-4 overflow-hidden">
+                        {/* Barra de Herramientas Decorativas Superior */}
+                        <div className="bg-white p-2 rounded-lg border shadow-sm flex items-center justify-center gap-4">
+                            <div className="flex items-center gap-1 pr-4 border-r">
+                                <Palette className="h-4 w-4 text-slate-400 mr-2" />
+                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Decoración</span>
                             </div>
-
-                            {campos.map(field => (
-                                <CanvasDraggableField
-                                    key={field.id}
-                                    field={field}
-                                    isSelected={selectedFieldId === field.id}
-                                    onSelect={() => setSelectedFieldId(field.id)}
-                                    onResize={handleResize}
-                                    onUpdate={handleFieldUpdate}
-                                    isEditing={editingFieldId === field.id}
-                                    onToggleEditing={(isEd) => setEditingFieldId(isEd ? field.id : null)}
-                                    containerRef={containerRef}
-                                />
-                            ))}
-
-                            {campos.length === 0 && (
-                                <div className="absolute inset-0 flex items-center justify-center text-slate-300 pointer-events-none">
-                                    <div className="text-center">
-                                        <Layout className="h-16 w-16 mx-auto mb-2" />
-                                        <p>Arrastre campos aquí</p>
+                            <div className="flex items-center gap-3">
+                                {DECORATIVE_FIELDS.map(def => (
+                                    <div key={def.id} className="group relative">
+                                        <SidebarIconItem field={def} onAdd={() => handleAddField(def)} />
+                                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                            {def.etiqueta}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                ))}
+                            </div>
+                        </div>
 
-                            {/* Toolbar Contextual */}
-                            {selectedFieldId && (() => {
-                                const selected = campos.find(c => c.id === selectedFieldId);
-                                if (!selected) return null;
-                                return (
-                                    <ToolbarPropiedades
-                                        key={`toolbar-${selected.id}`}
-                                        field={selected}
-                                        onUpdate={(vals) => handleFieldUpdate(selected.id, vals)}
-                                        onEdit={() => {
-                                            // Activar modo edición explícitamente
-                                            setEditingFieldId(selected.id);
-                                        }}
-                                        onDelete={() => {
-                                            setCampos(prev => prev.filter(c => c.id !== selected.id));
-                                            setSelectedFieldId(null);
-                                        }}
-                                        onDuplicate={() => {
-                                            const copy: CampoPlantilla = {
-                                                ...selected,
-                                                id: `${selected.id}_copy_${Date.now()}`,
-                                                x: Math.min(90, selected.x + 2),
-                                                y: Math.min(90, selected.y + 2)
-                                            };
-                                            setCampos(prev => [...prev, copy]);
-                                            setSelectedFieldId(copy.id);
-                                        }}
+                        {/* Drop / Viewport Area */}
+                        <div
+                            className="flex-grow bg-slate-100 rounded-lg border shadow-inner overflow-auto p-8 flex items-start justify-center relative touch-none"
+                        >
+                            {/* Wrapper for Droppable */}
+                            <div
+                                ref={(node) => {
+                                    containerRef.current = node;
+                                    setDroppableRef(node);
+                                }}
+                                className={cn(
+                                    "relative bg-white shadow-lg transition-all duration-300",
+                                )}
+                                style={{
+                                    width: '100%',
+                                    maxWidth: '800px',
+                                    aspectRatio: paperAspect
+                                }}
+                                onClick={() => {
+                                    setSelectedFieldId(null)
+                                }}
+                            >
+                                {imagenFondo && (
+                                    <img src={imagenFondo} className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-50" alt="Guía" />
+                                )}
+
+                                <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 pointer-events-none opacity-10">
+                                    {[...Array(10)].map((_, i) => <div key={`v-${i}`} className="border-r border-black h-full" />)}
+                                    {[...Array(10)].map((_, i) => <div key={`h-${i}`} className="border-b border-black w-full" />)}
+                                </div>
+
+                                {campos.map(field => (
+                                    <CanvasDraggableField
+                                        key={field.id}
+                                        field={field}
+                                        isSelected={selectedFieldId === field.id}
+                                        onSelect={() => setSelectedFieldId(field.id)}
+                                        onResize={handleResize}
+                                        onUpdate={handleFieldUpdate}
+                                        isEditing={editingFieldId === field.id}
+                                        onToggleEditing={(isEd) => setEditingFieldId(isEd ? field.id : null)}
                                         containerRef={containerRef}
                                     />
-                                );
-                            })()}
+                                ))}
+
+                                {campos.length === 0 && (
+                                    <div className="absolute inset-0 flex items-center justify-center text-slate-300 pointer-events-none">
+                                        <div className="text-center">
+                                            <Layout className="h-16 w-16 mx-auto mb-2" />
+                                            <p>Arrastre campos aquí</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Toolbar Contextual */}
+                                {selectedFieldId && (() => {
+                                    const selected = campos.find(c => c.id === selectedFieldId);
+                                    if (!selected) return null;
+                                    return (
+                                        <ToolbarPropiedades
+                                            key={`toolbar-${selected.id}`}
+                                            field={selected}
+                                            onUpdate={(vals) => handleFieldUpdate(selected.id, vals)}
+                                            onEdit={() => {
+                                                // Activar modo edición explícitamente
+                                                setEditingFieldId(selected.id);
+                                            }}
+                                            onDelete={() => {
+                                                setCampos(prev => prev.filter(c => c.id !== selected.id));
+                                                setSelectedFieldId(null);
+                                            }}
+                                            onDuplicate={() => {
+                                                const copy: CampoPlantilla = {
+                                                    ...selected,
+                                                    id: `${selected.id}_copy_${Date.now()}`,
+                                                    x: Math.min(90, selected.x + 2),
+                                                    y: Math.min(90, selected.y + 2)
+                                                };
+                                                setCampos(prev => [...prev, copy]);
+                                                setSelectedFieldId(copy.id);
+                                            }}
+                                            containerRef={containerRef}
+                                        />
+                                    );
+                                })()}
+                            </div>
                         </div>
                     </div>
                 </div>
