@@ -135,9 +135,16 @@ export interface CampoPlantilla {
     ancho: number;          // Ancho en px o %
     alto?: number;          // Alto en px o % (opcional)
     visible: boolean;       // Si se imprime o no
-    tipo: 'texto' | 'fecha' | 'lista' | 'imagen'; // Tipo de dato
+    tipo: 'texto' | 'fecha' | 'lista' | 'imagen' | 'linea' | 'cuadrado' | 'textoDecorativo'; // Tipo de dato
     ejemplo?: string;       // Texto de ejemplo para previsualización
     src?: string;           // Base64 para imagenes (Logo)
+    color?: string;         // Color hexadecimal para elementos decorativos
+    contenido?: string;     // Contenido personalizado para texto decorativo
+    grosor?: number;        // Para líneas (px)
+    fontSize?: number;      // Para texto (pt)
+    zIndex?: number;        // Profundidad de capa
+    ajusteImagen?: 'contain' | 'cover'; // Ajuste de imagen (Fit/Fill)
+    rotation?: number;      // Rotación en grados (0, 90, 180, 270)
 }
 
 export interface PlantillaReceta {

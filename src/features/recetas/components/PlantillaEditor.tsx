@@ -23,7 +23,9 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
-import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope } from "lucide-react"
+import { ToggleLeft, Trash2, Copy } from "lucide-react"
+import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
+import { ToolbarPropiedades } from "./ToolbarPropiedades"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -152,11 +154,23 @@ function calcularAltoOptimo(id: string): number {
 interface EditorFieldDef {
     id: string;
     etiqueta: string;
-    tipo: 'texto' | 'imagen' | 'fecha' | 'lista';
+    tipo: 'texto' | 'imagen' | 'fecha' | 'lista' | 'linea' | 'cuadrado' | 'textoDecorativo';
     defaultW: number;
     defaultH: number;
     src?: string;
+    color?: string; // Default color
+    contenido?: string; // Default content
+    grosor?: number;
+    fontSize?: number;
+    ajusteImagen?: 'contain' | 'cover';
 }
+
+const DECORATIVE_FIELDS: EditorFieldDef[] = [
+    { id: 'decorativo_linea', etiqueta: 'Línea', tipo: 'linea', defaultW: 30, defaultH: 2, color: '#000000', grosor: 2 },
+    { id: 'decorativo_cuadrado', etiqueta: 'Cuadrado', tipo: 'cuadrado', defaultW: 10, defaultH: 10, color: '#e5e7eb' },
+    { id: 'decorativo_texto', etiqueta: 'Texto', tipo: 'textoDecorativo', defaultW: 20, defaultH: 5, color: '#000000', contenido: 'Texto', fontSize: 14 },
+    { id: 'decorativo_imagen', etiqueta: 'Imagen', tipo: 'imagen', defaultW: 20, defaultH: 15, ajusteImagen: 'contain' }
+];
 
 /**
  * Definición de campos BASE disponibles para agregar a la plantilla.
@@ -202,7 +216,7 @@ const BASE_FIELDS_DEF: EditorFieldDef[] = [
  * @param props.isAdded - Indica si el campo ya fue agregado al canvas
  * @returns Elemento JSX del botón arrastrable
  */
-function SidebarDraggableItem({ field, isAdded }: { field: EditorFieldDef, isAdded: boolean }) {
+function SidebarDraggableItem({ field, isAdded, onAdd }: { field: EditorFieldDef, isAdded: boolean, onAdd?: () => void }) {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: `sidebar-${field.id}`,
         data: { type: 'sidebar', field }
@@ -216,10 +230,40 @@ function SidebarDraggableItem({ field, isAdded }: { field: EditorFieldDef, isAdd
                     "w-full justify-start cursor-grab active:cursor-grabbing",
                     isAdded && 'bg-blue-50 border-blue-200 text-blue-700'
                 )}
+                onClick={(e) => {
+                    // Si no estamos arrastrando (click simple), añadimos
+                    // Dnd-kit a veces dispara click después de drag, pero con mouse sensors bien configurados es manejable.
+                    // Para mayor seguridad podríamos chequear movimiento, pero por ahora onClick directo es UX standard.
+                    onAdd && onAdd();
+                }}
             >
                 {isAdded ? <Layout className="mr-2 h-4 w-4" /> : <Type className="mr-2 h-4 w-4" />}
                 {field.etiqueta}
             </Button>
+        </div>
+    )
+}
+
+/**
+ * Item de sidebar estilo icono (Photoshop-like) para elementos decorativos.
+ */
+function SidebarIconItem({ field, onAdd }: { field: EditorFieldDef, onAdd?: () => void }) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+        id: `sidebar-${field.id}`,
+        data: { type: 'sidebar', field }
+    });
+
+    const Icon = field.tipo === 'linea' ? Minus : field.tipo === 'cuadrado' ? Square : field.tipo === 'imagen' ? ImageIcon : Type;
+
+    return (
+        <div ref={setNodeRef} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50")}>
+            <div
+                className="w-10 h-10 border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center rounded cursor-pointer hover:scale-105 shadow-sm transition-all"
+                title={field.etiqueta}
+                onClick={onAdd}
+            >
+                <Icon className="w-5 h-5 text-slate-700" />
+            </div>
         </div>
     )
 }
@@ -264,17 +308,20 @@ function canResizeHeight(field: CampoPlantilla): boolean {
  * @param props.containerRef - Referencia al contenedor canvas para cálculos de posición
  * @returns Elemento JSX del campo arrastrable
  */
-function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef }: {
+function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef, isEditing, onToggleEditing }: {
     field: CampoPlantilla,
     isSelected: boolean,
     onSelect: () => void,
     onResize: (id: string, widthPercent: number, heightPercent: number) => void
     onUpdate: (id: string, updates: Partial<CampoPlantilla>) => void
     containerRef: React.RefObject<HTMLDivElement | null>
+    isEditing?: boolean
+    onToggleEditing?: (editing: boolean) => void
 }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: field.id,
-        data: { type: 'canvas', field }
+        data: { type: 'canvas', field },
+        disabled: isEditing // Deshabilitar DND nativamente si estamos editando
     });
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -342,7 +389,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
         position: 'absolute',
         left: `${field.x}%`,
         top: `${field.y}%`,
-        zIndex: isDragging ? 100 : (isSelected ? 50 : 10),
+        zIndex: isDragging ? 999 : (field.zIndex ?? 10),
         touchAction: 'none'
     };
 
@@ -353,6 +400,14 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
             onClick={(e) => {
                 e.stopPropagation();
                 onSelect();
+            }}
+            onDoubleClick={(e) => {
+                e.preventDefault(); // Prevenir selección de texto nativa del navegador fuera del input
+                e.stopPropagation();
+                if (field.tipo === 'textoDecorativo') {
+                    onSelect();
+                    onToggleEditing && onToggleEditing(true);
+                }
             }}
             className={cn(
                 "absolute hover:z-20",
@@ -388,12 +443,14 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                 )}
             >
                 {/* Capa para drag (Invisible Overlay) - ENCIMA del contenido, DEBAJO de la manija */}
-                <div
-                    className="absolute inset-0 cursor-grab active:cursor-grabbing hover:bg-blue-500/5 transition-colors"
-                    style={{ zIndex: 20, touchAction: 'none' }}
-                    {...listeners}
-                    {...attributes}
-                />
+                {!isEditing && (
+                    <div
+                        className="absolute inset-0 cursor-grab active:cursor-grabbing hover:bg-blue-500/5 transition-colors"
+                        style={{ zIndex: 20, touchAction: 'none' }}
+                        {...listeners}
+                        {...attributes}
+                    />
+                )}
 
                 {/* Capa de interacción directa para Botones/Acciones (Z-30) - Encima del Drag */}
                 {isSelected && field.tipo === 'imagen' && (
@@ -429,14 +486,23 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                     {field.tipo === 'imagen' ? (
                         <div className="flex-grow h-full flex items-center justify-center border border-dashed border-slate-300 m-1 bg-slate-50/50">
                             {field.src ? (
-                                <img src={field.src} alt="Logo" className="max-w-full max-h-full object-contain pointer-events-none" />
+                                <img
+                                    src={field.src}
+                                    alt="Logo"
+                                    className="max-w-full max-h-full pointer-events-none"
+                                    style={{
+                                        objectFit: field.ajusteImagen || 'contain',
+                                        width: '100%',
+                                        height: '100%',
+                                        transform: `rotate(${field.rotation || 0}deg)`
+                                    }}
+                                />
                             ) : (
                                 <div className="flex flex-col items-center justify-center text-slate-400">
                                     <ImageIcon className="h-6 w-6 mb-1" />
                                     <span className="text-[10px] text-center leading-tight">Logo</span>
                                 </div>
                             )}
-
 
                             <input
                                 ref={fileInputRef}
@@ -446,21 +512,65 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                                 onChange={handleLogoUpload}
                             />
                         </div>
+                    ) : field.tipo === 'linea' ? (
+                        <div className="w-full h-full flex items-center justify-center pointer-events-none">
+                            <div
+                                style={{
+                                    width: '100%',
+                                    height: `${field.grosor || 2}px`,
+                                    backgroundColor: field.color || '#000000',
+                                }}
+                            />
+                        </div>
+                    ) : field.tipo === 'cuadrado' ? (
+                        <div
+                            className="w-full h-full pointer-events-none"
+                            style={{
+                                backgroundColor: field.color || '#e5e7eb',
+                                borderRadius: '4px'
+                            }}
+                        />
+                    ) : field.tipo === 'textoDecorativo' ? (
+                        <div className="w-full h-full p-1 overflow-hidden pointer-events-auto" style={{ color: field.color || '#000000', cursor: isEditing ? 'text' : 'default' }}>
+                            {isEditing ? (
+                                <textarea
+                                    autoFocus
+                                    className="w-full h-full resize-none bg-transparent outline-none border-none p-0 m-0 z-50 relative focus:ring-0"
+                                    style={{ fontSize: `${field.fontSize || 14}px`, fontFamily: 'inherit', fontWeight: 'bold' }}
+                                    value={field.contenido}
+                                    onChange={(e) => onUpdate(field.id, { contenido: e.target.value })}
+                                    onBlur={() => onToggleEditing && onToggleEditing(false)}
+                                    // Detener propagación para que puedas seleccionar texto sin arrastrar
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onFocus={(e) => e.target.select()} // Auto-seleccionar todo al enfocar
+                                    ref={(input) => { if (input) input.focus(); }} // Forzar foco al montar
+                                />
+                            ) : (
+                                <span
+                                    className="text-sm font-bold whitespace-pre-wrap"
+                                    style={{ fontSize: `${field.fontSize || 14}px` }}
+                                >
+                                    {field.contenido || 'Texto'}
+                                </span>
+                            )}
+                        </div>
                     ) : (
                         <div className={cn(
                             "w-full h-full",
                             // Ajustes para campos de texto (input vs textarea visual)
-                            allowHeight ? "p-[2px]" : "flex items-end pb-[1px] px-[2px]" // Para una linea, alineamos al 'baseline' visualmente
+                            allowHeight ? "p-[2px]" : "flex items-end pb-[1px] px-[2px]"
                         )}>
                             {/* Renderizado simulado de texto tipo PDF */}
                             <span
                                 style={{
                                     fontFamily: 'Helvetica, Arial, sans-serif',
-                                    fontSize: '14px',
-                                    lineHeight: '1.1',
-                                    color: '#000',
+                                    fontSize: field.fontSize ? `${field.fontSize}px` : '12px',
+                                    lineHeight: '1.2',
+                                    color: field.color || '#000000',
                                     whiteSpace: allowHeight ? 'pre-wrap' : 'nowrap',
-                                    overflow: 'hidden'
+                                    overflow: 'hidden',
+                                    fontWeight: field.etiqueta ? 'bold' : 'normal' // Campos de datos suelen ser relevantes
                                 }}
                                 className="pointer-events-none block"
                             >
@@ -581,6 +691,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
     const [availableFields, setAvailableFields] = useState<EditorFieldDef[]>(BASE_FIELDS_DEF)
     const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
+    const [editingFieldId, setEditingFieldId] = useState<string | null>(null)
     const [activeDragItem, setActiveDragItem] = useState<any>(null) // Para el Overlay
 
     const containerRef = useRef<HTMLDivElement>(null)
@@ -673,6 +784,12 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         if (!selectedFieldId) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
+            // FIX: Si estamos editando texto (editingFieldId no es null), NO interceptar teclas de borrado
+            if (editingFieldId) {
+                // Permitir que el evento fluya al textarea
+                return;
+            }
+
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 e.preventDefault();
                 setCampos(prev => prev.map(f => {
@@ -707,7 +824,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedFieldId]);
+    }, [selectedFieldId, editingFieldId]);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -841,20 +958,30 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             xPercent = Math.max(0, Math.min(100 - (fieldDef.defaultW || 10), xPercent));
             yPercent = Math.max(0, Math.min(100 - targetHPercent, yPercent));
 
+            const isDecorative = ['linea', 'cuadrado', 'textoDecorativo'].includes(fieldDef.tipo);
+            const newId = isDecorative ? `${fieldDef.id}_${Date.now()}` : fieldDef.id;
+
             const newField: CampoPlantilla = {
-                id: fieldDef.id,
+                id: newId,
                 etiqueta: fieldDef.etiqueta,
-                tipo: fieldDef.tipo,
+                tipo: fieldDef.tipo as any,
                 visible: true,
                 x: xPercent,
                 y: yPercent,
                 ancho: fieldDef.defaultW || 15,
                 alto: targetHPercent,
-                src: fieldDef.src
+                src: fieldDef.src,
+                color: fieldDef.color,
+                contenido: fieldDef.contenido
             };
 
-            const filtered = campos.filter(c => c.id !== fieldDef.id);
-            setCampos([...filtered, newField]);
+            // Solo filtramos duplicados si NO es decorativo (los campos de datos deben ser únicos)
+            let newCampos = campos;
+            if (!isDecorative) {
+                newCampos = campos.filter(c => c.id !== fieldDef.id);
+            }
+
+            setCampos([...newCampos, newField]);
             // Seleccionar el campo recién agregado
             setSelectedFieldId(newField.id);
             return;
@@ -903,6 +1030,54 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             setIsSaving(false)
         }
     }
+
+    /**
+     * Añade un campo al centro del canvas (Click-to-Add).
+     */
+    const handleAddField = (def: EditorFieldDef) => {
+        // Centro relativo (50% - mitad del ancho)
+        const centerX = 50 - ((def.defaultW || 15) / 2);
+        const centerY = 45 - ((def.defaultH || 5) / 2); // Un poco más arriba del centro absoluto
+
+        const isDecorative = ['linea', 'cuadrado', 'textoDecorativo', 'imagen'].includes(def.tipo);
+        const newId = isDecorative ? `${def.id}_${Date.now()}` : def.id;
+
+        // Evitar duplicados para campos de datos
+        if (!isDecorative && campos.some(c => c.id === newId)) {
+            setSelectedFieldId(newId); // Si ya existe, solo seleccionarlo
+            toast({ title: "Campo ya existe", description: "El campo ya está en la plantilla." });
+            return;
+        }
+
+        const newField: CampoPlantilla = {
+            id: newId,
+            etiqueta: def.etiqueta,
+            tipo: def.tipo as any,
+            visible: true,
+            x: centerX,
+            y: centerY,
+            ancho: def.defaultW || 15,
+            alto: def.defaultH || 5, // Altura por defecto
+            src: def.src,
+            color: def.color,
+            contenido: def.contenido,
+            grosor: def.grosor,
+            fontSize: def.fontSize,
+            ajusteImagen: def.ajusteImagen,
+            zIndex: isDecorative ? 20 : 10 // Decorativos un poco más arriba por defecto si se superponen
+        };
+
+        setCampos(prev => [...prev, newField]);
+        setSelectedFieldId(newId);
+
+        // Auto-activar edición para texto
+        if (def.tipo === 'textoDecorativo') {
+            // Pequeño delay para asegurar renderizado
+            setTimeout(() => setEditingFieldId(newId), 50);
+        }
+
+        toast({ title: "Elemento Agregado", description: `${def.etiqueta} añadido al canvas.` });
+    };
 
     if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin h-8 w-8" /></div>;
 
@@ -1005,6 +1180,18 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         </SidebarAccordion>
 
                         <SidebarAccordion
+                            title="Elementos Decorativos"
+                            icon={<Palette className="h-4 w-4" />}
+                            defaultOpen={true}
+                        >
+                            <div className="grid grid-cols-2 gap-2">
+                                {DECORATIVE_FIELDS.map(def => (
+                                    <SidebarIconItem key={def.id} field={def} onAdd={() => handleAddField(def)} />
+                                ))}
+                            </div>
+                        </SidebarAccordion>
+
+                        <SidebarAccordion
                             title="Datos del Paciente"
                             icon={<UserCircle className="h-4 w-4" />}
                             defaultOpen={true}
@@ -1014,7 +1201,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     f.id.startsWith('paciente_') || f.id.startsWith('datos_') || f.id === 'fecha'
                                 ).map(def => {
                                     const isAdded = campos.some(c => c.id === def.id);
-                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
                         </SidebarAccordion>
@@ -1029,7 +1216,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     ['tratamiento_completo', 'instrucciones_generales', 'receta_folio', 'receta_fecha', 'diagnostico'].includes(f.id)
                                 ).map(def => {
                                     const isAdded = campos.some(c => c.id === def.id);
-                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
                         </SidebarAccordion>
@@ -1044,7 +1231,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     f.id.startsWith('medico_')
                                 ).map(def => {
                                     const isAdded = campos.some(c => c.id === def.id);
-                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} />;
+                                    return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
                         </SidebarAccordion>
@@ -1091,6 +1278,8 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     onSelect={() => setSelectedFieldId(field.id)}
                                     onResize={handleResize}
                                     onUpdate={handleFieldUpdate}
+                                    isEditing={editingFieldId === field.id}
+                                    onToggleEditing={(isEd) => setEditingFieldId(isEd ? field.id : null)}
                                     containerRef={containerRef}
                                 />
                             ))}
@@ -1103,6 +1292,38 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Toolbar Contextual */}
+                            {selectedFieldId && (() => {
+                                const selected = campos.find(c => c.id === selectedFieldId);
+                                if (!selected) return null;
+                                return (
+                                    <ToolbarPropiedades
+                                        key={`toolbar-${selected.id}`}
+                                        field={selected}
+                                        onUpdate={(vals) => handleFieldUpdate(selected.id, vals)}
+                                        onEdit={() => {
+                                            // Activar modo edición explícitamente
+                                            setEditingFieldId(selected.id);
+                                        }}
+                                        onDelete={() => {
+                                            setCampos(prev => prev.filter(c => c.id !== selected.id));
+                                            setSelectedFieldId(null);
+                                        }}
+                                        onDuplicate={() => {
+                                            const copy: CampoPlantilla = {
+                                                ...selected,
+                                                id: `${selected.id}_copy_${Date.now()}`,
+                                                x: Math.min(90, selected.x + 2),
+                                                y: Math.min(90, selected.y + 2)
+                                            };
+                                            setCampos(prev => [...prev, copy]);
+                                            setSelectedFieldId(copy.id);
+                                        }}
+                                        containerRef={containerRef}
+                                    />
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>

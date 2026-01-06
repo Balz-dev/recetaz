@@ -11,6 +11,7 @@ Aplicación web progresiva (PWA) offline-first para la creación y gestión de r
 - 🏥 **Gestión Completa de Pacientes** - CRUD completo con búsqueda y filtrado
 - 📝 **Creación de Recetas** - Formulario intuitivo con múltiples medicamentos
 - 📄 **Generación de PDF** - Recetas profesionales listas para imprimir
+- 🎨 **Diseño de Plantillas** - Editor visual con elementos decorativos personalizados
 - 💰 **Módulo de Finanzas** - Seguimiento de ingresos y ganancias
 - 📱 **PWA Offline** - Funciona completamente sin internet
 - 🎨 **UI Moderna** - Interfaz limpia y profesional con shadcn/ui
