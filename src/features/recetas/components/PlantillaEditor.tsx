@@ -36,18 +36,25 @@ import { cn } from "@/lib/utils"
  * @param id - Identificador único del campo
  * @returns Texto de ejemplo representativo del contenido del campo
  */
-function getExampleText(id: string): string {
+/**
+ * Obtiene el texto de ejemplo para un campo específico.
+ * 
+ * @param id - Identificador único del campo
+ * @param medicoConfig - Configuración real del médico para datos dinámicos
+ * @returns Texto de ejemplo representativo del contenido del campo
+ */
+function getExampleText(id: string, medicoConfig?: any): string {
     const examples: Record<string, string> = {
-        medico_nombre: "Dr. Juan Pérez",
-        medico_especialidad: "Cardiología Clínica",
-        medico_institucion_gral: "Universidad Nacional",
-        medico_cedula_gral: "12345678",
-        medico_institucion_esp: "Hospital General",
-        medico_cedula_esp: "87654321",
-        medico_domicilio: "Av. Reforma 123, Col. Centro, CDMX",
-        medico_contacto: "55 1234 5678",
-        medico_correo: "dr.juan@email.com",
-        medico_web: "www.drjuan.com",
+        medico_nombre: medicoConfig?.nombre || "Dr. Juan Pérez",
+        medico_especialidad: medicoConfig?.especialidad || "Cardiología Clínica",
+        medico_institucion_gral: medicoConfig?.institucion_gral || "Universidad Nacional",
+        medico_cedula_gral: medicoConfig?.cedula || "12345678",
+        medico_institucion_esp: medicoConfig?.institucion_esp || "Hospital General",
+        medico_cedula_esp: medicoConfig?.cedula_esp || "87654321",
+        medico_domicilio: medicoConfig?.direccion || "Av. Reforma 123, Col. Centro, CDMX",
+        medico_contacto: medicoConfig?.telefono || "55 1234 5678",
+        medico_correo: medicoConfig?.correo || "dr.juan@email.com",
+        medico_web: medicoConfig?.web || "www.drjuan.com",
         fecha: "16 Oct 2025",
         paciente_nombre: "María González López",
         paciente_edad: "34 años",
@@ -124,8 +131,8 @@ function getExampleText(id: string): string {
  * @param id - Identificador del campo
  * @returns Ancho en porcentaje del canvas (mínimo: 5%, máximo: 95%)
  */
-function calcularAnchoOptimo(id: string): number {
-    const texto = getExampleText(id);
+function calcularAnchoOptimo(id: string, medicoConfig?: any): number {
+    const texto = getExampleText(id, medicoConfig);
 
     // Si hay saltos de línea, calculamos el ancho basado en la línea más larga
     const lineas = texto.split('\n');
@@ -308,7 +315,7 @@ function canResizeHeight(field: CampoPlantilla): boolean {
  * @param props.containerRef - Referencia al contenedor canvas para cálculos de posición
  * @returns Elemento JSX del campo arrastrable
  */
-function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef, isEditing, onToggleEditing }: {
+function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef, isEditing, onToggleEditing, medicoConfig }: {
     field: CampoPlantilla,
     isSelected: boolean,
     onSelect: () => void,
@@ -317,6 +324,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
     containerRef: React.RefObject<HTMLDivElement | null>
     isEditing?: boolean
     onToggleEditing?: (editing: boolean) => void
+    medicoConfig?: any
 }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: field.id,
@@ -574,7 +582,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                                 }}
                                 className="pointer-events-none block"
                             >
-                                {getExampleText(field.id)}
+                                {getExampleText(field.id, medicoConfig)}
                             </span>
                         </div>
                     )}
@@ -620,10 +628,10 @@ function SidebarAccordion({ title, icon, children, defaultOpen = false }: { titl
  * @param props.field - Campo siendo arrastrado
  * @returns Elemento JSX del overlay o null si no hay campo
  */
-function DragItemOverlay({ field }: { field: any }) {
+function DragItemOverlay({ field, medicoConfig }: { field: any, medicoConfig?: any }) {
     if (!field) return null;
 
-    const text = getExampleText(field.id);
+    const text = getExampleText(field.id, medicoConfig);
     const textShort = text.length > 40 ? text.substring(0, 40) + "..." : text;
 
     return (
@@ -688,7 +696,38 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const [imprimirFondo, setImprimirFondo] = useState(false)
 
     // Estado del Editor
+    const [medicoConfig, setMedicoConfig] = useState<any>(null)
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
+    // ... (rest of state)
+
+    // Cargar config del médico
+    useEffect(() => {
+        const loadMedicoConfig = async () => {
+            const config = await medicoService.get();
+            setMedicoConfig(config);
+
+            // Actualizar campos disponibles con el logo real si existe
+            if (config?.logo) {
+                setAvailableFields(current => current.map(field => {
+                    if (field.id === 'medico_logo') {
+                        return { ...field, src: config.logo };
+                    }
+                    return field;
+                }));
+            }
+        };
+        loadMedicoConfig();
+    }, []);
+
+    // ... (rest of code)
+
+    // Render DragItemOverlay
+    // Change this: <DragItemOverlay field={activeDragItem.field} />
+    // To: <DragItemOverlay field={activeDragItem.field} medicoConfig={medicoConfig} />
+
+    // Render CanvasDraggableField
+    // Change this: <CanvasDraggableField ... />
+    // To: <CanvasDraggableField ... medicoConfig={medicoConfig} />
     const [availableFields, setAvailableFields] = useState<EditorFieldDef[]>(BASE_FIELDS_DEF)
     const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
     const [editingFieldId, setEditingFieldId] = useState<string | null>(null)
@@ -1340,6 +1379,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                         isEditing={editingFieldId === field.id}
                                         onToggleEditing={(isEd) => setEditingFieldId(isEd ? field.id : null)}
                                         containerRef={containerRef}
+                                        medicoConfig={medicoConfig}
                                     />
                                 ))}
 
@@ -1391,7 +1431,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
             {/* Overlay para arrastre visual suave */}
             <DragOverlay modifiers={[snapToCursor]} style={{ zIndex: 9999 }} dropAnimation={null}>
-                {activeDragItem ? <DragItemOverlay field={activeDragItem} /> : null}
+                {activeDragItem ? <DragItemOverlay field={activeDragItem} medicoConfig={medicoConfig} /> : null}
             </DragOverlay>
         </DndContext>
     )
