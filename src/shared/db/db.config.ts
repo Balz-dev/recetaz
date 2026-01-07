@@ -16,7 +16,7 @@
  */
 
 import Dexie, { Table } from 'dexie';
-import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, PlantillaReceta, MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual } from '@/types';
+import { MedicoConfig, Paciente, Receta, MovimientoFinanciero, ConfiguracionFinanciera, PlantillaReceta, MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual, EspecialidadCatalogo } from '@/types';
 
 /**
  * Clase principal de la base de datos.
@@ -56,6 +56,9 @@ class RecetasDatabase extends Dexie {
 
     /** Tabla de tratamientos habituales (Aprendizaje) */
     tratamientosHabituales!: Table<TratamientoHabitual>;
+
+    /** Tabla de catálogo de especialidades médicas */
+    especialidades!: Table<EspecialidadCatalogo>;
 
     constructor() {
         super('RecetasMedicasDB');
@@ -170,6 +173,21 @@ class RecetasDatabase extends Dexie {
             medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso, *palabrasClave, *especialidad',
             diagnosticos: '++id, codigo, nombre, uri, *palabrasClave, *especialidad',
             tratamientosHabituales: '++id, diagnosticoId, nombreTratamiento, *especialidad, usoCount'
+        });
+
+        // Versión 10: Catálogo de Especialidades
+        // - especialidades: Catálogo de especialidades médicas con campos dinámicos
+        this.version(10).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, cedula',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso, *palabrasClave, *especialidad',
+            diagnosticos: '++id, codigo, nombre, uri, *palabrasClave, *especialidad',
+            tratamientosHabituales: '++id, diagnosticoId, nombreTratamiento, *especialidad, usoCount',
+            especialidades: 'id, label'
         });
     }
 }

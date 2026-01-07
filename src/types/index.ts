@@ -273,4 +273,25 @@ export interface TratamientoHabitual {
 
 export type MedicamentoCatalogoFormData = Omit<MedicamentoCatalogo, 'id' | 'nombreBusqueda' | 'vecesUsado' | 'fechaCreacion' | 'fechaUltimoUso'>;
 
+/**
+ * Definición de campo dinámico para especialidades médicas
+ */
+export interface FieldDefinition {
+    id: string;
+    label: string;
+    type: 'text' | 'number' | 'date' | 'select' | 'textarea';
+    required?: boolean;
+    options?: string[];
+    placeholder?: string;
+    section?: 'datos_personales' | 'datos_medicos' | 'antecedentes' | 'exploracion' | 'obstetricos' | 'gineco_obstetricos' | 'salud_mental';
+}
 
+/**
+ * Catálogo de especialidades médicas con campos dinámicos
+ */
+export interface EspecialidadCatalogo {
+    id: string;
+    label: string;
+    patientFields: FieldDefinition[];
+    prescriptionFields: FieldDefinition[];
+}

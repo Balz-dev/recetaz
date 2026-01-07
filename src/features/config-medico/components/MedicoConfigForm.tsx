@@ -22,13 +22,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/shared/components/ui/select"
-import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
 import { useState, useRef, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { medicoService } from "@/features/config-medico/services/medico.service"
 import { Loader2, Save, Upload, X } from "lucide-react"
 import Image from "next/image"
-import { MedicoConfig } from "@/types"
+import { MedicoConfig, EspecialidadCatalogo } from "@/types"
+import { db } from "@/shared/db/db.config"
 
 type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfig, 'id' | 'createdAt' | 'updatedAt' | 'logo'>;
 
@@ -58,6 +58,7 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [logoBase64, setLogoBase64] = useState<string | undefined>(undefined)
+    const [especialidades, setEspecialidades] = useState<EspecialidadCatalogo[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { toast } = useToast()
 
@@ -67,12 +68,37 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
         defaultValues: {
             nombre: "",
             especialidad: "",
-            especialidadKey: "general", // Valor por defecto
+            especialidadKey: "general",
             cedula: "",
             telefono: "",
             direccion: "",
         },
     })
+
+    // Cargar especialidades desde IndexedDB
+    useEffect(() => {
+        const loadEspecialidades = async () => {
+            try {
+                console.log('MedicoConfigForm: Intentando cargar especialidades...');
+                const specs = await db.especialidades.toArray();
+                console.log('MedicoConfigForm: Especialidades cargadas:', specs.length, specs);
+                setEspecialidades(specs);
+
+                // Establecer especialidad por defecto si hay especialidades cargadas
+                if (specs.length > 0) {
+                    const defaultSpec = specs.find(s => s.id === 'general') || specs[0];
+                    console.log('MedicoConfigForm: Estableciendo especialidad por defecto:', defaultSpec);
+                    form.setValue('especialidad', defaultSpec.label);
+                    form.setValue('especialidadKey', defaultSpec.id);
+                } else {
+                    console.warn('MedicoConfigForm: No se encontraron especialidades en IndexedDB');
+                }
+            } catch (error) {
+                console.error("Error cargando especialidades:", error);
+            }
+        };
+        loadEspecialidades();
+    }, [form]);
 
     // Cargar datos existentes al montar
     useEffect(() => {
@@ -148,7 +174,7 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
         setIsLoading(true)
         try {
             // Asegurar que el nombre de la especialidad coincida con la key seleccionada
-            const selectedSpecialty = SPECIALTIES_CONFIG[values.especialidadKey || 'general'];
+            const selectedSpecialty = especialidades.find(e => e.id === (values.especialidadKey || 'general'));
             const especialidadLabel = selectedSpecialty ? selectedSpecialty.label : values.especialidad;
 
             await medicoService.save({
@@ -249,13 +275,14 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Especialidad</FormLabel>
-                                <Select 
+                                <Select
+                                    key={`especialidad-select-${especialidades.length}`}
                                     onValueChange={(value) => {
                                         field.onChange(value);
-                                        // Actualizar también el label visual si se desea, aunque onSubmit lo maneja
-                                        const label = SPECIALTIES_CONFIG[value]?.label;
-                                        if (label) form.setValue('especialidad', label);
-                                    }} 
+                                        // Actualizar también el label visual
+                                        const spec = especialidades.find(e => e.id === value);
+                                        if (spec) form.setValue('especialidad', spec.label);
+                                    }}
                                     defaultValue={field.value}
                                     value={field.value}
                                 >
@@ -265,11 +292,14 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {Object.entries(SPECIALTIES_CONFIG).map(([key, config]) => (
-                                            <SelectItem key={key} value={key}>
-                                                {config.label}
-                                            </SelectItem>
-                                        ))}
+                                        {(() => {
+                                            console.log('MedicoConfigForm: Renderizando dropdown con especialidades:', especialidades.length);
+                                            return especialidades.map((esp) => (
+                                                <SelectItem key={esp.id} value={esp.id}>
+                                                    {esp.label}
+                                                </SelectItem>
+                                            ));
+                                        })()}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

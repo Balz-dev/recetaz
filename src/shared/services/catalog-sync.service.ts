@@ -1,9 +1,10 @@
 import { db } from "@/shared/db/db.config";
-import { MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual } from "@/types";
+import { MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual, EspecialidadCatalogo } from "@/types";
 
 const MEDICAMENTOS_URL = '/data/medicamentos-v1.json';
 const DIAGNOSTICOS_URL = '/data/diagnosticos-v1.json';
 const TRATAMIENTOS_URL = '/data/tratamientos-iniciales.json';
+const ESPECIALIDADES_URL = '/data/especialidades-v1.json';
 
 /**
  * Servicio encargado de sincronizar los catálogos estáticos (JSON)
@@ -20,7 +21,8 @@ export const catalogSyncService = {
             await Promise.all([
                 this.syncMedicamentos(),
                 this.syncDiagnosticos(),
-                this.syncTratamientos()
+                this.syncTratamientos(),
+                this.syncEspecialidades()
             ]);
             console.log('✅ Sincronización de catálogos completada.');
         } catch (error) {
@@ -165,6 +167,37 @@ export const catalogSyncService = {
 
         } catch (error) {
             console.error('Error sincronizando diagnósticos:', error);
+        }
+    },
+
+    /**
+     * Sincroniza el catálogo de especialidades desde /data/especialidades-v1.json
+     */
+    async syncEspecialidades() {
+        try {
+            const response = await fetch(ESPECIALIDADES_URL);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const especialidadesExternas: EspecialidadCatalogo[] = await response.json();
+
+            await db.transaction('rw', db.especialidades, async () => {
+                for (const esp of especialidadesExternas) {
+                    // Verificar si ya existe por ID
+                    const existing = await db.especialidades.where('id').equals(esp.id).first();
+
+                    if (existing) {
+                        // Actualizar especialidad existente
+                        await db.especialidades.put(esp);
+                    } else {
+                        // Insertar nueva especialidad
+                        await db.especialidades.add(esp);
+                    }
+                }
+            });
+            console.log(`🏥 Especialidades sincronizadas: ${especialidadesExternas.length} items procesados.`);
+
+        } catch (error) {
+            console.error('Error sincronizando especialidades:', error);
         }
     }
 };
