@@ -291,7 +291,7 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                                             <SelectValue placeholder="Seleccione su especialidad" />
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
+                                    <SelectContent className="z-[250]">
                                         {(() => {
                                             console.log('MedicoConfigForm: Renderizando dropdown con especialidades:', especialidades.length);
                                             return especialidades.map((esp) => (

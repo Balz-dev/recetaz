@@ -10,10 +10,10 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, pointerWithin, Modifier } from "@dnd-kit/core"
 import { restrictToParentElement } from "@dnd-kit/modifiers"
-import { PlantillaReceta, CampoPlantilla, PlantillaRecetaFormData } from "@/types"
+import { PlantillaReceta, CampoPlantilla, PlantillaRecetaFormData, EspecialidadCatalogo } from "@/types"
 import { plantillaService } from "@/features/recetas/services/plantilla.service"
 import { medicoService } from "@/features/config-medico/services/medico.service"
-import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
+import { db } from "@/shared/db/db.config"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -734,43 +734,56 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         }
     }, [plantillaId, router, toast])
 
-    // Cargar campos dinámicos de la especialidad
+    // Cargar campos dinámicos de la especialidad desde BD
     useEffect(() => {
         const loadSpecialtyFields = async () => {
-            const config = await medicoService.get();
-            if (config) {
-                const key = config.especialidadKey || 'general';
-                const specialtyConfig = SPECIALTIES_CONFIG[key];
+            try {
+                const config = await medicoService.get();
+                if (config) {
+                    const key = config.especialidadKey || 'general';
+                    let specialtyConfig: EspecialidadCatalogo | undefined | null = null;
 
-                if (specialtyConfig) {
-                    const newFields: EditorFieldDef[] = [];
+                    try {
+                        specialtyConfig = await db.especialidades.get(key);
+                        if (!specialtyConfig) {
+                            specialtyConfig = await db.especialidades.get('general');
+                        }
+                    } catch (e) {
+                        console.error("Error obteniendo especialidad de DB", e);
+                    }
 
-                    // Mapear campos de paciente
-                    specialtyConfig.patientFields?.forEach(f => {
-                        const dynamicId = `datos_${f.id}`;
-                        newFields.push({
-                            id: dynamicId,
-                            etiqueta: f.label,
-                            tipo: 'texto',
-                            get defaultW() { return calcularAnchoOptimo(this.id); },
-                            get defaultH() { return calcularAltoOptimo(this.id); }
+                    if (specialtyConfig) {
+                        const newFields: EditorFieldDef[] = [];
+
+                        // Mapear campos de paciente
+                        specialtyConfig.patientFields?.forEach(f => {
+                            const dynamicId = `datos_${f.id}`;
+                            newFields.push({
+                                id: dynamicId,
+                                etiqueta: f.label,
+                                tipo: 'texto',
+                                get defaultW() { return calcularAnchoOptimo(this.id); },
+                                get defaultH() { return calcularAltoOptimo(this.id); }
+                            });
                         });
-                    });
 
-                    // Mapear campos de receta
-                    specialtyConfig.prescriptionFields?.forEach(f => {
-                        const dynamicId = `datos_${f.id}`;
-                        newFields.push({
-                            id: dynamicId,
-                            etiqueta: f.label,
-                            tipo: 'texto',
-                            get defaultW() { return calcularAnchoOptimo(this.id); },
-                            get defaultH() { return calcularAltoOptimo(this.id); }
+                        // Mapear campos de receta
+                        specialtyConfig.prescriptionFields?.forEach(f => {
+                            const dynamicId = `datos_${f.id}`;
+                            newFields.push({
+                                id: dynamicId,
+                                etiqueta: f.label,
+                                tipo: 'texto',
+                                get defaultW() { return calcularAnchoOptimo(this.id); },
+                                get defaultH() { return calcularAltoOptimo(this.id); }
+                            });
                         });
-                    });
 
-                    setAvailableFields([...BASE_FIELDS_DEF, ...newFields]);
+                        setAvailableFields([...BASE_FIELDS_DEF, ...newFields]);
+                    }
                 }
+            } catch (error) {
+                console.error("Error al cargar campos de especialidad:", error);
             }
         };
         loadSpecialtyFields();
