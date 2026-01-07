@@ -37,7 +37,7 @@ import {
     SelectValue,
 } from "@/shared/components/ui/select"
 import { medicoService } from "@/features/config-medico/services/medico.service"
-import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
+import { db } from "@/shared/db/db.config"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -145,12 +145,25 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     useEffect(() => {
         loadPacientes()
-        // Cargar configuración de especialidad
+        // Cargar configuración de especialidad desde BD
         const loadConfig = async () => {
-            const config = await medicoService.get();
-            if (config) {
-                const key = config.especialidadKey || 'general';
-                setSpecialtyConfig(SPECIALTIES_CONFIG[key] || SPECIALTIES_CONFIG['general']);
+            try {
+                const config = await medicoService.get();
+                if (config && config.especialidadKey) {
+                    const spConfig = await db.especialidades.get(config.especialidadKey);
+                    if (spConfig) {
+                        // Adaptar para mantener compatibilidad si recetaz usa specialtyName (bug fix/improvement)
+                        setSpecialtyConfig({ ...spConfig, specialtyName: spConfig.label });
+                    } else {
+                        const generalConfig = await db.especialidades.get('general');
+                        setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
+                    }
+                } else {
+                    const generalConfig = await db.especialidades.get('general');
+                    setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
+                }
+            } catch (error) {
+                console.error("Error cargando configuración de especialidad:", error);
             }
         };
         loadConfig();
@@ -720,8 +733,26 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                 )}
                             />
 
-                            {/* Inputs de Peso y Talla (Siempre visibles para actualizar "Snapshot" de esta receta) */}
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Inputs de Peso, Talla y Edad (Siempre visibles/editables) */}
+                            <div className="grid grid-cols-3 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="pacienteEdad"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Edad</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Años"
+                                                    {...field}
+                                                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="pacientePeso"

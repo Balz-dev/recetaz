@@ -1,0 +1,406 @@
+[
+    {
+        "id": "general",
+        "label": "Medicina General / Familiar",
+        "patientFields": [
+            {
+                "id": "fechaNacimiento",
+                "label": "Fecha de Nacimiento",
+                "type": "date",
+                "section": "datos_personales"
+            },
+            {
+                "id": "ocupacion",
+                "label": "Ocupación",
+                "type": "text",
+                "section": "datos_personales"
+            }
+        ],
+        "prescriptionFields": [
+            {
+                "id": "temperatura",
+                "label": "Temp (°C)",
+                "type": "number",
+                "placeholder": "36.5",
+                "section": "exploracion"
+            },
+            {
+                "id": "presionArterial",
+                "label": "T/A (mmHg)",
+                "type": "text",
+                "placeholder": "120/80",
+                "section": "exploracion"
+            },
+            {
+                "id": "frecuenciaCardiaca",
+                "label": "FC (lpm)",
+                "type": "number",
+                "placeholder": "75",
+                "section": "exploracion"
+            }
+        ]
+    },
+    {
+        "id": "pediatria",
+        "label": "Pediatría",
+        "patientFields": [
+            {
+                "id": "fechaNacimiento",
+                "label": "Fecha de Nacimiento",
+                "type": "date",
+                "required": true,
+                "section": "datos_personales"
+            },
+            {
+                "id": "nombrePadre",
+                "label": "Nombre del Padre/Tutor",
+                "type": "text",
+                "required": true,
+                "section": "datos_personales"
+            },
+            {
+                "id": "nombreMadre",
+                "label": "Nombre de la Madre",
+                "type": "text",
+                "required": true,
+                "section": "datos_personales"
+            },
+            {
+                "id": "grupoSanguineo",
+                "label": "Grupo Sanguíneo",
+                "type": "select",
+                "options": [
+                    "O+",
+                    "O-",
+                    "A+",
+                    "A-",
+                    "B+",
+                    "B-",
+                    "AB+",
+                    "AB-"
+                ],
+                "section": "datos_medicos"
+            }
+        ],
+        "prescriptionFields": [
+            {
+                "id": "temperatura",
+                "label": "Temp (°C)",
+                "type": "number",
+                "placeholder": "36.5",
+                "section": "exploracion"
+            },
+            {
+                "id": "peso",
+                "label": "Peso (kg)",
+                "type": "number",
+                "required": true,
+                "placeholder": "12.5",
+                "section": "exploracion"
+            },
+            {
+                "id": "talla",
+                "label": "Talla (cm)",
+                "type": "number",
+                "required": true,
+                "placeholder": "85",
+                "section": "exploracion"
+            },
+            {
+                "id": "perimetroCefalico",
+                "label": "Perímetro Cefálico (cm)",
+                "type": "number",
+                "section": "exploracion"
+            },
+            {
+                "id": "frecuenciaRespiratoria",
+                "label": "FR (rpm)",
+                "type": "number",
+                "placeholder": "16",
+                "section": "exploracion"
+            },
+            {
+                "id": "frecuenciaCardiaca",
+                "label": "FC (lpm)",
+                "type": "number",
+                "placeholder": "75",
+                "section": "exploracion"
+            }
+        ]
+    },
+    {
+        "id": "ginecologia",
+        "label": "Ginecología y Obstetricia",
+        "patientFields": [
+            {
+                "id": "fechaNacimiento",
+                "label": "Fecha de Nacimiento",
+                "type": "date",
+                "section": "datos_personales"
+            },
+            {
+                "id": "fechaUltimaMenstruacion",
+                "label": "FUM",
+                "type": "date",
+                "section": "gineco_obstetricos"
+            },
+            {
+                "id": "gestas",
+                "label": "Gestas",
+                "type": "number",
+                "section": "gineco_obstetricos"
+            },
+            {
+                "id": "partos",
+                "label": "Partos",
+                "type": "number",
+                "section": "gineco_obstetricos"
+            },
+            {
+                "id": "abortos",
+                "label": "Abortos",
+                "type": "number",
+                "section": "gineco_obstetricos"
+            }
+        ],
+        "prescriptionFields": [
+            {
+                "id": "fum",
+                "label": "FUM (Fecha Última Menstruación)",
+                "type": "date",
+                "section": "obstetricos"
+            },
+            {
+                "id": "sddG",
+                "label": "SDG (Semanas de Gestación)",
+                "type": "number",
+                "section": "obstetricos"
+            },
+            {
+                "id": "peso",
+                "label": "Peso (kg)",
+                "type": "number",
+                "required": true,
+                "section": "exploracion"
+            },
+            {
+                "id": "talla",
+                "label": "Talla (m)",
+                "type": "number",
+                "section": "exploracion"
+            },
+            {
+                "id": "tensionArterial",
+                "label": "T/A",
+                "type": "text",
+                "required": true,
+                "section": "exploracion"
+            }
+        ]
+    },
+    {
+        "id": "oftalmologia",
+        "label": "Oftalmología",
+        "patientFields": [
+            {
+                "id": "fechaNacimiento",
+                "label": "Fecha de Nacimiento",
+                "type": "date",
+                "section": "datos_personales"
+            },
+            {
+                "id": "ocupacion",
+                "label": "Ocupación",
+                "type": "text",
+                "section": "datos_personales"
+            }
+        ],
+        "prescriptionFields": [
+            {
+                "id": "av_od",
+                "label": "Agudeza Visual OD",
+                "type": "text",
+                "placeholder": "20/20",
+                "section": "exploracion"
+            },
+            {
+                "id": "av_oi",
+                "label": "Agudeza Visual OI",
+                "type": "text",
+                "placeholder": "20/20",
+                "section": "exploracion"
+            },
+            {
+                "id": "pio_od",
+                "label": "PIO OD (mmHg)",
+                "type": "number",
+                "section": "exploracion"
+            },
+            {
+                "id": "pio_oi",
+                "label": "PIO OI (mmHg)",
+                "type": "number",
+                "section": "exploracion"
+            }
+        ]
+    },
+    {
+        "id": "cardiologia",
+        "label": "Cardiología",
+        "patientFields": [
+            {
+                "id": "fechaNacimiento",
+                "label": "Fecha de Nacimiento",
+                "type": "date",
+                "section": "datos_personales"
+            },
+            {
+                "id": "factoresRiesgo",
+                "label": "Factores de Riesgo",
+                "type": "textarea",
+                "placeholder": "Hipertensión, Diabetes, Tabaquismo...",
+                "section": "antecedentes"
+            }
+        ],
+        "prescriptionFields": [
+            {
+                "id": "ta_brazo_der",
+                "label": "T/A Brazo Der",
+                "type": "text",
+                "required": true,
+                "section": "exploracion"
+            },
+            {
+                "id": "ta_brazo_Izq",
+                "label": "T/A Brazo Izq",
+                "type": "text",
+                "required": true,
+                "section": "exploracion"
+            },
+            {
+                "id": "fc",
+                "label": "Frecuencia Cardiaca",
+                "type": "number",
+                "required": true,
+                "section": "exploracion"
+            },
+            {
+                "id": "fr",
+                "label": "Frecuencia Respiratoria",
+                "type": "number",
+                "section": "exploracion"
+            },
+            {
+                "id": "saturacion",
+                "label": "Saturación O2 (%)",
+                "type": "number",
+                "section": "exploracion"
+            }
+        ]
+    },
+    {
+        "id": "traumatologia",
+        "label": "Traumatología y Ortopedia",
+        "patientFields": [
+            {
+                "id": "actividadFisica",
+                "label": "Actividad Física",
+                "type": "text",
+                "section": "datos_personales"
+            }
+        ],
+        "prescriptionFields": [
+            {
+                "id": "zonaAfectada",
+                "label": "Zona Afectada",
+                "type": "text",
+                "required": true,
+                "section": "exploracion"
+            },
+            {
+                "id": "tipoDolor",
+                "label": "Tipo de Dolor",
+                "type": "select",
+                "options": [
+                    "Agudo",
+                    "Crónico",
+                    "Punzante",
+                    "Inflamatorio"
+                ],
+                "section": "exploracion"
+            },
+            {
+                "id": "limitacionMovimiento",
+                "label": "Limitación de Movimiento",
+                "type": "select",
+                "options": [
+                    "No",
+                    "Leve",
+                    "Moderada",
+                    "Severa"
+                ],
+                "section": "exploracion"
+            }
+        ]
+    },
+    {
+        "id": "saludMental",
+        "label": "Psicología / Psiquiatría",
+        "patientFields": [
+            {
+                "id": "estadoCivil",
+                "label": "Estado Civil",
+                "type": "select",
+                "options": [
+                    "Soltero",
+                    "Casado",
+                    "Otro"
+                ],
+                "section": "datos_personales"
+            },
+            {
+                "id": "ocupacion",
+                "label": "Ocupación",
+                "type": "text",
+                "section": "datos_personales"
+            }
+        ],
+        "prescriptionFields": [
+            {
+                "id": "estadoAnimo",
+                "label": "Estado de Ánimo",
+                "type": "select",
+                "options": [
+                    "Estable",
+                    "Ansioso",
+                    "Deprimido",
+                    "Irritable"
+                ],
+                "section": "salud_mental"
+            },
+            {
+                "id": "alteracionesSueno",
+                "label": "Alteraciones del Sueño",
+                "type": "select",
+                "options": [
+                    "No",
+                    "Insomnio",
+                    "Hipersomnia"
+                ],
+                "section": "salud_mental"
+            },
+            {
+                "id": "riesgoSuicida",
+                "label": "Riesgo Suicida",
+                "type": "select",
+                "options": [
+                    "No",
+                    "Bajo",
+                    "Moderado",
+                    "Alto"
+                ],
+                "section": "salud_mental"
+            }
+        ]
+    }
+]
