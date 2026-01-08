@@ -14,10 +14,13 @@ export function Hero() {
           {/* Columna de Texto */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
-              Deja de escribir tus recetas en <span className="text-blue-600 dark:text-blue-500">Word/Excel</span>
+              Deja de perder tiempo formateando recetas en <span className="text-blue-600 dark:text-blue-500">Word/Excel</span>
             </h1>
-            <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl lg:mx-0 mx-auto leading-relaxed">
-              Usa tu receta médica de siempre, pero con un sistema diseñado para consultorios reales.
+            <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-4 max-w-2xl lg:mx-0 mx-auto leading-relaxed">
+              Diseña tu receta membretada <span className="font-semibold text-slate-700 dark:text-slate-300">una sola vez</span>. RecetaZ la llena automáticamente con un <span className="font-semibold text-blue-600 dark:text-blue-500">sistema inteligente</span>.
+            </p>
+            <p className="text-base sm:text-lg text-slate-500 dark:text-slate-400 mb-8 max-w-2xl lg:mx-0 mx-auto">
+              El sistema <span className="font-semibold">aprende de tus diagnósticos más frecuentes</span> y te sugiere pacientes, medicamentos y tratamientos con autocompletado. <span className="font-semibold text-blue-600 dark:text-blue-500">Un solo click</span> y listo.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4 mb-4">
@@ -32,7 +35,7 @@ export function Hero() {
               {/* Botón Principal - Dashboard/App Real */}
               <Link
                 href="/dashboard"
-                className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-lg font-bold text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-lg font-bold text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 active:scale-95"
               >
                 Comenzar prueba gratis
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -41,20 +44,20 @@ export function Hero() {
 
 
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-10 text-center lg:text-left">
-              <span className="font-semibold text-blue-600 dark:text-blue-400">Demo:</span> Explora con datos de ejemplo, sin registro. <span className="mx-2 hidden sm:inline">|</span> <span className="block sm:inline"><span className="font-semibold text-blue-600 dark:text-blue-400">Prueba Gratis:</span> 14 días con tus datos reales.</span>
+              <span className="font-semibold text-blue-600 dark:text-blue-500">Demo:</span> Explora con datos de ejemplo, sin registro. <span className="mx-2 hidden sm:inline">|</span> <span className="block sm:inline"><span className="font-semibold text-blue-600 dark:text-blue-500">Prueba Gratis:</span> 14 días con tus datos reales.</span>
             </p>
 
             <div className="flex flex-col gap-4 text-sm font-medium text-slate-600 dark:text-slate-400">
               <div className="flex items-center lg:justify-start justify-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
                 Funciona incluso sin internet
               </div>
               <div className="flex items-center lg:justify-start justify-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
                 Diseña tu receta una sola vez
               </div>
               <div className="flex items-center lg:justify-start justify-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
                 Atiende más rápido sin cambiar tu forma de trabajar
               </div>
             </div>
@@ -80,7 +83,7 @@ export function Hero() {
       {/* Elementos decorativos de fondo */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-0 pointer-events-none opacity-50 dark:opacity-20">
         <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse delay-700"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[140px] opacity-20 transition-all delay-700"></div>
       </div>
     </section>
   )

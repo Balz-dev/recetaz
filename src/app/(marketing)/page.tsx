@@ -1,8 +1,10 @@
 import { Metadata } from "next"
 import { Hero } from "./components/Hero"
+import { ProblemSolution } from "./components/ProblemSolution"
 import { ComparisonSection } from "./components/ComparisonSection"
 import { HowItWorks } from "./components/HowItWorks"
 import { Features } from "./components/Features"
+import { TrustSection } from "./components/TrustSection"
 import { Pricing } from "./components/Pricing"
 import { Philosophy } from "./components/Philosophy"
 import { Confidence } from "./components/Confidence"
@@ -170,10 +172,10 @@ export default function LandingPage() {
       />
 
       <Hero />
-      <ComparisonSection />
-      <HowItWorks />
+      <ProblemSolution />
       <Features />
-      <Philosophy />
+      <HowItWorks />
+      <TrustSection />
       <Pricing />
       <Confidence />
       <FAQ />
@@ -182,10 +184,10 @@ export default function LandingPage() {
       <section className="py-24 bg-blue-600 dark:bg-blue-700 relative overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 relative z-10 text-center text-white">
           <h2 className="text-3xl sm:text-6xl font-extrabold mb-6 tracking-tight">
-            ¿Listo para modernizar tu consulta?
+            Únete a los médicos que ya recuperaron horas de su semana
           </h2>
           <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Únete a los médicos que ya ahorran horas a la semana dejando atrás el desorden de Word.
+            Deja de formatear recetas. Enfócate en tus pacientes.
             <strong> 14 días gratis, sin tarjetas.</strong>
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -207,17 +209,17 @@ export default function LandingPage() {
 
 
           </div>
-          <p className="mt-6 text-sm text-blue-200 opacity-90">
+          <p className="mt-6 text-sm text-blue-100 opacity-90">
             <span className="font-semibold">Demo:</span> Explora con datos de ejemplo, sin registro. <span className="mx-2">•</span> <span className="font-semibold">Prueba Gratis:</span> 14 días con tus datos reales.
           </p>
-          <p className="mt-8 text-sm text-blue-200 opacity-80">
+          <p className="mt-8 text-sm text-blue-100 opacity-80">
             Sin instalación compleja. Funciona directamente en tu navegador.
           </p>
         </div>
 
         {/* Decoración premium */}
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-white rounded-full mix-blend-soft-light filter blur-[140px] opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-indigo-300 rounded-full mix-blend-soft-light filter blur-[140px] opacity-20"></div>
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-blue-500 rounded-full mix-blend-soft-light filter blur-[140px] opacity-20"></div>
       </section>
     </div>
   )

@@ -9,16 +9,28 @@ import { Plus, Minus } from "lucide-react"
 export function FAQ() {
   const faqs = [
     {
-      question: "¿Necesito internet para usar RecetaZ?",
-      answer: "No. RecetaZ funciona incluso si no hay conexión en tu consultorio. La información se guarda en tu dispositivo para que puedas seguir trabajando sin interrupciones."
+      question: "¿Puedo usar mi propia receta membretada?",
+      answer: "Sí, ese es el punto fuerte de RecetaZ. Subes la imagen de tu receta y colocas los campos donde quieras."
     },
     {
-      question: "¿RecetaZ es una receta electrónica con validación COFEPRIS?",
-      answer: "No. RecetaZ es una herramienta de productividad diseñada para imprimir sobre tus propias recetas membretadas físicas. No es un sistema de receta electrónica oficial."
+      question: "¿Qué pasa si no tengo receta membretada?",
+      answer: "Puedes usar nuestras plantillas profesionales y personalizarlas con tu logo y datos."
     },
     {
-      question: "¿Dónde se guarda la información de mis pacientes?",
-      answer: "Toda la información de tus pacientes se guarda de manera local y segura en tu propia computadora o dispositivo. Tú eres el único dueño y responsable de tu información."
+      question: "¿Cómo funciona el autocompletado inteligente?",
+      answer: "RecetaZ aprende de tus prescripciones. Si recetas ciprofloxacino para gastroenteritis, la próxima vez que escribas \"gastro...\" te sugerirá el medicamento."
+    },
+    {
+      question: "¿Mis datos están seguros?",
+      answer: "Absolutamente. Todo se guarda en tu dispositivo con encriptación. Ni nosotros tenemos acceso a tu información."
+    },
+    {
+      question: "¿Qué incluye el backup automático del plan PRO?",
+      answer: "Respaldos periódicos a tu Google Drive personal, como WhatsApp. Tú controlas la frecuencia."
+    },
+    {
+      question: "¿Necesito internet?",
+      answer: "No. RecetaZ funciona offline. Solo necesitas internet para backups automáticos (PRO)."
     }
   ]
 
@@ -38,8 +50,8 @@ export function FAQ() {
 
         <div className="max-w-3xl mx-auto space-y-4">
           {faqs.map((faq, i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/50"
             >
               <button
@@ -56,11 +68,10 @@ export function FAQ() {
                   <Plus className="h-5 w-5 text-slate-400 flex-shrink-0 ml-4" />
                 )}
               </button>
-              
-              <div 
-                className={`transition-all duration-300 ease-in-out ${
-                  openIndex === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                }`}
+
+              <div
+                className={`transition-all duration-300 ease-in-out ${openIndex === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                  }`}
               >
                 <div className="p-6 pt-0 text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 leading-relaxed">
                   {faq.answer}
