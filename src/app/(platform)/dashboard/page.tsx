@@ -24,7 +24,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/sha
 import { Button } from "@/shared/components/ui/button";
 import { FileText, Users, Activity, Plus } from "lucide-react";
 import Link from "next/link";
-import { ConfiguracionModal } from "@/features/config-medico/components/ConfiguracionModal";
 import { PanelGanancias } from "@/features/finanzas/components/PanelGanancias";
 import { RecetaDialog } from "@/features/recetas/components/RecetaDialog";
 
@@ -43,18 +42,10 @@ export default function HomePage() {
         totalPacientes: 0,
         loading: true
     });
-    const [showConfigModal, setShowConfigModal] = useState(false);
     const [showRecetaDialog, setShowRecetaDialog] = useState(false);
 
     useEffect(() => {
-        const checkConfig = async () => {
-            const hasConfig = await medicoService.exists();
-            if (!hasConfig) {
-                setShowConfigModal(true);
-                // Don't simplify return here, we still want to load stats if possible (might be empty)
-                // But usually if no config, stats are 0.
-            }
-
+        const loadStats = async () => {
             // Cargar estadísticas
             try {
                 const [recetas, pacientes] = await Promise.all([
@@ -72,13 +63,8 @@ export default function HomePage() {
                 setStats(prev => ({ ...prev, loading: false }));
             }
         };
-        checkConfig();
+        loadStats();
     }, [router]);
-
-    const handleConfigSuccess = () => {
-        setShowConfigModal(false);
-        // Could trigger a reload or just let them continue
-    };
 
     const handleRecetaSuccess = () => {
         // Receta created successfully
@@ -96,13 +82,6 @@ export default function HomePage() {
 
     return (
         <div className="space-y-8">
-            <ConfiguracionModal
-                open={showConfigModal}
-                onOpenChange={setShowConfigModal}
-                onSuccess={handleConfigSuccess}
-                preventClose={true}
-            />
-
             <RecetaDialog
                 open={showRecetaDialog}
                 onOpenChange={setShowRecetaDialog}

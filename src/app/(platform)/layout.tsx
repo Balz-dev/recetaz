@@ -7,6 +7,7 @@ import { OnlineStatusIndicator } from "@/shared/components/ui/OnlineStatusIndica
 import { DatabaseInitializer } from "@/shared/components/layout/DatabaseInitializer";
 import ServiceWorkerRegister from './ServiceWorkerRegister';
 import Script from 'next/script';
+import { InitialConfigModal } from "@/features/config-medico/components/InitialConfigModal";
 
 export const metadata: Metadata = {
     title: "Recetas Médicas - Sistema de Gestión",
@@ -52,6 +53,7 @@ export default function PlatformLayout({
                 <Toaster />
                 <OnlineStatusIndicator />
                 <DatabaseInitializer />
+                <InitialConfigModal />
                 <ServiceWorkerRegister />
                 {/* Fallback: ensure SW registration runs after interactive. */}
                 <Script id="sw-register" strategy="afterInteractive">

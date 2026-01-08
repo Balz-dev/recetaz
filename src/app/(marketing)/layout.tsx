@@ -26,21 +26,40 @@ export default function MarketingLayout({
               <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
                 <Link href="/" className="flex items-center space-x-2">
                   <span className="text-2xl font-bold text-blue-600 dark:text-blue-500">
-                    <Image 
-                      src="/fenotipo.svg" 
-                      alt="Logo RecetaZ" 
-                      width={1214} 
-                      height={276} 
+                    <Image
+                      src="/fenotipo.svg"
+                      alt="Logo RecetaZ"
+                      width={1214}
+                      height={276}
                       className="h-8 w-auto"
                       priority
                     />
                   </span>
                 </Link>
-                <div className="flex items-center space-x-4">
+
+                <nav className="hidden md:flex items-center space-x-8">
+                  <Link href="#features" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
+                    Funciones
+                  </Link>
+                  <Link href="#how-it-works" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
+                    Cómo funciona
+                  </Link>
+                  <Link href="#trust" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
+                    Seguridad
+                  </Link>
+                  <Link href="#pricing" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
+                    Precios
+                  </Link>
+                  <Link href="#faq" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
+                    FAQ
+                  </Link>
+                </nav>
+
+                <div className="flex items-center space-x-2 sm:space-x-4">
                   <ThemeToggle />
                   <Link
                     href="/demo"
-                    className="hidden sm:inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                   >
                     Probar Demo
                   </Link>
@@ -55,16 +74,16 @@ export default function MarketingLayout({
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                   <div className="col-span-1 md:col-span-2">
                     <span className="text-xl font-bold text-blue-600 dark:text-blue-500">
-                      <Image 
-                        src="/fenotipo.svg" 
-                        alt="Logo RecetaZ" 
-                        width={1214} 
-                        height={276} 
+                      <Image
+                        src="/fenotipo.svg"
+                        alt="Logo RecetaZ"
+                        width={1214}
+                        height={276}
                         className="h-7 w-auto"
                       />
                     </span>
                     <p className="mt-4 text-slate-600 dark:text-slate-400 max-w-xs">
-                      La forma más rápida y ordenada de hacer recetas médicas en México. 
+                      La forma más rápida y ordenada de hacer recetas médicas en México.
                       Adiós al Word, hola a la eficiencia.
                     </p>
                   </div>

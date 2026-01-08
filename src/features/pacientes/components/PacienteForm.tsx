@@ -24,7 +24,7 @@ import {
     SelectValue,
 } from "@/shared/components/ui/select"
 import { medicoService } from "@/features/config-medico/services/medico.service"
-import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
+import { db } from "@/shared/db/db.config"
 import { useEffect, useState } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { useRouter } from "next/navigation"
@@ -82,10 +82,22 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
 
     useEffect(() => {
         const loadConfig = async () => {
-            const config = await medicoService.get();
-            if (config) {
-                const key = config.especialidadKey || 'general';
-                setSpecialtyConfig(SPECIALTIES_CONFIG[key] || SPECIALTIES_CONFIG['general']);
+            try {
+                const config = await medicoService.get();
+                if (config && config.especialidadKey) {
+                    const spConfig = await db.especialidades.get(config.especialidadKey);
+                    if (spConfig) {
+                        setSpecialtyConfig(spConfig);
+                    } else {
+                        const generalConfig = await db.especialidades.get('general');
+                        setSpecialtyConfig(generalConfig);
+                    }
+                } else {
+                    const generalConfig = await db.especialidades.get('general');
+                    setSpecialtyConfig(generalConfig);
+                }
+            } catch (error) {
+                console.error("Error cargando configuración de especialidad:", error);
             }
         };
         loadConfig();
@@ -160,10 +172,10 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                             ) : fieldDef.type === 'textarea' ? (
                                 <Textarea placeholder={fieldDef.placeholder} {...field} />
                             ) : (
-                                <Input 
-                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'} 
-                                    placeholder={fieldDef.placeholder} 
-                                    {...field} 
+                                <Input
+                                    type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'}
+                                    placeholder={fieldDef.placeholder}
+                                    {...field}
                                 />
                             )}
                         </FormControl>
@@ -192,12 +204,12 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
 
                 {/* Campos Dinámicos - Datos Personales */}
                 {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_personales') && (
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
                         <div className="md:col-span-2 font-medium text-slate-700">Datos Personales Adicionales</div>
                         {specialtyConfig.patientFields
                             .filter((f: any) => f.section === 'datos_personales')
                             .map(renderDynamicField)}
-                     </div>
+                    </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -283,12 +295,12 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
 
                 {/* Campos Dinámicos - Datos Médicos */}
                 {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_medicos') && (
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
                         <div className="md:col-span-2 font-medium text-slate-700">Información Médica Adicional</div>
                         {specialtyConfig.patientFields
                             .filter((f: any) => f.section === 'datos_medicos')
                             .map(renderDynamicField)}
-                     </div>
+                    </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

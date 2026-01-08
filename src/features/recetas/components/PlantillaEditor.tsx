@@ -10,10 +10,10 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, pointerWithin, Modifier } from "@dnd-kit/core"
 import { restrictToParentElement } from "@dnd-kit/modifiers"
-import { PlantillaReceta, CampoPlantilla, PlantillaRecetaFormData } from "@/types"
+import { PlantillaReceta, CampoPlantilla, PlantillaRecetaFormData, EspecialidadCatalogo } from "@/types"
 import { plantillaService } from "@/features/recetas/services/plantilla.service"
 import { medicoService } from "@/features/config-medico/services/medico.service"
-import { SPECIALTIES_CONFIG } from "@/shared/config/specialties"
+import { db } from "@/shared/db/db.config"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -23,7 +23,7 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
-import { ToggleLeft, Trash2, Copy } from "lucide-react"
+import { ToggleLeft, Trash2, Copy, Download } from "lucide-react"
 import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
 import { ToolbarPropiedades } from "./ToolbarPropiedades"
 import { useRouter } from "next/navigation"
@@ -36,18 +36,25 @@ import { cn } from "@/lib/utils"
  * @param id - Identificador único del campo
  * @returns Texto de ejemplo representativo del contenido del campo
  */
-function getExampleText(id: string): string {
+/**
+ * Obtiene el texto de ejemplo para un campo específico.
+ * 
+ * @param id - Identificador único del campo
+ * @param medicoConfig - Configuración real del médico para datos dinámicos
+ * @returns Texto de ejemplo representativo del contenido del campo
+ */
+function getExampleText(id: string, medicoConfig?: any): string {
     const examples: Record<string, string> = {
-        medico_nombre: "Dr. Juan Pérez",
-        medico_especialidad: "Cardiología Clínica",
-        medico_institucion_gral: "Universidad Nacional",
-        medico_cedula_gral: "12345678",
-        medico_institucion_esp: "Hospital General",
-        medico_cedula_esp: "87654321",
-        medico_domicilio: "Av. Reforma 123, Col. Centro, CDMX",
-        medico_contacto: "55 1234 5678",
-        medico_correo: "dr.juan@email.com",
-        medico_web: "www.drjuan.com",
+        medico_nombre: medicoConfig?.nombre || "Dr. Juan Pérez",
+        medico_especialidad: medicoConfig?.especialidad || "Cardiología Clínica",
+        medico_institucion_gral: medicoConfig?.institucion_gral || "Universidad Nacional",
+        medico_cedula_gral: medicoConfig?.cedula || "12345678",
+        medico_institucion_esp: medicoConfig?.institucion_esp || "Hospital General",
+        medico_cedula_esp: medicoConfig?.cedula_esp || "87654321",
+        medico_domicilio: medicoConfig?.direccion || "Av. Reforma 123, Col. Centro, CDMX",
+        medico_contacto: medicoConfig?.telefono || "55 1234 5678",
+        medico_correo: medicoConfig?.correo || "dr.juan@email.com",
+        medico_web: medicoConfig?.web || "www.drjuan.com",
         fecha: "16 Oct 2025",
         paciente_nombre: "María González López",
         paciente_edad: "34 años",
@@ -124,8 +131,8 @@ function getExampleText(id: string): string {
  * @param id - Identificador del campo
  * @returns Ancho en porcentaje del canvas (mínimo: 5%, máximo: 95%)
  */
-function calcularAnchoOptimo(id: string): number {
-    const texto = getExampleText(id);
+function calcularAnchoOptimo(id: string, medicoConfig?: any): number {
+    const texto = getExampleText(id, medicoConfig);
 
     // Si hay saltos de línea, calculamos el ancho basado en la línea más larga
     const lineas = texto.split('\n');
@@ -308,7 +315,7 @@ function canResizeHeight(field: CampoPlantilla): boolean {
  * @param props.containerRef - Referencia al contenedor canvas para cálculos de posición
  * @returns Elemento JSX del campo arrastrable
  */
-function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef, isEditing, onToggleEditing }: {
+function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate, containerRef, isEditing, onToggleEditing, medicoConfig }: {
     field: CampoPlantilla,
     isSelected: boolean,
     onSelect: () => void,
@@ -317,6 +324,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
     containerRef: React.RefObject<HTMLDivElement | null>
     isEditing?: boolean
     onToggleEditing?: (editing: boolean) => void
+    medicoConfig?: any
 }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: field.id,
@@ -574,7 +582,7 @@ function CanvasDraggableField({ field, isSelected, onSelect, onResize, onUpdate,
                                 }}
                                 className="pointer-events-none block"
                             >
-                                {getExampleText(field.id)}
+                                {getExampleText(field.id, medicoConfig)}
                             </span>
                         </div>
                     )}
@@ -620,10 +628,10 @@ function SidebarAccordion({ title, icon, children, defaultOpen = false }: { titl
  * @param props.field - Campo siendo arrastrado
  * @returns Elemento JSX del overlay o null si no hay campo
  */
-function DragItemOverlay({ field }: { field: any }) {
+function DragItemOverlay({ field, medicoConfig }: { field: any, medicoConfig?: any }) {
     if (!field) return null;
 
-    const text = getExampleText(field.id);
+    const text = getExampleText(field.id, medicoConfig);
     const textShort = text.length > 40 ? text.substring(0, 40) + "..." : text;
 
     return (
@@ -688,7 +696,38 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const [imprimirFondo, setImprimirFondo] = useState(false)
 
     // Estado del Editor
+    const [medicoConfig, setMedicoConfig] = useState<any>(null)
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
+    // ... (rest of state)
+
+    // Cargar config del médico
+    useEffect(() => {
+        const loadMedicoConfig = async () => {
+            const config = await medicoService.get();
+            setMedicoConfig(config);
+
+            // Actualizar campos disponibles con el logo real si existe
+            if (config?.logo) {
+                setAvailableFields(current => current.map(field => {
+                    if (field.id === 'medico_logo') {
+                        return { ...field, src: config.logo };
+                    }
+                    return field;
+                }));
+            }
+        };
+        loadMedicoConfig();
+    }, []);
+
+    // ... (rest of code)
+
+    // Render DragItemOverlay
+    // Change this: <DragItemOverlay field={activeDragItem.field} />
+    // To: <DragItemOverlay field={activeDragItem.field} medicoConfig={medicoConfig} />
+
+    // Render CanvasDraggableField
+    // Change this: <CanvasDraggableField ... />
+    // To: <CanvasDraggableField ... medicoConfig={medicoConfig} />
     const [availableFields, setAvailableFields] = useState<EditorFieldDef[]>(BASE_FIELDS_DEF)
     const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
     const [editingFieldId, setEditingFieldId] = useState<string | null>(null)
@@ -734,43 +773,56 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         }
     }, [plantillaId, router, toast])
 
-    // Cargar campos dinámicos de la especialidad
+    // Cargar campos dinámicos de la especialidad desde BD
     useEffect(() => {
         const loadSpecialtyFields = async () => {
-            const config = await medicoService.get();
-            if (config) {
-                const key = config.especialidadKey || 'general';
-                const specialtyConfig = SPECIALTIES_CONFIG[key];
+            try {
+                const config = await medicoService.get();
+                if (config) {
+                    const key = config.especialidadKey || 'general';
+                    let specialtyConfig: EspecialidadCatalogo | undefined | null = null;
 
-                if (specialtyConfig) {
-                    const newFields: EditorFieldDef[] = [];
+                    try {
+                        specialtyConfig = await db.especialidades.get(key);
+                        if (!specialtyConfig) {
+                            specialtyConfig = await db.especialidades.get('general');
+                        }
+                    } catch (e) {
+                        console.error("Error obteniendo especialidad de DB", e);
+                    }
 
-                    // Mapear campos de paciente
-                    specialtyConfig.patientFields?.forEach(f => {
-                        const dynamicId = `datos_${f.id}`;
-                        newFields.push({
-                            id: dynamicId,
-                            etiqueta: f.label,
-                            tipo: 'texto',
-                            get defaultW() { return calcularAnchoOptimo(this.id); },
-                            get defaultH() { return calcularAltoOptimo(this.id); }
+                    if (specialtyConfig) {
+                        const newFields: EditorFieldDef[] = [];
+
+                        // Mapear campos de paciente
+                        specialtyConfig.patientFields?.forEach(f => {
+                            const dynamicId = `datos_${f.id}`;
+                            newFields.push({
+                                id: dynamicId,
+                                etiqueta: f.label,
+                                tipo: 'texto',
+                                get defaultW() { return calcularAnchoOptimo(this.id); },
+                                get defaultH() { return calcularAltoOptimo(this.id); }
+                            });
                         });
-                    });
 
-                    // Mapear campos de receta
-                    specialtyConfig.prescriptionFields?.forEach(f => {
-                        const dynamicId = `datos_${f.id}`;
-                        newFields.push({
-                            id: dynamicId,
-                            etiqueta: f.label,
-                            tipo: 'texto',
-                            get defaultW() { return calcularAnchoOptimo(this.id); },
-                            get defaultH() { return calcularAltoOptimo(this.id); }
+                        // Mapear campos de receta
+                        specialtyConfig.prescriptionFields?.forEach(f => {
+                            const dynamicId = `datos_${f.id}`;
+                            newFields.push({
+                                id: dynamicId,
+                                etiqueta: f.label,
+                                tipo: 'texto',
+                                get defaultW() { return calcularAnchoOptimo(this.id); },
+                                get defaultH() { return calcularAltoOptimo(this.id); }
+                            });
                         });
-                    });
 
-                    setAvailableFields([...BASE_FIELDS_DEF, ...newFields]);
+                        setAvailableFields([...BASE_FIELDS_DEF, ...newFields]);
+                    }
                 }
+            } catch (error) {
+                console.error("Error al cargar campos de especialidad:", error);
             }
         };
         loadSpecialtyFields();
@@ -1032,6 +1084,38 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     }
 
     /**
+     * Exporta la configuración actual de la plantilla a un archivo JSON.
+     * Este archivo puede ser compartido o usado para crear copias de seguridad.
+     * Descarga el archivo automáticamente en el dispositivo del usuario.
+     */
+    const handleExportJson = () => {
+        const datosExportacion = {
+            nombre,
+            tamanoPapel,
+            imagenFondo,
+            imprimirFondo,
+            campos,
+            activa: false, // Por defecto al exportar, inactiva
+        };
+
+        const jsonString = JSON.stringify(datosExportacion, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${nombre.replace(/\s+/g, "_") || "plantilla"}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: "Exportado",
+            description: "Plantilla exportada a JSON correctamente.",
+        });
+    };
+
+    /**
      * Añade un campo al centro del canvas (Click-to-Add).
      */
     const handleAddField = (def: EditorFieldDef) => {
@@ -1112,6 +1196,10 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600">
                             {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                             Guardar Plantilla
+                        </Button>
+                        <Button variant="outline" onClick={handleExportJson}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar Plantilla
                         </Button>
                     </div>
                 </div>
@@ -1291,6 +1379,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                         isEditing={editingFieldId === field.id}
                                         onToggleEditing={(isEd) => setEditingFieldId(isEd ? field.id : null)}
                                         containerRef={containerRef}
+                                        medicoConfig={medicoConfig}
                                     />
                                 ))}
 
@@ -1342,7 +1431,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
             {/* Overlay para arrastre visual suave */}
             <DragOverlay modifiers={[snapToCursor]} style={{ zIndex: 9999 }} dropAnimation={null}>
-                {activeDragItem ? <DragItemOverlay field={activeDragItem} /> : null}
+                {activeDragItem ? <DragItemOverlay field={activeDragItem} medicoConfig={medicoConfig} /> : null}
             </DragOverlay>
         </DndContext>
     )
