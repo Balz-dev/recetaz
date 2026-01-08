@@ -2,7 +2,7 @@
     "name": "RecetaZ",
     "short_name": "RecetaZ",
     "description": "Sistema para gestión de recetas médicas local y offline",
-    "start_url": "/",
+    "start_url": "/dashboard",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#0066CC",

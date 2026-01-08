@@ -21,6 +21,7 @@ import {
     Activity
 } from 'lucide-react';
 import { PremiumModal } from '@/shared/components/modals/PremiumModal';
+import { DemoIndicator } from '@/shared/components/ui/DemoIndicator';
 
 /**
  * Definición de las rutas de navegación del sidebar.
@@ -175,6 +176,9 @@ export function Sidebar() {
                     </Button>
                 </Link>
             </div>
+
+            {/* Indicador de Modo Demo */}
+            <DemoIndicator />
 
             {/* Modal Premium */}
             {selectedFeature && (

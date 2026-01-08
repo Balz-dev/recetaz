@@ -60,8 +60,9 @@ class RecetasDatabase extends Dexie {
     /** Tabla de catálogo de especialidades médicas */
     especialidades!: Table<EspecialidadCatalogo>;
 
-    constructor() {
-        super('RecetasMedicasDB');
+    constructor(dbName: string = 'RecetasMedicasDB') {
+        super(dbName);
+
 
         // Definición de esquemas de la base de datos
         // La versión 2 agrega el índice 'createdAt' a recetas para ordenamiento
@@ -193,11 +194,20 @@ class RecetasDatabase extends Dexie {
 }
 
 /**
- * Instancia única de la base de datos.
- * Esta es la instancia que se debe importar en todos los servicios.
- * 
- * @example
- * import { db } from '@/shared/db/db.config';
- * const pacientes = await db.pacientes.toArray();
+ * Determina si estamos en modo Demo basándose en la URL.
+ * En Next.js, window solo está disponible en el cliente.
  */
-export const db = new RecetasDatabase();
+const getDBName = () => {
+    if (typeof window !== 'undefined') {
+        const isDemo = localStorage.getItem('recetaz_is_demo') === 'true' ||
+            window.location.pathname.startsWith('/demo');
+        return isDemo ? 'RecetasMedicasDB_Demo' : 'RecetasMedicasDB';
+    }
+    return 'RecetasMedicasDB';
+};
+
+/**
+ * Instancia única de la base de datos.
+ * Se adapta automáticamente al contexto (Demo o Real).
+ */
+export const db = new RecetasDatabase(getDBName());
