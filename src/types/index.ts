@@ -101,6 +101,8 @@ export type RecetaFormData = {
     pacienteCedula?: string;
     pacientePeso?: string;
     pacienteTalla?: string;
+    pacienteAlergias?: string;
+    pacienteAntecedentes?: string;
     // Datos de la receta
     diagnostico: string;
     medicamentos: Omit<Medicamento, 'id'>[];
