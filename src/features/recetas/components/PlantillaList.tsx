@@ -20,7 +20,11 @@ import {
     AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog"
 
-export function PlantillaList() {
+interface PlantillaListProps {
+    defaultTab?: 'mine' | 'gallery';
+}
+
+export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
     const [plantillas, setPlantillas] = useState<PlantillaReceta[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -28,7 +32,7 @@ export function PlantillaList() {
     const router = useRouter()
 
     const [galleryTemplates, setGalleryTemplates] = useState<any[]>([])
-    const [activeTab, setActiveTab] = useState<'mine' | 'gallery'>('mine')
+    const [activeTab, setActiveTab] = useState<'mine' | 'gallery'>(defaultTab)
     const [isGalleryLoading, setIsGalleryLoading] = useState(false)
 
     const loadPlantillas = async () => {
@@ -53,41 +57,61 @@ export function PlantillaList() {
      * Esto permite el funcionamiento offline/estático sin depender de una API Routes.
      */
     const loadGallery = async () => {
-        if (galleryTemplates.length > 0) return; // Cache simple
+        // Si ya hay datos y no queremos forzar recarga, salimos
+        if (galleryTemplates.length > 0 && !isGalleryLoading) return;
+
+        console.log("Iniciando carga de galería desde manifest.json...");
         setIsGalleryLoading(true);
         try {
-            // Fetch al manifiesto estático en public/plantillas/manifest.json
-            const res = await fetch('/plantillas/manifest.json');
-            if (res.ok) {
-                const manifest = await res.json();
-
-                // Mapear el manifiesto y, si es necesario, cargar contenido adicional
-                // En este caso, asumimos que el manifiesto puede tener metadata suficiente, 
-                // o cargamos el contenido bajo demanda al importar.
-                // Para simplificar la vista previa, cargamos los JSONs individuales si están en el manifiesto.
-
-                const templatesWithContent = await Promise.all(manifest.map(async (item: any) => {
-                    try {
-                        const contentRes = await fetch(`/plantillas/${item.filename}`);
-                        if (contentRes.ok) {
-                            const content = await contentRes.json();
-                            return {
-                                ...item,
-                                content // Guardamos el contenido completo para la previsualización
-                            };
-                        }
-                        return item;
-                    } catch (e) {
-                        console.error(`Error loading template ${item.filename}`, e);
-                        return item;
-                    }
-                }));
-
-                setGalleryTemplates(templatesWithContent);
+            const res = await fetch('/plantillas/manifest.json', { cache: 'no-store' });
+            if (!res.ok) {
+                throw new Error(`Error al obtener manifest.json: ${res.status} ${res.statusText}`);
             }
+
+            const manifest = await res.json();
+            console.log("Manifest cargado correctamente:", manifest);
+
+            if (!Array.isArray(manifest)) {
+                throw new Error("El manifest.json no es un array válido");
+            }
+
+            const templatesWithContent = await Promise.all(manifest.map(async (item: any) => {
+                try {
+                    const filename = item.filename;
+                    console.log(`Cargando contenido para: ${filename}`);
+                    const contentRes = await fetch(`/plantillas/${filename}`, { cache: 'no-store' });
+
+                    if (contentRes.ok) {
+                        const content = await contentRes.json();
+                        return {
+                            ...item,
+                            tamanoPapel: (item.tamanoPapel || content.tamanoPapel)?.replace('-', '_') || 'media_carta',
+                            imagenFondo: item.imagenFondo || content.imagenFondo || '',
+                            content
+                        };
+                    } else {
+                        console.warn(`No se pudo cargar el contenido de ${filename}: ${contentRes.status}`);
+                        return {
+                            ...item,
+                            tamanoPapel: item.tamanoPapel?.replace('-', '_') || 'media_carta',
+                            content: null
+                        };
+                    }
+                } catch (e) {
+                    console.error(`Error procesando item de galería ${item.filename}:`, e);
+                    return { ...item, content: null };
+                }
+            }));
+
+            console.log("Galería procesada con éxito:", templatesWithContent);
+            setGalleryTemplates(templatesWithContent);
         } catch (error) {
-            console.error(error);
-            toast({ title: "Error", description: "Error al cargar la galería", variant: "destructive" });
+            console.error("Error crítico cargando la galería:", error);
+            toast({
+                title: "Error de Galería",
+                description: error instanceof Error ? error.message : "No se pudo cargar la galería prediseñada",
+                variant: "destructive"
+            });
         } finally {
             setIsGalleryLoading(false);
         }
@@ -150,19 +174,21 @@ export function PlantillaList() {
     const handleImportTemplate = async (template: any) => {
         try {
             // Crear nueva plantilla basada en el JSON
-            const newTemplateData = {
+            const newTemplateData: any = {
                 ...template.content,
                 nombre: `${template.nombre} (Copia)`,
-                activa: false, // Importar como inactiva
-                id: undefined // Dejar que el servicio genere ID
+                activa: true,
+                id: undefined,
+                tamanoPapel: template.tamanoPapel || template.content?.tamanoPapel?.replace('-', '_'),
+                imagenFondo: template.imagenFondo || template.content?.imagenFondo
             };
 
             // Si el servicio devuelve el ID de la nueva plantilla:
             const id = await plantillaService.create(newTemplateData);
 
             toast({
-                title: "Plantilla Importada",
-                description: "La plantilla se ha añadido a tu colección."
+                title: "Plantilla Importada y Activada",
+                description: "La plantilla se ha añadido y activado. Puedes editarla en 'Mis Plantillas' para mejorar la precisión y el diseño personalizado."
             });
 
             // Recargar mis plantillas y cambiar tab
@@ -220,9 +246,9 @@ export function PlantillaList() {
 
             {activeTab === 'mine' ? (
                 isLoading ? (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                         {[1, 2, 3].map((i) => (
-                            <Card key={i} className="animate-pulse h-48 bg-slate-100" />
+                            <Card key={i} className="animate-pulse h-64 bg-slate-50 border-slate-100" />
                         ))}
                     </div>
                 ) : plantillas.length === 0 ? (
@@ -241,41 +267,48 @@ export function PlantillaList() {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                         {plantillas.map((plantilla) => (
-                            <Card key={plantilla.id} className={`relative overflow-hidden transition-all hover:shadow-md ${plantilla.activa ? 'border-green-500 ring-1 ring-green-500' : ''}`}>
-                                {plantilla.activa && (
-                                    <div className="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-bl z-10">
-                                        Activa
+                            <Card key={plantilla.id} className={`relative overflow-hidden transition-all hover:shadow-2xl border-slate-200 group hover:-translate-y-2 duration-300 bg-white ${plantilla.activa ? 'ring-2 ring-green-500/20 border-green-500/50 shadow-green-500/5' : ''}`}>
+                                {plantilla.activa ? (
+                                    <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-bl shadow-md z-20 flex items-center gap-1">
+                                        <CheckCircle className="h-3 w-3" />
+                                        ACTIVA
+                                    </div>
+                                ) : (
+                                    <div className="absolute top-0 right-0 bg-slate-100 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-bl z-20">
+                                        PERSONAL
                                     </div>
                                 )}
-                                <CardHeader className="pb-4">
-                                    <CardTitle className="flex justify-between items-start text-base">
+                                <CardHeader className="p-5 pb-3">
+                                    <CardTitle className="flex justify-between items-start text-xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
                                         <span className="truncate pr-2" title={plantilla.nombre}>{plantilla.nombre}</span>
                                     </CardTitle>
-                                    <CardDescription className="text-xs">
-                                        Papel: {plantilla.tamanoPapel === 'carta' ? 'Carta' : 'Media Carta'}
+                                    <CardDescription className="text-[10px] font-bold text-slate-500">
+                                        {plantilla.tamanoPapel === 'carta' ? 'Tamaño Carta' : 'Media Carta'}
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    <div className={`border rounded flex items-center justify-center mb-4 relative overflow-hidden group mx-auto text-center bg-slate-50
-                                        ${plantilla.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'} w-full shadow-sm`}
+                                <CardContent className="p-5 pt-0">
+                                    <div className={`border rounded-lg flex items-center justify-center mb-6 relative overflow-hidden mx-auto bg-slate-50/50
+                                        ${plantilla.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'} w-full shadow-inner group-hover:bg-white transition-colors duration-500`}
                                     >
-                                        {plantilla.imagenFondo ? (
+                                        {plantilla.imagenFondo || (plantilla as any).content?.imagenFondo ? (
                                             <img
-                                                src={plantilla.imagenFondo}
+                                                src={plantilla.imagenFondo || (plantilla as any).content?.imagenFondo}
                                                 alt="Previsualización"
-                                                className="w-full h-full object-cover opacity-50"
+                                                className="w-full h-full object-contain opacity-90 transition-opacity"
                                             />
                                         ) : (
-                                            <div className="text-xs text-slate-400">Sin fondo</div>
+                                            <div className="flex flex-col items-center gap-3 text-slate-200">
+                                                <FileText className="h-12 w-12 opacity-10" />
+                                            </div>
                                         )}
-                                        {/* Miniatura de campos */}
-                                        <div className="absolute inset-0 p-2 overflow-hidden pointer-events-none">
-                                            {plantilla.campos.filter(c => c.visible).map(c => (
+                                        {/* Miniatura de campos sutil como galería */}
+                                        <div className="absolute inset-0 p-1 overflow-hidden pointer-events-none opacity-40">
+                                            {(plantilla.campos || (plantilla as any).content?.campos)?.filter((c: any) => c.visible).map((c: any) => (
                                                 <div
                                                     key={c.id}
-                                                    className="absolute bg-blue-200/50 border border-blue-300/50 rounded-[1px]"
+                                                    className="absolute bg-blue-400/10 border-[0.5px] border-blue-400/20 rounded-[0.5px]"
                                                     style={{
                                                         left: `${c.x}%`,
                                                         top: `${c.y}%`,
@@ -287,31 +320,42 @@ export function PlantillaList() {
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-between gap-2">
-                                        {!plantilla.activa && (
+                                    <div className="flex items-center justify-between gap-3">
+                                        {!plantilla.activa ? (
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
-                                                className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8 text-xs px-2"
+                                                className="h-9 px-4 text-xs font-semibold text-green-600 border-green-200 hover:bg-green-50 transition-all flex-grow justify-center"
                                                 onClick={(e) => handleActivate(plantilla.id, e)}
                                             >
-                                                <CheckCircle className="h-3 w-3 mr-1" />
+                                                <CheckCircle className="h-4 w-4 mr-2" />
                                                 Activar
                                             </Button>
+                                        ) : (
+                                            <div className="flex-grow text-center text-[10px] font-bold text-green-600 bg-green-50 py-2 rounded-md border border-green-100">
+                                                DISEÑO EN USO
+                                            </div>
                                         )}
-                                        <div className="flex gap-2 ml-auto">
+
+                                        <div className="flex gap-2">
                                             <Link href={`/recetas/plantillas/${plantilla.id}`}>
-                                                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                                                    <Edit className="h-3 w-3" />
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-9 w-9 p-0 hover:border-blue-400 hover:text-blue-600 transition-all shadow-sm"
+                                                    title="Editar diseño"
+                                                >
+                                                    <Edit className="h-4 w-4" />
                                                 </Button>
                                             </Link>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 w-8 p-0"
+                                                className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm"
                                                 onClick={() => setDeleteId(plantilla.id)}
+                                                title="Eliminar plantilla"
                                             >
-                                                <Trash2 className="h-3 w-3" />
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     </div>
@@ -321,52 +365,54 @@ export function PlantillaList() {
                     </div>
                 )
             ) : (
-                /* Gallery Tab UI */
                 <div className="space-y-4">
                     <p className="text-sm text-slate-500">
                         Seleccione una plantilla base para importarla a su colección y personalizarla.
                     </p>
-                    {isGalleryLoading ? (
+                    {isGalleryLoading && (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {[1].map((i) => <Card key={i} className="animate-pulse h-48 bg-slate-100" />)}
+                            {[1, 2, 3].map((i) => <Card key={i} className="animate-pulse h-48 bg-slate-100" />)}
                         </div>
-                    ) : galleryTemplates.length === 0 ? (
+                    )}
+                    {galleryTemplates.length === 0 && !isGalleryLoading ? (
                         <div className="text-center py-8 text-slate-500">
                             No hay plantillas públicas disponibles por el momento.
                         </div>
                     ) : (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                             {galleryTemplates.map((template, idx) => (
-                                <Card key={idx} className="relative overflow-hidden transition-all hover:shadow-md border-slate-200">
-                                    <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-bl">
+                                <Card key={idx} className="relative overflow-hidden transition-all hover:shadow-2xl border-slate-200 group hover:-translate-y-2 duration-300 bg-white">
+                                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[12px] font-bold px-4 py-1.5 rounded-bl shadow-md z-20">
                                         GALERÍA
                                     </div>
-                                    <CardHeader className="pb-4">
-                                        <CardTitle className="flex justify-between items-start text-base">
+                                    <CardHeader className="p-5 pb-3">
+                                        <CardTitle className="flex justify-between items-start text-xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
                                             <span className="truncate pr-2" title={template.nombre}>{template.nombre}</span>
                                         </CardTitle>
-                                        <CardDescription className="text-xs">
-                                            Papel: {template.tamanoPapel === 'carta' ? 'Carta' : 'Media Carta'}
+                                        <CardDescription className="text-[10px] font-bold text-slate-500">
+                                            {template.tamanoPapel === 'carta' ? 'Tamaño Carta' : 'Media Carta'}
                                         </CardDescription>
                                     </CardHeader>
-                                    <CardContent>
-                                        <div className={`border rounded flex items-center justify-center mb-4 relative overflow-hidden mx-auto text-center bg-slate-50
-                                            ${template.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'} w-full shadow-sm`}
+                                    <CardContent className="p-5 pt-0">
+                                        <div className={`border rounded-lg flex items-center justify-center mb-6 relative overflow-hidden mx-auto bg-slate-50/50
+                                            ${template.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'} w-full shadow-inner group-hover:bg-white transition-colors duration-500`}
                                         >
                                             {template.imagenFondo || template.content?.imagenFondo ? (
                                                 <img
                                                     src={template.imagenFondo || template.content?.imagenFondo}
                                                     alt="Previsualización"
-                                                    className="w-full h-full object-cover opacity-50"
+                                                    className="w-full h-full object-contain opacity-90 transition-opacity"
                                                 />
                                             ) : (
-                                                <div className="text-xs text-slate-400">Sin fondo</div>
+                                                <div className="flex flex-col items-center gap-3 text-slate-200">
+                                                    <FileText className="h-12 w-12 opacity-10" />
+                                                </div>
                                             )}
-                                            <div className="absolute inset-0 p-2 overflow-hidden pointer-events-none">
+                                            <div className="absolute inset-0 p-1 overflow-hidden pointer-events-none opacity-40">
                                                 {template.content?.campos?.filter((c: any) => c.visible).map((c: any) => (
                                                     <div
                                                         key={c.id}
-                                                        className="absolute bg-slate-400/30 border border-slate-500/30 rounded-[1px]"
+                                                        className="absolute bg-blue-400/10 border-[0.5px] border-blue-400/20 rounded-[0.5px]"
                                                         style={{
                                                             left: `${c.x}%`,
                                                             top: `${c.y}%`,
@@ -379,12 +425,12 @@ export function PlantillaList() {
                                         </div>
 
                                         <Button
-                                            className="w-full"
+                                            className="w-full h-11 text-sm font-semibold shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-[0.98] transition-all"
                                             variant="secondary"
                                             onClick={() => handleImportTemplate(template)}
                                         >
                                             <Plus className="mr-2 h-4 w-4" />
-                                            Importar a Mis Plantillas
+                                            Importar Plantilla
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -392,7 +438,8 @@ export function PlantillaList() {
                         </div>
                     )}
                 </div>
-            )}
+            )
+            }
 
             <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
                 <AlertDialogContent>
@@ -410,6 +457,6 @@ export function PlantillaList() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </div >
     )
 }

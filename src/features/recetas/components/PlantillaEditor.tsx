@@ -1148,15 +1148,15 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                 // Cargar los datos al estado
                 setNombre(data.nombre || `${nombre} (Importado)`);
-                setTamanoPapel(data.tamanoPapel || 'media_carta');
+                setTamanoPapel((data.tamanoPapel || 'media_carta').replace('-', '_'));
                 setImagenFondo(data.imagenFondo);
                 setImprimirFondo(!!data.imprimirFondo);
                 setCampos(data.campos);
-                setActiva(false); // Por seguridad, la importada empieza inactiva
+                setActiva(true);
 
                 toast({
-                    title: "Plantilla Importada",
-                    description: "Los datos se han cargado correctamente en el editor.",
+                    title: "Plantilla Importada y Activada",
+                    description: "Los datos se han cargado en el editor. Puedes editarlos para mejorar la precisión y el diseño personalizado.",
                 });
                 setIsImportDialogOpen(false); // Cerrar modal al tener éxito
             } catch (error) {
@@ -1178,28 +1178,47 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
      * Carga la galería de plantillas desde el manifiesto estático.
      */
     const loadGallery = async () => {
-        if (galleryTemplates.length > 0) return;
+        if (galleryTemplates.length > 0 && !isGalleryLoading) return;
+
+        console.log("[Editor] Iniciando carga de galería...");
         setIsGalleryLoading(true);
         try {
-            const res = await fetch('/plantillas/manifest.json');
-            if (res.ok) {
-                const manifest = await res.json();
-                const templatesWithContent = await Promise.all(manifest.map(async (item: any) => {
-                    try {
-                        const contentRes = await fetch(`/plantillas/${item.filename}`);
-                        if (contentRes.ok) {
-                            const content = await contentRes.json();
-                            return { ...item, content };
-                        }
-                        return item;
-                    } catch (e) {
-                        return item;
-                    }
-                }));
-                setGalleryTemplates(templatesWithContent);
+            const res = await fetch('/plantillas/manifest.json', { cache: 'no-store' });
+            if (!res.ok) {
+                throw new Error(`Error manifest: ${res.status}`);
             }
+
+            const manifest = await res.json();
+            console.log("[Editor] Manifest cargado:", manifest);
+
+            const templatesWithContent = await Promise.all(manifest.map(async (item: any) => {
+                try {
+                    const contentRes = await fetch(`/plantillas/${item.filename}`, { cache: 'no-store' });
+                    if (contentRes.ok) {
+                        const content = await contentRes.json();
+                        return {
+                            ...item,
+                            tamanoPapel: (item.tamanoPapel || content.tamanoPapel)?.replace('-', '_') || 'media_carta',
+                            content
+                        };
+                    }
+                    console.warn(`[Editor] Fallo carga ${item.filename}`);
+                    return item;
+                } catch (e) {
+                    console.error(`[Editor] Error item ${item.filename}:`, e);
+                    return item;
+                }
+            }));
+
+            console.log("[Editor] Galería lista:", templatesWithContent.length, "items");
+            setGalleryTemplates(templatesWithContent);
         } catch (error) {
-            toast({ title: "Error", description: "No se pudo cargar la galería", variant: "destructive" });
+            console.error("[Editor] Error crítico galería:", error);
+            toast({
+                title: "Error de Galería",
+                description: "No se pudieron cargar las plantillas de la galería.",
+                variant: "destructive"
+            });
         } finally {
             setIsGalleryLoading(false);
         }
@@ -1216,15 +1235,15 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
         }
 
         setNombre(data.nombre || `${template.nombre}`);
-        setTamanoPapel(data.tamanoPapel || 'media_carta');
+        setTamanoPapel((data.tamanoPapel || 'media_carta').replace('-', '_'));
         setImagenFondo(data.imagenFondo);
         setImprimirFondo(!!data.imprimirFondo);
         setCampos(data.campos);
-        setActiva(false);
+        setActiva(true);
 
         toast({
-            title: "Plantilla Cargada",
-            description: `Se ha cargado la plantilla "${template.nombre}"`,
+            title: "Plantilla Cargada y Activada",
+            description: `Se ha cargado la plantilla "${template.nombre}". Puedes editarla para mejorar la precisión y el diseño personalizado.`,
         });
         setIsImportDialogOpen(false);
     };
@@ -1361,38 +1380,73 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 </Card>
 
                                 {/* Opción Galería */}
-                                <Card className="border-slate-200 bg-slate-50/30">
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="text-base flex items-center gap-2">
-                                            <Layout className="w-4 h-4 text-blue-600" />
+                                <Card className="border-slate-200 bg-slate-50/30 flex flex-col">
+                                    <CardHeader className="pb-3 border-b bg-white/50">
+                                        <CardTitle className="text-base flex items-center gap-2 text-blue-700">
+                                            <Layout className="w-4 h-4" />
                                             Galería de Plantillas
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="p-4 pt-0">
+                                    <CardContent className="p-4 flex-grow overflow-y-auto max-h-[600px]">
                                         {isGalleryLoading ? (
-                                            <div className="flex justify-center p-8"><Loader2 className="animate-spin h-6 w-6 text-slate-400" /></div>
+                                            <div className="flex flex-col items-center justify-center p-12 gap-3">
+                                                <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+                                                <p className="text-xs text-slate-400 animate-pulse">Cargando diseños...</p>
+                                            </div>
                                         ) : galleryTemplates.length === 0 ? (
                                             <div className="text-center p-8 text-sm text-slate-400">No hay plantillas disponibles</div>
                                         ) : (
-                                            <div className="grid grid-cols-1 gap-3">
+                                            <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
                                                 {galleryTemplates.map((template, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className="flex items-center justify-between p-3 border rounded-lg bg-white hover:border-blue-400 hover:shadow-sm cursor-pointer transition-all"
+                                                        className="group flex flex-col border rounded-xl bg-white hover:border-blue-400 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
                                                         onClick={() => handleSelectFromGallery(template)}
                                                     >
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className="w-10 h-10 border rounded bg-slate-50 flex-shrink-0 flex items-center justify-center">
-                                                                <FileText className="w-5 h-5 text-slate-400" />
-                                                            </div>
-                                                            <div className="overflow-hidden">
-                                                                <p className="text-sm font-medium truncate">{template.nombre}</p>
-                                                                <p className="text-[10px] text-slate-400 uppercase tracking-tight">
-                                                                    {template.tamanoPapel === 'carta' ? 'Carta' : 'Media Carta'}
-                                                                </p>
+                                                        {/* Preview Area - PROPORTIONAL */}
+                                                        <div className={`bg-slate-50 relative overflow-hidden flex items-center justify-center border-b mx-auto w-full
+                                                            ${template.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'}`}
+                                                        >
+                                                            {template.content?.imagenFondo ? (
+                                                                <img
+                                                                    src={template.content.imagenFondo}
+                                                                    alt=""
+                                                                    className="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity p-2"
+                                                                />
+                                                            ) : (
+                                                                <div className="flex flex-col items-center gap-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                                    <FileText className="w-8 h-8" />
+                                                                </div>
+                                                            )}
+                                                            {/* Overlay Fields dots */}
+                                                            <div className="absolute inset-0 p-3 pointer-events-none opacity-30">
+                                                                {template.content?.campos?.slice(0, 20).map((c: any) => (
+                                                                    <div
+                                                                        key={c.id}
+                                                                        className="absolute bg-blue-400/30 border-[0.5px] border-blue-400/40 rounded-[1px]"
+                                                                        style={{
+                                                                            left: `${c.x}%`,
+                                                                            top: `${c.y}%`,
+                                                                            width: `${c.ancho}%`,
+                                                                            height: `${c.alto || 5}%`
+                                                                        }}
+                                                                    />
+                                                                ))}
                                                             </div>
                                                         </div>
-                                                        <Plus className="w-4 h-4 text-slate-300" />
+
+                                                        {/* Info Area */}
+                                                        <div className="p-4 flex items-center justify-between bg-white group-hover:bg-blue-50/30 transition-colors">
+                                                            <div>
+                                                                <p className="text-base font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{template.nombre}</p>
+                                                                <p className="text-xs font-semibold text-blue-500/70 uppercase tracking-widest mt-0.5">
+                                                                    {template.tamanoPapel === 'carta' ? 'Tamaño Carta' : 'Media Carta'}
+                                                                </p>
+                                                            </div>
+                                                            <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0 shadow-lg shadow-blue-500/40">
+                                                                <Plus className="w-5 h-5 font-bold" />
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1427,12 +1481,8 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="flex items-center justify-between border p-2 rounded">
-                                    <Label htmlFor="active" className="cursor-pointer font-normal">Activa</Label>
-                                    <Switch id="active" checked={activa} onCheckedChange={setActiva} />
-                                </div>
                                 <div className="space-y-2 border-t pt-2">
-                                    <Label>Fondo</Label>
+                                    <Label>Cargar imagen de receta membretada</Label>
                                     <div className="flex flex-col gap-2">
                                         {!imagenFondo ? (
                                             <Button
@@ -1466,6 +1516,13 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 </div>
                             </div>
                         </SidebarAccordion>
+
+                        <div className="flex items-center justify-between border p-3 rounded-lg bg-white shadow-sm hover:border-blue-200 transition-colors">
+                            <Label htmlFor="active" className="cursor-pointer font-medium text-slate-700 leading-tight pr-4">
+                                Hacer ésta plantilla principal para sus impresiones PDF
+                            </Label>
+                            <Switch id="active" checked={activa} onCheckedChange={setActiva} />
+                        </div>
 
 
 

@@ -158,14 +158,14 @@ export function Sidebar() {
             {/* Acciones Rápidas */}
             <div className="p-4 border-t border-slate-800 flex flex-col gap-2">
                 <Link href="/recetas?create=true">
-                    <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all duration-300 border-b-4 border-blue-800">
                         <PlusCircle size={20} />
                         Nueva Receta
                     </Button>
                 </Link>
                 <Link href="/recetas/plantillas/nueva">
-                    <Button variant="outline" className="w-full gap-2 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800/50">
-                        <FileType size={20} />
+                    <Button variant="outline" className="w-full gap-2 border-slate-700/50 bg-slate-800/20 text-slate-300 hover:border-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-400/5 hover:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all duration-300 group">
+                        <FileType size={20} className="group-hover:scale-110 transition-transform duration-100" />
                         Plantilla Receta
                     </Button>
                 </Link>

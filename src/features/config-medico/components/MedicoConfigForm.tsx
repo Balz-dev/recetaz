@@ -52,9 +52,11 @@ const medicoFormSchema = z.object({
 
 interface MedicoConfigFormProps {
     onSuccess?: () => void;
+    hideSubmitButton?: boolean;
+    onLoadingChange?: (loading: boolean) => void;
 }
 
-export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
+export function MedicoConfigForm({ onSuccess, hideSubmitButton = false, onLoadingChange }: MedicoConfigFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [logoBase64, setLogoBase64] = useState<string | undefined>(undefined)
@@ -169,9 +171,9 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
         }
     }
 
-    // Manejar envío del formulario
     async function onSubmit(values: MedicoConfigFormDataWithoutLogo) {
         setIsLoading(true)
+        onLoadingChange?.(true)
         try {
             // Asegurar que el nombre de la especialidad coincida con la key seleccionada
             const selectedSpecialty = especialidades.find(e => e.id === (values.especialidadKey || 'general'));
@@ -198,12 +200,13 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
             })
         } finally {
             setIsLoading(false)
+            onLoadingChange?.(false)
         }
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form id="medico-config-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Logo Institucional */}
                 <div className="space-y-4">
                     <div>
@@ -357,19 +360,21 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                     )}
                 />
 
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Guardando...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Guardar Configuración
-                        </>
-                    )}
-                </Button>
+                {!hideSubmitButton && (
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Guardando...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="mr-2 h-4 w-4" />
+                                Guardar Configuración
+                            </>
+                        )}
+                    </Button>
+                )}
             </form>
         </Form>
     )
