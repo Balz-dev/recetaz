@@ -33,6 +33,7 @@ import {
 import { ToggleLeft, Trash2, Copy, Download } from "lucide-react"
 import { Loader2, Plus, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
 import { ToolbarPropiedades } from "./ToolbarPropiedades"
+import { PlantillaGallery } from "./PlantillaGallery"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -707,8 +708,6 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
     // Estado para importación
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
-    const [galleryTemplates, setGalleryTemplates] = useState<any[]>([])
-    const [isGalleryLoading, setIsGalleryLoading] = useState(false)
 
     // Cargar config del médico
     useEffect(() => {
@@ -1158,7 +1157,6 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                     title: "Plantilla Importada y Activada",
                     description: "Los datos se han cargado en el editor. Puedes editarlos para mejorar la precisión y el diseño personalizado.",
                 });
-                setIsImportDialogOpen(false); // Cerrar modal al tener éxito
             } catch (error) {
                 console.error("Error al importar plantilla:", error);
                 toast({
@@ -1169,59 +1167,10 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
             } finally {
                 // Limpiar el input para permitir volver a subir el mismo archivo
                 e.target.value = '';
+                setIsImportDialogOpen(false); // Cerrar modal al tener éxito o error
             }
         };
         reader.readAsText(file);
-    };
-
-    /**
-     * Carga la galería de plantillas desde el manifiesto estático.
-     */
-    const loadGallery = async () => {
-        if (galleryTemplates.length > 0 && !isGalleryLoading) return;
-
-        console.log("[Editor] Iniciando carga de galería...");
-        setIsGalleryLoading(true);
-        try {
-            const res = await fetch('/plantillas/manifest.json', { cache: 'no-store' });
-            if (!res.ok) {
-                throw new Error(`Error manifest: ${res.status}`);
-            }
-
-            const manifest = await res.json();
-            console.log("[Editor] Manifest cargado:", manifest);
-
-            const templatesWithContent = await Promise.all(manifest.map(async (item: any) => {
-                try {
-                    const contentRes = await fetch(`/plantillas/${item.filename}`, { cache: 'no-store' });
-                    if (contentRes.ok) {
-                        const content = await contentRes.json();
-                        return {
-                            ...item,
-                            tamanoPapel: (item.tamanoPapel || content.tamanoPapel)?.replace('-', '_') || 'media_carta',
-                            content
-                        };
-                    }
-                    console.warn(`[Editor] Fallo carga ${item.filename}`);
-                    return item;
-                } catch (e) {
-                    console.error(`[Editor] Error item ${item.filename}:`, e);
-                    return item;
-                }
-            }));
-
-            console.log("[Editor] Galería lista:", templatesWithContent.length, "items");
-            setGalleryTemplates(templatesWithContent);
-        } catch (error) {
-            console.error("[Editor] Error crítico galería:", error);
-            toast({
-                title: "Error de Galería",
-                description: "No se pudieron cargar las plantillas de la galería.",
-                variant: "destructive"
-            });
-        } finally {
-            setIsGalleryLoading(false);
-        }
     };
 
     /**
@@ -1326,133 +1275,65 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         <Link href="/recetas/plantillas">
                             <Button variant="outline">Cancelar</Button>
                         </Link>
-                        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600">
+                        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 shadow-md transition-all active:scale-95">
                             {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                             Guardar Plantilla
                         </Button>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="file"
-                                id="import-json-upload"
-                                accept=".json,application/json"
-                                className="hidden"
-                                onChange={handleImportJson}
-                            />
-                            <Button variant="outline" onClick={() => {
-                                setIsImportDialogOpen(true);
-                                loadGallery();
-                            }}>
-                                <Upload className="mr-2 h-4 w-4" />
-                                Importar Plantilla
-                            </Button>
-                            <Button variant="outline" onClick={handleExportJson}>
-                                <Download className="mr-2 h-4 w-4" />
-                                Exportar Plantilla
-                            </Button>
-                        </div>
                     </div>
                 </div>
 
                 {/* Modal de Selección de Importación */}
                 <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                        <DialogHeader>
-                            <DialogTitle>Importar Plantilla de Receta</DialogTitle>
-                            <DialogDescription>
-                                Elija el origen de la plantilla que desea cargar en el editor.
-                            </DialogDescription>
-                        </DialogHeader>
+                    <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+                        <div className="bg-white flex flex-col h-full">
+                            <DialogHeader className="p-6 pb-2">
+                                <DialogTitle className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                                    <Layout className="h-6 w-6 text-blue-600" />
+                                    Galería de Diseños Profesionales
+                                </DialogTitle>
+                                <DialogDescription className="text-sm font-medium text-slate-400">
+                                    Selecciona una base para comenzar tu diseño o importa un archivo local.
+                                </DialogDescription>
+                            </DialogHeader>
 
-                        <div className="flex-grow overflow-y-auto py-2">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Opción Archivo Local */}
-                                <Card className="hover:border-blue-500 transition-colors cursor-pointer group" onClick={() => document.getElementById('import-json-upload')?.click()}>
-                                    <CardContent className="p-6 flex flex-col items-center justify-center text-center gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
-                                            <Upload className="w-8 h-8" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg">Archivo Local</h3>
-                                            <p className="text-sm text-slate-500">Cargar un archivo .json desde su computadora</p>
-                                        </div>
-                                        <Button variant="outline" className="mt-2">Seleccionar Archivo</Button>
-                                    </CardContent>
-                                </Card>
-
-                                {/* Opción Galería */}
-                                <Card className="border-slate-200 bg-slate-50/30 flex flex-col">
-                                    <CardHeader className="pb-3 border-b bg-white/50">
-                                        <CardTitle className="text-base flex items-center gap-2 text-blue-700">
-                                            <Layout className="w-4 h-4" />
-                                            Galería de Plantillas
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-4 flex-grow overflow-y-auto max-h-[600px]">
-                                        {isGalleryLoading ? (
-                                            <div className="flex flex-col items-center justify-center p-12 gap-3">
-                                                <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
-                                                <p className="text-xs text-slate-400 animate-pulse">Cargando diseños...</p>
+                            <div className="flex-grow overflow-y-auto px-6 py-4 custom-scrollbar">
+                                <div className="space-y-8">
+                                    {/* Sección de Importación Local compacta */}
+                                    <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-blue-600 p-2 rounded-lg shadow-blue-200 shadow-md">
+                                                <Upload className="h-4 w-4 text-white" />
                                             </div>
-                                        ) : galleryTemplates.length === 0 ? (
-                                            <div className="text-center p-8 text-sm text-slate-400">No hay plantillas disponibles</div>
-                                        ) : (
-                                            <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
-                                                {galleryTemplates.map((template, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="group flex flex-col border rounded-xl bg-white hover:border-blue-400 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
-                                                        onClick={() => handleSelectFromGallery(template)}
-                                                    >
-                                                        {/* Preview Area - PROPORTIONAL */}
-                                                        <div className={`bg-slate-50 relative overflow-hidden flex items-center justify-center border-b mx-auto w-full
-                                                            ${template.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'}`}
-                                                        >
-                                                            {template.content?.imagenFondo ? (
-                                                                <img
-                                                                    src={template.content.imagenFondo}
-                                                                    alt=""
-                                                                    className="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity p-2"
-                                                                />
-                                                            ) : (
-                                                                <div className="flex flex-col items-center gap-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                                    <FileText className="w-8 h-8" />
-                                                                </div>
-                                                            )}
-                                                            {/* Overlay Fields dots */}
-                                                            <div className="absolute inset-0 p-3 pointer-events-none opacity-30">
-                                                                {template.content?.campos?.slice(0, 20).map((c: any) => (
-                                                                    <div
-                                                                        key={c.id}
-                                                                        className="absolute bg-blue-400/30 border-[0.5px] border-blue-400/40 rounded-[1px]"
-                                                                        style={{
-                                                                            left: `${c.x}%`,
-                                                                            top: `${c.y}%`,
-                                                                            width: `${c.ancho}%`,
-                                                                            height: `${c.alto || 5}%`
-                                                                        }}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Info Area */}
-                                                        <div className="p-4 flex items-center justify-between bg-white group-hover:bg-blue-50/30 transition-colors">
-                                                            <div>
-                                                                <p className="text-base font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{template.nombre}</p>
-                                                                <p className="text-xs font-semibold text-blue-500/70 uppercase tracking-widest mt-0.5">
-                                                                    {template.tamanoPapel === 'carta' ? 'Tamaño Carta' : 'Media Carta'}
-                                                                </p>
-                                                            </div>
-                                                            <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0 shadow-lg shadow-blue-500/40">
-                                                                <Plus className="w-5 h-5 font-bold" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-800 leading-tight">¿Tienes un diseño offline?</p>
+                                                <p className="text-[11px] font-medium text-blue-600/70">Sube tu archivo .json exportado previamente</p>
                                             </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            className="w-full md:w-auto font-bold bg-white text-blue-600 border-blue-200 hover:bg-blue-50 shadow-sm"
+                                            onClick={() => document.getElementById('import-plantilla-file')?.click()}
+                                        >
+                                            Explorar Archivos
+                                        </Button>
+                                    </div>
+
+                                    {/* Separador Visual */}
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-px bg-slate-100 flex-grow" />
+                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">O elige de la galería</span>
+                                        <div className="h-px bg-slate-100 flex-grow" />
+                                    </div>
+
+                                    <PlantillaGallery onSelectTemplate={handleSelectFromGallery} />
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-slate-50 border-t flex justify-end">
+                                <Button variant="ghost" onClick={() => setIsImportDialogOpen(false)} className="font-bold text-slate-400 hover:text-slate-600">
+                                    Cancelar
+                                </Button>
                             </div>
                         </div>
                     </DialogContent>
@@ -1576,21 +1457,57 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                     {/* Canvas Area Container */}
                     <div className="lg:col-span-2 flex flex-col gap-4 overflow-hidden">
-                        {/* Barra de Herramientas Decorativas Superior */}
-                        <div className="bg-white p-2 rounded-lg border shadow-sm flex items-center justify-center gap-4">
-                            <div className="flex items-center gap-1 pr-4 border-r">
-                                <Palette className="h-4 w-4 text-slate-400 mr-2" />
-                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Decoración</span>
+                        {/* Barra de Herramientas de Diseño Superior */}
+                        <div
+                            className="p-2 rounded-xl border border-slate-700 shadow-2xl flex items-center justify-center gap-6"
+                            style={{ backgroundColor: 'rgba(80, 80, 80, 1)' }}
+                        >
+                            <div className="flex items-center gap-1 pr-4 border-r border-slate-700">
+                                <Settings className="h-4 w-4 text-blue-400 mr-2" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Caja de Herramientas</span>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4">
                                 {DECORATIVE_FIELDS.map(def => (
                                     <div key={def.id} className="group relative">
                                         <SidebarIconItem field={def} onAdd={() => handleAddField(def)} />
-                                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                            {def.etiqueta}
+                                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700">
+                                            Agregar {def.etiqueta} al canvas
                                         </div>
                                     </div>
                                 ))}
+
+                                {/* Separador interno */}
+                                <div className="h-8 w-px bg-slate-700 mx-2" />
+
+                                {/* Botón de Ver Galería */}
+                                <div className="group relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-10 h-10 bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all duration-300 shadow-sm"
+                                        onClick={() => setIsImportDialogOpen(true)}
+                                    >
+                                        <Layout className="h-5 w-5" />
+                                    </Button>
+                                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700">
+                                        Ver galería de plantillas
+                                    </div>
+                                </div>
+
+                                {/* Botón de Exportar (Guardar Configuración) */}
+                                <div className="group relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-10 h-10 bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all duration-300 shadow-sm"
+                                        onClick={handleExportJson}
+                                    >
+                                        <Download className="h-5 w-5" />
+                                    </Button>
+                                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700">
+                                        Guardar configuración de plantilla
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1642,9 +1559,28 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                                 {campos.length === 0 && (
                                     <div className="absolute inset-0 flex items-center justify-center text-slate-300 pointer-events-none">
-                                        <div className="text-center">
-                                            <Layout className="h-16 w-16 mx-auto mb-2" />
-                                            <p>Arrastre campos aquí</p>
+                                        <div className="text-center space-y-4">
+                                            <div className="relative">
+                                                <Layout className="h-16 w-16 mx-auto mb-2 opacity-20" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <Plus className="h-6 w-6 text-blue-400 animate-pulse" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-slate-400 font-medium">El lienzo está vacío</p>
+                                                <p className="text-xs text-slate-300 mb-4">Comienza arrastrando campos o...</p>
+                                            </div>
+                                            <Button
+                                                variant="secondary"
+                                                className="pointer-events-auto shadow-md border border-blue-100 hover:border-blue-300 transition-all"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsImportDialogOpen(true);
+                                                }}
+                                            >
+                                                <Layout className="mr-2 h-4 w-4 text-blue-500" />
+                                                Elegir de la Galería
+                                            </Button>
                                         </div>
                                     </div>
                                 )}
