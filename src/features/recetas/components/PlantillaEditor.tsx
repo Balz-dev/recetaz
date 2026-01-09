@@ -19,12 +19,19 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Switch } from "@/shared/components/ui/switch"
-import { Card, CardContent } from "@/shared/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/shared/components/ui/dialog"
 import { ToggleLeft, Trash2, Copy, Download } from "lucide-react"
-import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
+import { Loader2, Plus, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
 import { ToolbarPropiedades } from "./ToolbarPropiedades"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -698,7 +705,10 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     // Estado del Editor
     const [medicoConfig, setMedicoConfig] = useState<any>(null)
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
-    // ... (rest of state)
+    // Estado para importación
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
+    const [galleryTemplates, setGalleryTemplates] = useState<any[]>([])
+    const [isGalleryLoading, setIsGalleryLoading] = useState(false)
 
     // Cargar config del médico
     useEffect(() => {
@@ -1116,6 +1126,110 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     };
 
     /**
+     * Maneja la importación de una plantilla desde un archivo JSON.
+     * Lee el archivo seleccionado, valida su estructura básica y actualiza el estado del editor.
+     * 
+     * @param e - Evento de cambio del input de archivo
+     */
+    const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const content = event.target?.result as string;
+                const data = JSON.parse(content);
+
+                // Validación básica de la estructura
+                if (!data.campos || !Array.isArray(data.campos)) {
+                    throw new Error("El archivo no tiene un formato de plantilla válido.");
+                }
+
+                // Cargar los datos al estado
+                setNombre(data.nombre || `${nombre} (Importado)`);
+                setTamanoPapel(data.tamanoPapel || 'media_carta');
+                setImagenFondo(data.imagenFondo);
+                setImprimirFondo(!!data.imprimirFondo);
+                setCampos(data.campos);
+                setActiva(false); // Por seguridad, la importada empieza inactiva
+
+                toast({
+                    title: "Plantilla Importada",
+                    description: "Los datos se han cargado correctamente en el editor.",
+                });
+                setIsImportDialogOpen(false); // Cerrar modal al tener éxito
+            } catch (error) {
+                console.error("Error al importar plantilla:", error);
+                toast({
+                    title: "Error de Importación",
+                    description: error instanceof Error ? error.message : "No se pudo leer el archivo JSON.",
+                    variant: "destructive",
+                });
+            } finally {
+                // Limpiar el input para permitir volver a subir el mismo archivo
+                e.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    /**
+     * Carga la galería de plantillas desde el manifiesto estático.
+     */
+    const loadGallery = async () => {
+        if (galleryTemplates.length > 0) return;
+        setIsGalleryLoading(true);
+        try {
+            const res = await fetch('/plantillas/manifest.json');
+            if (res.ok) {
+                const manifest = await res.json();
+                const templatesWithContent = await Promise.all(manifest.map(async (item: any) => {
+                    try {
+                        const contentRes = await fetch(`/plantillas/${item.filename}`);
+                        if (contentRes.ok) {
+                            const content = await contentRes.json();
+                            return { ...item, content };
+                        }
+                        return item;
+                    } catch (e) {
+                        return item;
+                    }
+                }));
+                setGalleryTemplates(templatesWithContent);
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "No se pudo cargar la galería", variant: "destructive" });
+        } finally {
+            setIsGalleryLoading(false);
+        }
+    };
+
+    /**
+     * Importa una plantilla de la galería directamente al editor.
+     */
+    const handleSelectFromGallery = (template: any) => {
+        const data = template.content;
+        if (!data || !data.campos) {
+            toast({ title: "Error", description: "Contenido de plantilla inválido", variant: "destructive" });
+            return;
+        }
+
+        setNombre(data.nombre || `${template.nombre}`);
+        setTamanoPapel(data.tamanoPapel || 'media_carta');
+        setImagenFondo(data.imagenFondo);
+        setImprimirFondo(!!data.imprimirFondo);
+        setCampos(data.campos);
+        setActiva(false);
+
+        toast({
+            title: "Plantilla Cargada",
+            description: `Se ha cargado la plantilla "${template.nombre}"`,
+        });
+        setIsImportDialogOpen(false);
+    };
+
+    /**
      * Añade un campo al centro del canvas (Click-to-Add).
      */
     const handleAddField = (def: EditorFieldDef) => {
@@ -1197,12 +1311,98 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                             Guardar Plantilla
                         </Button>
-                        <Button variant="outline" onClick={handleExportJson}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Exportar Plantilla
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="file"
+                                id="import-json-upload"
+                                accept=".json,application/json"
+                                className="hidden"
+                                onChange={handleImportJson}
+                            />
+                            <Button variant="outline" onClick={() => {
+                                setIsImportDialogOpen(true);
+                                loadGallery();
+                            }}>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Importar Plantilla
+                            </Button>
+                            <Button variant="outline" onClick={handleExportJson}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Exportar Plantilla
+                            </Button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Modal de Selección de Importación */}
+                <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                        <DialogHeader>
+                            <DialogTitle>Importar Plantilla de Receta</DialogTitle>
+                            <DialogDescription>
+                                Elija el origen de la plantilla que desea cargar en el editor.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="flex-grow overflow-y-auto py-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Opción Archivo Local */}
+                                <Card className="hover:border-blue-500 transition-colors cursor-pointer group" onClick={() => document.getElementById('import-json-upload')?.click()}>
+                                    <CardContent className="p-6 flex flex-col items-center justify-center text-center gap-4">
+                                        <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                                            <Upload className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-lg">Archivo Local</h3>
+                                            <p className="text-sm text-slate-500">Cargar un archivo .json desde su computadora</p>
+                                        </div>
+                                        <Button variant="outline" className="mt-2">Seleccionar Archivo</Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Opción Galería */}
+                                <Card className="border-slate-200 bg-slate-50/30">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base flex items-center gap-2">
+                                            <Layout className="w-4 h-4 text-blue-600" />
+                                            Galería de Plantillas
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0">
+                                        {isGalleryLoading ? (
+                                            <div className="flex justify-center p-8"><Loader2 className="animate-spin h-6 w-6 text-slate-400" /></div>
+                                        ) : galleryTemplates.length === 0 ? (
+                                            <div className="text-center p-8 text-sm text-slate-400">No hay plantillas disponibles</div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {galleryTemplates.map((template, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex items-center justify-between p-3 border rounded-lg bg-white hover:border-blue-400 hover:shadow-sm cursor-pointer transition-all"
+                                                        onClick={() => handleSelectFromGallery(template)}
+                                                    >
+                                                        <div className="flex items-center gap-3 overflow-hidden">
+                                                            <div className="w-10 h-10 border rounded bg-slate-50 flex-shrink-0 flex items-center justify-center">
+                                                                <FileText className="w-5 h-5 text-slate-400" />
+                                                            </div>
+                                                            <div className="overflow-hidden">
+                                                                <p className="text-sm font-medium truncate">{template.nombre}</p>
+                                                                <p className="text-[10px] text-slate-400 uppercase tracking-tight">
+                                                                    {template.tamanoPapel === 'carta' ? 'Carta' : 'Media Carta'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <Plus className="w-4 h-4 text-slate-300" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
                     <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 pb-10">

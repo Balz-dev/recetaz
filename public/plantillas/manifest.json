@@ -2,6 +2,12 @@
     {
         "filename": "Receta_Dr._Manuel.json",
         "nombre": "Receta Dr. Manuel",
+        "tamanoPapel": "media-carta",
+        "imagenFondo": ""
+    },
+    {
+        "filename": "Receta_Dr_Herbich.json",
+        "nombre": "Receta Dr. Herbich",
         "tamanoPapel": "carta",
         "imagenFondo": ""
     }
