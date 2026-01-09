@@ -5,6 +5,12 @@
         "tamanoPapel": "media-carta",
         "imagenFondo": ""
     },
+     {
+        "filename": "Receta_Demo.json",
+        "nombre": "Receta Demo",
+        "tamanoPapel": "media-carta",
+        "imagenFondo": ""
+    },
     {
         "filename": "Receta_Dr_Herbich.json",
         "nombre": "Receta Dr. Herbich",

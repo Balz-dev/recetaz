@@ -241,9 +241,11 @@ function SidebarDraggableItem({ field, isAdded, onAdd }: { field: EditorFieldDef
         <div ref={setNodeRef} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50")}>
             <Button
                 variant={isAdded ? "secondary" : "outline"}
+                size="sm"
                 className={cn(
-                    "w-full justify-start cursor-grab active:cursor-grabbing",
-                    isAdded && 'bg-blue-50 border-blue-200 text-blue-700'
+                    "w-full justify-start text-xs h-auto py-2 px-2",
+                    "cursor-grab active:cursor-grabbing border-slate-200 shadow-sm bg-white hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300",
+                    isAdded && 'bg-blue-50/50 border-blue-200 text-blue-600 shadow-none opacity-70 hover:opacity-100 hover:bg-blue-50'
                 )}
                 onClick={(e) => {
                     // Si no estamos arrastrando (click simple), añadimos
@@ -251,9 +253,10 @@ function SidebarDraggableItem({ field, isAdded, onAdd }: { field: EditorFieldDef
                     // Para mayor seguridad podríamos chequear movimiento, pero por ahora onClick directo es UX standard.
                     onAdd && onAdd();
                 }}
+                title={field.etiqueta}
             >
-                {isAdded ? <Layout className="mr-2 h-4 w-4" /> : <Type className="mr-2 h-4 w-4" />}
-                {field.etiqueta}
+                {isAdded ? <Layout className="mr-1.5 h-3 w-3 flex-shrink-0" /> : <Type className="mr-1.5 h-3 w-3 text-slate-400 flex-shrink-0" />}
+                <span className="truncate">{field.etiqueta}</span>
             </Button>
         </div>
     )
@@ -1339,7 +1342,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                     </DialogContent>
                 </Dialog>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow overflow-hidden">
                     <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 pb-10">
                         {/* Config Panels */}
                         <SidebarAccordion
@@ -1412,7 +1415,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             icon={<UserCircle className="h-4 w-4" />}
                             defaultOpen={true}
                         >
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 {availableFields.filter(f =>
                                     f.id.startsWith('paciente_') || f.id.startsWith('datos_') || f.id === 'fecha'
                                 ).map(def => {
@@ -1427,7 +1430,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             icon={<FileText className="h-4 w-4" />}
                             defaultOpen={true}
                         >
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 {availableFields.filter(f =>
                                     ['tratamiento_completo', 'instrucciones_generales', 'receta_folio', 'receta_fecha', 'diagnostico'].includes(f.id)
                                 ).map(def => {
@@ -1440,9 +1443,9 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         <SidebarAccordion
                             title="Datos del Médico"
                             icon={<Stethoscope className="h-4 w-4" />}
-                            defaultOpen={false}
+                            defaultOpen={true}
                         >
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 {availableFields.filter(f =>
                                     f.id.startsWith('medico_')
                                 ).map(def => {
@@ -1456,17 +1459,17 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                     </div>
 
                     {/* Canvas Area Container */}
-                    <div className="lg:col-span-2 flex flex-col gap-4 overflow-hidden">
+                    <div className="lg:col-span-3 flex flex-col gap-4 overflow-hidden">
                         {/* Barra de Herramientas de Diseño Superior */}
                         <div
-                            className="p-2 rounded-xl border border-slate-700 shadow-2xl flex items-center justify-center gap-6"
+                            className="p-2 rounded-xl border border-slate-700 shadow-2xl flex flex-wrap items-center justify-center gap-4 mx-2 md:mx-0"
                             style={{ backgroundColor: 'rgba(80, 80, 80, 1)' }}
                         >
-                            <div className="flex items-center gap-1 pr-4 border-r border-slate-700">
+                            <div className="flex items-center gap-1 pr-4 border-r border-slate-700 mb-2 md:mb-0 w-full md:w-auto justify-center md:justify-start">
                                 <Settings className="h-4 w-4 text-blue-400 mr-2" />
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Caja de Herramientas</span>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-wrap items-center justify-center gap-4">
                                 {DECORATIVE_FIELDS.map(def => (
                                     <div key={def.id} className="group relative">
                                         <SidebarIconItem field={def} onAdd={() => handleAddField(def)} />
