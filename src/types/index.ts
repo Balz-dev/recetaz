@@ -2,7 +2,7 @@ export interface Paciente {
     id: string;
     nombre: string;
     edad?: number;
-    direccion?: string;
+    fechaNacimiento?: Date;
     alergias?: string;
     antecedentes?: string;
     peso?: string; // Permitir "70 kg" o solo "70"
@@ -84,7 +84,7 @@ export type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfigFormData, 'logo'>
 export type PacienteFormData = {
     nombre: string;
     edad?: number;
-    direccion?: string;
+    fechaNacimiento?: Date;
     alergias?: string;
     antecedentes?: string;
     peso?: string;
@@ -97,8 +97,7 @@ export type RecetaFormData = {
     pacienteId?: string;
     pacienteNombre: string;
     pacienteEdad?: number;
-    pacienteDireccion?: string;
-    pacienteCedula?: string;
+    pacienteFechaNacimiento?: Date;
     pacientePeso?: string;
     pacienteTalla?: string;
     pacienteAlergias?: string;

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/shared/components/ui/button"
+import { DateInput } from "@/shared/components/ui/date-input"
 import {
     Form,
     FormControl,
@@ -21,6 +22,7 @@ import { medicamentoService } from "@/features/medicamentos/services/medicamento
 import { diagnosticoService } from "@/features/diagnosticos/services/diagnostico.service"
 import { treatmentLearningService } from "@/features/recetas/services/treatment-learning.service"
 import { RecetaFormData, Paciente, MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual } from "@/types"
+import { calculatePediatricAge } from "@/shared/utils/age-calculator"
 import { useState, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { Loader2, Save, ArrowLeft, Plus, Trash2, Check, UserPlus } from "lucide-react"
@@ -59,12 +61,11 @@ const recetaFormSchema = z.object({
     pacienteId: z.string().optional(),
     pacienteNombre: z.string().min(1, "El nombre del paciente es requerido"),
     pacienteEdad: z.number().optional(),
-    pacienteDireccion: z.string().optional(),
+    pacienteFechaNacimiento: z.date().optional(),
     pacientePeso: z.string().optional(),
     pacienteTalla: z.string().optional(),
     pacienteAlergias: z.string().optional(),
     pacienteAntecedentes: z.string().optional(),
-    //pacienteCedula: z.string().optional(),
     diagnostico: z.string().min(1, "El diagnóstico es requerido"),
     medicamentos: z.array(medicamentoSchema).min(1, "Debe agregar al menos un medicamento"),
     instrucciones: z.string().optional(),
@@ -97,6 +98,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
     const [searchQuery, setSearchQuery] = useState("")
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null)
+    const [isPediatric, setIsPediatric] = useState(false)
 
     // Estados para diagnósticos y tratamientos inteligentes
     const [diagnosticoSuggestions, setDiagnosticoSuggestions] = useState<DiagnosticoCatalogo[]>([])
@@ -115,12 +117,11 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             pacienteId: preSelectedPacienteId || undefined,
             pacienteNombre: "",
             pacienteEdad: undefined,
-            pacienteDireccion: "",
+            pacienteFechaNacimiento: undefined,
             pacientePeso: "",
             pacienteTalla: "",
             pacienteAlergias: "",
             pacienteAntecedentes: "",
-            // pacienteCedula: "",
             diagnostico: "",
             medicamentos: [{
                 nombre: "",
@@ -165,6 +166,11 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                         const generalConfig = await db.especialidades.get('general');
                         setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
                     }
+
+                    // Detectar pediatría
+                    if (config.especialidadKey === 'pediatria' || config.especialidad?.toLowerCase().includes('pediatra')) {
+                        setIsPediatric(true);
+                    }
                 } else {
                     const generalConfig = await db.especialidades.get('general');
                     setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
@@ -185,6 +191,26 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 setSearchQuery(paciente.nombre)
                 form.setValue("pacienteNombre", paciente.nombre)
                 form.setValue("pacienteEdad", paciente.edad)
+                form.setValue("pacientePeso", paciente.peso)
+                form.setValue("pacienteTalla", paciente.talla)
+                form.setValue("pacienteAlergias", paciente.alergias)
+                form.setValue("pacienteAntecedentes", paciente.antecedentes)
+
+                // Lógica de Edad Inteligente (Duplicada para consistencia)
+                if (paciente.fechaNacimiento) {
+                    form.setValue("pacienteFechaNacimiento", paciente.fechaNacimiento);
+                    const edadExacta = new Date().getFullYear() - new Date(paciente.fechaNacimiento).getFullYear();
+                    form.setValue("pacienteEdad", edadExacta);
+                } else if (paciente.edad) {
+                    const lastUpdate = paciente.updatedAt || paciente.createdAt || new Date();
+                    const yearsDiff = new Date().getFullYear() - new Date(lastUpdate).getFullYear();
+                    const projectedAge = paciente.edad + yearsDiff;
+                    form.setValue("pacienteEdad", projectedAge);
+
+                    const estimatedYear = new Date().getFullYear() - projectedAge;
+                    const estimatedDate = new Date(estimatedYear, 0, 1);
+                    form.setValue("pacienteFechaNacimiento", estimatedDate);
+                }
             }
         }
     }, [preSelectedPacienteId, pacientes, form])
@@ -232,12 +258,67 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
         setSearchQuery(paciente.nombre)
         form.setValue("pacienteId", paciente.id)
         form.setValue("pacienteNombre", paciente.nombre)
-        form.setValue("pacienteEdad", paciente.edad)
         form.setValue("pacientePeso", paciente.peso)
         form.setValue("pacienteTalla", paciente.talla)
         form.setValue("pacienteAlergias", paciente.alergias)
         form.setValue("pacienteAntecedentes", paciente.antecedentes)
+
+        // Lógica de Edad Inteligente
+        if (paciente.fechaNacimiento) {
+            // Si tiene fecha exacta, usarla
+            form.setValue("pacienteFechaNacimiento", paciente.fechaNacimiento);
+            const edadExacta = new Date().getFullYear() - new Date(paciente.fechaNacimiento).getFullYear();
+            form.setValue("pacienteEdad", edadExacta);
+        } else if (paciente.edad) {
+            // Si solo tiene edad histórica, proyectarla
+            const lastUpdate = paciente.updatedAt || paciente.createdAt || new Date();
+            const yearsDiff = new Date().getFullYear() - new Date(lastUpdate).getFullYear();
+            const projectedAge = paciente.edad + yearsDiff;
+
+            form.setValue("pacienteEdad", projectedAge);
+
+            // Estimar fecha nacimiento basada en edad proyectada
+            const estimatedYear = new Date().getFullYear() - projectedAge;
+            const estimatedDate = new Date(estimatedYear, 0, 1); // 1ro Enero
+            form.setValue("pacienteFechaNacimiento", estimatedDate);
+
+            if (yearsDiff > 0) {
+                toast({
+                    title: "Edad actualizada",
+                    description: `La edad registrada era ${paciente.edad} hace ${yearsDiff} años. Se sugiere ${projectedAge}.`,
+                    duration: 4000
+                });
+            }
+        }
+
         setShowSuggestions(false)
+    }
+
+    const onDateChange = (date: Date | undefined) => {
+        form.setValue("pacienteFechaNacimiento", date);
+        if (date) {
+            const age = new Date().getFullYear() - date.getFullYear();
+            form.setValue("pacienteEdad", age > 0 ? age : 0);
+        }
+    }
+
+    const onAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        const newAge = val === "" ? undefined : Number(val);
+        form.setValue("pacienteEdad", newAge);
+
+        if (newAge !== undefined && newAge >= 0) {
+            const currentYear = new Date().getFullYear();
+            const birthYear = currentYear - newAge;
+            // Preservar mes y día si ya existe una fecha, sino usar 1ro Enero
+            const currentDate = form.getValues("pacienteFechaNacimiento");
+            let newDate = new Date(birthYear, 0, 1);
+
+            if (currentDate) {
+                newDate = new Date(birthYear, currentDate.getMonth(), currentDate.getDate());
+            }
+            form.setValue("pacienteFechaNacimiento", newDate);
+        }
     }
 
     // --- Lógica de Diagnósticos y Tratamientos Inteligentes ---
@@ -438,10 +519,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 const newPacienteData = {
                     nombre: values.pacienteNombre,
                     edad: values.pacienteEdad,
-                    direccion: values.pacienteDireccion,
                     alergias: values.pacienteAlergias,
                     antecedentes: values.pacienteAntecedentes
-
                 }
 
                 pacienteId = await pacienteService.create(newPacienteData)
@@ -475,8 +554,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 pacienteId: pacienteId!,
                 pacienteNombre: pacienteData.nombre,
                 pacienteEdad: pacienteData.edad,
-                pacientePeso: values.pacientePeso || undefined, // Nuevo
-                pacienteTalla: values.pacienteTalla || undefined, // Nuevo
+                pacientePeso: values.pacientePeso || undefined,
+                pacienteTalla: values.pacienteTalla || undefined,
                 diagnostico: values.diagnostico,
                 medicamentos: values.medicamentos,
                 instrucciones: values.instrucciones,
@@ -674,21 +753,56 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
                             </div>
 
-                            {/* Inputs de Peso, Talla y Edad (Siempre visibles/editables) */}
-                            <div className="grid grid-cols-3 gap-4">
+                            {/* Inputs de Peso, Talla, Fecha Nac. y Edad */}
+                            <div className="grid grid-cols-12 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="pacienteFechaNacimiento"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-12 md:col-span-4">
+                                            <FormLabel>Fecha Nac.</FormLabel>
+                                            <FormControl>
+                                                <DateInput
+                                                    value={field.value}
+                                                    onDateChange={(date) => {
+                                                        field.onChange(date);
+                                                        onDateChange(date);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="pacienteEdad"
                                     render={({ field }) => (
-                                        <FormItem>
+                                        <FormItem className="col-span-6 md:col-span-3">
                                             <FormLabel>Edad</FormLabel>
                                             <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Años"
-                                                    {...field}
-                                                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                                                />
+                                                {form.watch("pacienteFechaNacimiento") ? (
+                                                    <div className="relative">
+                                                        <Input
+                                                            value={calculatePediatricAge(form.watch("pacienteFechaNacimiento")!)}
+                                                            readOnly
+                                                            className="bg-slate-50 text-slate-600 font-medium"
+                                                        />
+                                                        {/* Input oculto para mantener el valor numérico en el formulario */}
+                                                        <input
+                                                            type="hidden"
+                                                            {...field}
+                                                            value={field.value || ''}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="0"
+                                                        {...field}
+                                                        onChange={onAgeChange}
+                                                    />
+                                                )}
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -698,7 +812,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                     control={form.control}
                                     name="pacientePeso"
                                     render={({ field }) => (
-                                        <FormItem>
+                                        <FormItem className="col-span-6 md:col-span-2">
                                             <FormLabel>Peso</FormLabel>
                                             <FormControl>
                                                 <Input placeholder="kg" {...field} />
@@ -711,10 +825,10 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                     control={form.control}
                                     name="pacienteTalla"
                                     render={({ field }) => (
-                                        <FormItem>
+                                        <FormItem className="col-span-6 md:col-span-3">
                                             <FormLabel>Talla</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="cm/m" {...field} />
+                                                <Input placeholder="cm" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -1068,7 +1182,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             onCheckedChange={setSaveDiagnosis}
                         />
                         <Label htmlFor="save-diagnosis" className="text-sm font-medium text-slate-600 cursor-pointer">
-                            Guardar diagnóstico con medicamentos (Aprendizaje)
+                            Recordar diagnóstico con medicamentos (Autocompletado futuro)
                         </Label>
                     </div>
 
@@ -1082,7 +1196,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                    Guardar Receta
+                                    Guardar/Imprimir Receta
                                 </>
                             )}
                         </Button>

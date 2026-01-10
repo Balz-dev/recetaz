@@ -38,8 +38,6 @@ function generarPacientes(): Paciente[] {
 
     const nombres = ['Juan', 'María', 'Carlos', 'Ana', 'Luis', 'Laura', 'Roberto', 'Diana', 'Miguel', 'Patricia', 'José', 'Sofía', 'Alejandro', 'Carolina', 'Ángel', 'Elena', 'Alberto', 'Teresa', 'David', 'Gabriela', 'Fernando', 'Mónica', 'Jorge', 'Adriana', 'Ricardo', 'Verónica', 'Manuel', 'Silvia', 'Francisco', 'Elizabeth', 'Antonio', 'Martha', 'Daniel', 'Rosa', 'Pablo', 'Andrea', 'Jesús', 'Lucía', 'Pedro', 'Yolanda'];
     const apellidos = ['Pérez', 'González', 'Rodríguez', 'López', 'Martínez', 'Sánchez', 'Hernández', 'Cruz', 'García', 'Ramírez', 'Mendoza', 'Torres', 'Flores', 'Díaz', 'Ruiz', 'Morales', 'Ortiz', 'Vargas', 'Castillo', 'Romero', 'Álvarez', 'Castro', 'Méndez', 'Guzmán', 'Herrera', 'Aguilar', 'Delgado', 'Jiménez', 'Moreno', 'Chávez', 'Ramos', 'Rivera', 'Juárez', 'Reyes'];
-    const calles = ['Av. Reforma', 'Calle Morelos', 'Av. Juárez', 'Calle Insurgentes', 'Av. Universidad', 'Calle Hidalgo', 'Av. Revolución', 'Calle Madero'];
-    const colonias = ['Centro', 'Roma', 'Condesa', 'Del Valle', 'San Ángel', 'Polanco', 'Juárez', 'Narvarte', 'Coyoacán', 'Pedregal'];
     const antecedentesOpts = ['Ninguno', 'Hipertensión', 'Diabetes', 'Asma', 'Gastritis', 'Ninguno', 'Ninguno', 'Alergia estacional'];
 
     const getRandomItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
@@ -52,7 +50,6 @@ function generarPacientes(): Paciente[] {
         const nombreCompleto = [primerNombre, segundoNombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(' ');
 
         const edad = Math.floor(Math.random() * 80) + 5;
-        const direccion = `${getRandomItem(calles)} ${Math.floor(Math.random() * 900) + 1}, Col. ${getRandomItem(colonias)}`;
         const diasAntiguedad = Math.floor(Math.random() * 365);
         const fechaRegistro = new Date(now.getTime() - diasAntiguedad * 24 * 60 * 60 * 1000);
 
@@ -60,7 +57,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: nombreCompleto,
             edad: edad,
-            direccion: direccion,
             alergias: Math.random() > 0.7 ? 'Penicilina' : '',
             antecedentes: getRandomItem(antecedentesOpts),
             peso: `${Math.floor(Math.random() * 40) + 50} kg`,

@@ -190,6 +190,35 @@ class RecetasDatabase extends Dexie {
             tratamientosHabituales: '++id, diagnosticoId, nombreTratamiento, *especialidad, usoCount',
             especialidades: 'id, label'
         });
+
+        // Versión 11: Limpieza de modelo Paciente
+        // - pacientes: Se elimina cédula y dirección índice.
+        this.version(11).stores({
+            medico: 'id',
+            pacientes: 'id, nombre', // cedula eliminada
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso, *palabrasClave, *especialidad',
+            diagnosticos: '++id, codigo, nombre, uri, *palabrasClave, *especialidad',
+            tratamientosHabituales: '++id, diagnosticoId, nombreTratamiento, *especialidad, usoCount',
+            especialidades: 'id, label'
+        });
+
+        // Versión 12: Agregar fechaNacimiento a pacientes
+        this.version(12).stores({
+            medico: 'id',
+            pacientes: 'id, nombre, fechaNacimiento',
+            recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
+            finanzas: 'id, tipo, fecha, categoria',
+            configuracionFinanciera: 'id',
+            plantillas: 'id, nombre, activa',
+            medicamentos: '++id, nombreBusqueda, [nombreBusqueda+esPersonalizado], categoria, esPersonalizado, vecesUsado, fechaUltimoUso, *palabrasClave, *especialidad',
+            diagnosticos: '++id, codigo, nombre, uri, *palabrasClave, *especialidad',
+            tratamientosHabituales: '++id, diagnosticoId, nombreTratamiento, *especialidad, usoCount',
+            especialidades: 'id, label'
+        });
     }
 }
 

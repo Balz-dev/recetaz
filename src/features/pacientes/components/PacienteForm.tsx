@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/shared/components/ui/button"
+import { DateInput } from "@/shared/components/ui/date-input"
 import {
     Form,
     FormControl,
@@ -38,7 +39,6 @@ const pacienteFormSchema = z.object({
     edad: z.number().optional(),
     peso: z.string().optional(),
     talla: z.string().optional(),
-    direccion: z.string().optional(),
     alergias: z.string().optional(),
     antecedentes: z.string().optional(),
     datosEspecificos: z.record(z.string(), z.any()).optional(),
@@ -71,9 +71,9 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
         defaultValues: {
             nombre: initialData?.nombre || "",
             edad: initialData?.edad,
+            fechaNacimiento: initialData?.fechaNacimiento,
             peso: initialData?.peso || "",
             talla: initialData?.talla || "",
-            direccion: initialData?.direccion || "",
             alergias: initialData?.alergias || "",
             antecedentes: initialData?.antecedentes || "",
             datosEspecificos: initialData?.datosEspecificos || {},
@@ -140,6 +140,31 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
         }
     }
 
+    const onDateChange = (date: Date | undefined) => {
+        form.setValue("fechaNacimiento", date);
+        if (date) {
+            const age = new Date().getFullYear() - date.getFullYear();
+            form.setValue("edad", age > 0 ? age : 0);
+        }
+    }
+
+    const onAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        const newAge = val === "" ? undefined : Number(val);
+        form.setValue("edad", newAge);
+
+        if (newAge !== undefined && newAge >= 0) {
+            const currentYear = new Date().getFullYear();
+            const birthYear = currentYear - newAge;
+            const currentDate = form.getValues("fechaNacimiento");
+            let newDate = new Date(birthYear, 0, 1);
+            if (currentDate) {
+                newDate = new Date(birthYear, currentDate.getMonth(), currentDate.getDate());
+            }
+            form.setValue("fechaNacimiento", newDate);
+        }
+    }
+
     const renderDynamicField = (fieldDef: any) => {
         return (
             <FormField
@@ -203,15 +228,6 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                 )}
 
                 {/* Campos Dinámicos - Datos Personales */}
-                {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_personales') && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
-                        <div className="md:col-span-2 font-medium text-slate-700">Datos Personales Adicionales</div>
-                        {specialtyConfig.patientFields
-                            .filter((f: any) => f.section === 'datos_personales')
-                            .map(renderDynamicField)}
-                    </div>
-                )}
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                         control={form.control}
@@ -227,28 +243,47 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="edad"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Edad</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        placeholder="0"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            field.onChange(val === "" ? undefined : Number(val));
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <div className="grid grid-cols-12 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="fechaNacimiento"
+                            render={({ field }) => (
+                                <FormItem className="col-span-12 md:col-span-8">
+                                    <FormLabel>Fecha Nacimiento</FormLabel>
+                                    <FormControl>
+                                        <DateInput
+                                            value={field.value}
+                                            onDateChange={(date) => {
+                                                field.onChange(date);
+                                                onDateChange(date);
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="edad"
+                            render={({ field }) => (
+                                <FormItem className="col-span-12 md:col-span-4">
+                                    <FormLabel>Edad</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            placeholder="0"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            onChange={onAgeChange}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
 
                     <FormField
                         control={form.control}
@@ -279,19 +314,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                     />
                 </div>
 
-                <FormField
-                    control={form.control}
-                    name="direccion"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Dirección</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="Dirección completa" className="resize-none" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+
 
                 {/* Campos Dinámicos - Datos Médicos */}
                 {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_medicos') && (
@@ -364,6 +387,6 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                     </Button>
                 </div>
             </form>
-        </Form>
+        </Form >
     )
 }
