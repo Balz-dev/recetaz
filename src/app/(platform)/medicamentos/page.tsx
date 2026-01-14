@@ -116,6 +116,7 @@ export default function MedicamentosPage() {
     const [medicamentoEliminar, setMedicamentoEliminar] = useState<MedicamentoCatalogo | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [paginaActual, setPaginaActual] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
     const itemsPorPagina = 20
     const { toast } = useToast()
 
@@ -169,9 +170,10 @@ export default function MedicamentosPage() {
 
             // Paginación
             const offset = (paginaActual - 1) * itemsPorPagina
-            const meds = await obtenerMedicamentos(filtros, { offset, limit: itemsPorPagina })
+            const { items, total } = await obtenerMedicamentos(filtros, { offset, limit: itemsPorPagina })
 
-            setMedicamentos(meds)
+            setMedicamentos(items)
+            setTotalItems(total)
         } finally {
             setIsLoading(false)
         }
@@ -295,9 +297,9 @@ export default function MedicamentosPage() {
      * Exporta todos los medicamentos a JSON
      */
     const handleExport = async () => {
-        const todos = await obtenerMedicamentos({}, { offset: 0, limit: 10000 })
+        const { items } = await obtenerMedicamentos({}, { offset: 0, limit: 10000 })
         const date = getFormattedDate()
-        exportToJSON(todos, `medicamentos-${date}`)
+        exportToJSON(items, `medicamentos-${date}`, 'medicamentos')
     }
 
     /**
@@ -309,7 +311,7 @@ export default function MedicamentosPage() {
             try {
                 // Verificar si ya existe por nombre
                 const filtros = { busqueda: item.nombre }
-                const existentes = await obtenerMedicamentos(filtros, { offset: 0, limit: 1 })
+                const { items: existentes } = await obtenerMedicamentos(filtros, { offset: 0, limit: 1 })
 
                 if (existentes.length === 0) {
                     await agregarMedicamento(item)
@@ -480,7 +482,7 @@ export default function MedicamentosPage() {
                     {/* Controles de Paginación */}
                     <div className="flex items-center justify-end space-x-2 py-4 px-2 border-t mt-4">
                         <div className="flex-1 text-sm text-muted-foreground">
-                            Página {paginaActual}
+                            Mostrando {Math.min((paginaActual - 1) * itemsPorPagina + 1, totalItems)} - {Math.min(paginaActual * itemsPorPagina, totalItems)} de {totalItems} registros
                         </div>
                         <div className="space-x-2">
                             <Button
@@ -496,7 +498,7 @@ export default function MedicamentosPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setPaginaActual(prev => prev + 1)}
-                                disabled={medicamentos.length < itemsPorPagina || isLoading}
+                                disabled={paginaActual * itemsPorPagina >= totalItems || isLoading}
                             >
                                 Siguiente
                                 <ChevronRight className="h-4 w-4 ml-1" />

@@ -10,13 +10,33 @@
 import { z } from 'zod'
 
 /**
- * Exporta datos a un archivo JSON y lo descarga
+ * Estructura del archivo de exportación con metadatos
+ */
+export interface ExportWrapper<T> {
+    schema: string;
+    version: string;
+    entity: string;
+    exportedAt: string;
+    data: T[];
+}
+
+/**
+ * Exporta datos a un archivo JSON con metadatos de esquema
  * 
  * @param data - Array de datos a exportar
  * @param filename - Nombre del archivo (sin extensión)
+ * @param entity - Nombre de la entidad (ej: 'medicamentos')
  */
-export function exportToJSON<T>(data: T[], filename: string): void {
-    const jsonString = JSON.stringify(data, null, 2)
+export function exportToJSON<T>(data: T[], filename: string, entity: string = 'unknown'): void {
+    const wrapper: ExportWrapper<T> = {
+        schema: 'recetaz-catalog-export',
+        version: '1.0.0',
+        entity,
+        exportedAt: new Date().toISOString(),
+        data
+    }
+
+    const jsonString = JSON.stringify(wrapper, null, 2)
     const blob = new Blob([jsonString], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
 
@@ -32,7 +52,7 @@ export function exportToJSON<T>(data: T[], filename: string): void {
 }
 
 /**
- * Importa datos desde un archivo JSON
+ * Importa datos desde un archivo JSON, soportando formato nuevo (con esquema) y antiguo (array directo)
  * 
  * @param file - Archivo JSON a importar
  * @returns Promise con el array de datos parseados
@@ -50,14 +70,23 @@ export async function importFromJSON<T>(file: File): Promise<T[]> {
         reader.onload = (event) => {
             try {
                 const content = event.target?.result as string
-                const data = JSON.parse(content)
+                const json = JSON.parse(content)
 
-                if (!Array.isArray(data)) {
-                    reject(new Error('El archivo JSON debe contener un array de datos'))
+                // Detectar si es el formato nuevo (ExportWrapper)
+                if (json && typeof json === 'object' && !Array.isArray(json) && json.schema === 'recetaz-catalog-export') {
+                    if (Array.isArray(json.data)) {
+                        resolve(json.data)
+                        return
+                    }
+                }
+
+                // Formato antiguo: array directo
+                if (Array.isArray(json)) {
+                    resolve(json)
                     return
                 }
 
-                resolve(data)
+                reject(new Error('El archivo JSON no tiene un formato reconocido'))
             } catch (error) {
                 reject(new Error('Error al parsear el archivo JSON'))
             }

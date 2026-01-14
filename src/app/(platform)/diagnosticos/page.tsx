@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Package } from "lucide-react"
+import { Plus, Package, ChevronLeft, ChevronRight } from "lucide-react"
 import { DiagnosticoCatalogo } from "@/types"
 import { diagnosticoService } from "@/features/diagnosticos/services/diagnostico.service"
 import { DiagnosticoDialog } from "@/features/diagnosticos/components/DiagnosticoDialog"
@@ -51,6 +51,9 @@ export default function DiagnosticosPage() {
     const [selectedDiagnostico, setSelectedDiagnostico] = useState<DiagnosticoCatalogo | null>(null)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [diagnosticoToDelete, setDiagnosticoToDelete] = useState<number | null>(null)
+    const [paginaActual, setPaginaActual] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
+    const itemsPorPagina = 50
     const [estadisticas, setEstadisticas] = useState<{
         total: number
         especialidades: string[]
@@ -62,13 +65,10 @@ export default function DiagnosticosPage() {
     const loadDiagnosticos = async () => {
         setLoading(true)
         try {
-            let data;
-            if (searchTerm.length >= 2) {
-                data = await diagnosticoService.search(searchTerm)
-            } else {
-                data = await diagnosticoService.getAll(0, 50, ordenPor)
-            }
-            setDiagnosticos(data)
+            const offset = (paginaActual - 1) * itemsPorPagina
+            const { items, total } = await diagnosticoService.getAll(offset, itemsPorPagina, ordenPor, searchTerm)
+            setDiagnosticos(items)
+            setTotalItems(total)
         } catch (error) {
             console.error(error)
             toast({
@@ -95,13 +95,18 @@ export default function DiagnosticosPage() {
         loadEstadisticas()
     }, [])
 
-    // Debounce search
+    // Cargar diagnósticos cuando cambian los filtros o la página
     useEffect(() => {
         const timer = setTimeout(() => {
             loadDiagnosticos()
         }, 500)
         return () => clearTimeout(timer)
-    }, [searchTerm, ordenPor])
+    }, [searchTerm, ordenPor, paginaActual])
+
+    // Reiniciar a la primera página si cambia la búsqueda
+    useEffect(() => {
+        setPaginaActual(1)
+    }, [searchTerm])
 
     const handleCreate = () => {
         setSelectedDiagnostico(null)
@@ -155,9 +160,9 @@ export default function DiagnosticosPage() {
     }
 
     const handleExport = async () => {
-        const todos = await diagnosticoService.getAll(0, 10000)
+        const { items } = await diagnosticoService.getAll(0, 10000)
         const date = getFormattedDate()
-        exportToJSON(todos, `diagnosticos-${date}`)
+        exportToJSON(items, `diagnosticos-${date}`, 'diagnosticos')
     }
 
     const handleImport = async (data: any[]) => {
@@ -308,6 +313,32 @@ export default function DiagnosticosPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {/* Paginación */}
+                    <div className="flex items-center justify-end space-x-2 py-4 px-2 border-t mt-4">
+                        <div className="flex-1 text-sm text-muted-foreground">
+                            Mostrando {Math.min((paginaActual - 1) * itemsPorPagina + 1, totalItems)} - {Math.min(paginaActual * itemsPorPagina, totalItems)} de {totalItems} registros
+                        </div>
+                        <div className="space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+                                disabled={paginaActual === 1 || loading}
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" />
+                                Anterior
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPaginaActual(prev => prev + 1)}
+                                disabled={paginaActual * itemsPorPagina >= totalItems || loading}
+                            >
+                                Siguiente
+                                <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 

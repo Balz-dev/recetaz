@@ -67,11 +67,11 @@ function generarPalabrasClave(medicamento: Partial<MedicamentoCatalogo>): string
 }
 
 /**
- * Obtiene todos los medicamentos con filtros y paginación.
+ * Obtiene todos los medicamentos con filtros y paginación de manera optimizada.
  * 
  * @param filtros - Opciones de filtrado
  * @param paginacion - Opciones de paginación
- * @returns Array de medicamentos
+ * @returns Objeto con array de medicamentos y total de registros
  */
 export async function obtenerMedicamentos(
     filtros?: {
@@ -81,46 +81,63 @@ export async function obtenerMedicamentos(
         busqueda?: string;
     },
     paginacion?: { offset: number; limit: number }
-): Promise<MedicamentoCatalogo[]> {
-    let medicamentos: MedicamentoCatalogo[] = [];
+): Promise<{ items: MedicamentoCatalogo[]; total: number }> {
+    let collection: import('dexie').Collection<MedicamentoCatalogo, number>;
 
-    // Estrategia: Obtener datos base según filtros principales
+    // 1. Iniciar colección basada en el filtro más restrictivo/indexado
     if (filtros?.categoria) {
-        medicamentos = await db.medicamentos
-            .where('categoria')
-            .equals(filtros.categoria)
-            .toArray();
+        collection = db.medicamentos.where('categoria').equals(filtros.categoria);
     } else if (filtros?.soloPersonalizados) {
-        medicamentos = await db.medicamentos
-            .filter(m => m.esPersonalizado === true)
-            .toArray();
+        // esPersonalizado no suele estar indexado por sí solo de forma eficiente como igualdad
+        // Si no hay categoría, usamos la tabla completa y filtramos
+        collection = db.medicamentos.toCollection().filter(m => m.esPersonalizado === true);
     } else {
-        // Sin filtros específicos, obtener todos
-        medicamentos = await db.medicamentos.toArray();
+        collection = db.medicamentos.toCollection();
     }
 
-    // Filtrar por búsqueda si existe
+    // 2. Aplicar filtro de búsqueda si existe (en memoria sobre la colección filtrada)
     if (filtros?.busqueda && filtros.busqueda.trim().length > 0) {
         const queryNormalizada = normalizarTexto(filtros.busqueda);
         const terminosBusqueda = queryNormalizada.split(' ').filter(t => t.length > 2);
 
-        medicamentos = medicamentos.filter(med => {
-            // Coincidencia directa en nombre
+        collection = collection.filter(med => {
             if (med.nombreBusqueda.includes(queryNormalizada)) return true;
-            // Coincidencia en genérico
             if (med.nombreGenerico && normalizarTexto(med.nombreGenerico).includes(queryNormalizada)) return true;
-
-            // Coincidencia en palabras clave (si existen)
             if (med.palabrasClave && terminosBusqueda.length > 0) {
-                return terminosBusqueda.some(t =>
-                    med.palabrasClave!.some(k => k.includes(t))
-                );
+                return terminosBusqueda.some(t => med.palabrasClave!.some(k => k.includes(t)));
             }
             return false;
         });
     }
 
-    return aplicarOrdenamientoYPaginacion(medicamentos, filtros, paginacion);
+    // 3. Obtener el total antes de paginar
+    // Nota: count() en una colección filtrada puede ser costoso, 
+    // pero para catálogos locales de hasta miles de registros es aceptable.
+    const total = await collection.count();
+
+    // 4. Aplicar ordenamiento
+    // Dexie orderBy solo funciona sobre índices. Para ordenamientos complejos (uso/reciente)
+    // o colecciones filtradas por texto, solemos necesitar sort() en memoria.
+    let items = await collection.toArray();
+
+    if (filtros?.ordenarPor === 'uso') {
+        items.sort((a, b) => (b.vecesUsado || 0) - (a.vecesUsado || 0));
+    } else if (filtros?.ordenarPor === 'reciente') {
+        items.sort((a, b) => {
+            const fechaA = a.fechaUltimoUso?.getTime() || 0;
+            const fechaB = b.fechaUltimoUso?.getTime() || 0;
+            return fechaB - fechaA;
+        });
+    } else {
+        items.sort((a, b) => a.nombreBusqueda.localeCompare(b.nombreBusqueda));
+    }
+
+    // 5. Aplicar paginación final
+    if (paginacion) {
+        items = items.slice(paginacion.offset, paginacion.offset + paginacion.limit);
+    }
+
+    return { items, total };
 }
 
 /**
