@@ -255,6 +255,7 @@ export interface DiagnosticoCatalogo {
     sinonimos?: string[]; // Términos alternativos para facilitar búsqueda
     especialidad?: string[]; // Especialidades relacionadas
     palabrasClave?: string[]; // Tokens normalizados para búsqueda
+    vecesUsado?: number;  // Contador de veces que se ha usado en recetas
 }
 
 /**

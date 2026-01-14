@@ -60,13 +60,69 @@ export const diagnosticoService = {
     },
 
     /**
-     * Obtiene todos los diagnósticos paginados
+     * Obtiene todos los diagnósticos paginados con ordenamiento opcional
+     * 
+     * @param offset - Desplazamiento para paginación
+     * @param limit - Límite de resultados
+     * @param ordenarPor - Criterio de ordenamiento ('nombre' | 'uso' | 'reciente')
      */
-    async getAll(offset = 0, limit = 50): Promise<DiagnosticoCatalogo[]> {
-        return await db.diagnosticos
+    async getAll(
+        offset = 0,
+        limit = 50,
+        ordenarPor: 'nombre' | 'uso' | 'reciente' = 'uso'
+    ): Promise<DiagnosticoCatalogo[]> {
+        let query = db.diagnosticos.toCollection();
+
+        // Aplicar ordenamiento
+        if (ordenarPor === 'nombre') {
+            query = db.diagnosticos.orderBy('nombre');
+        } else if (ordenarPor === 'uso') {
+            // Ordenar por vecesUsado descendente (más usados primero)
+            const todos = await db.diagnosticos.toArray();
+            return todos
+                .sort((a, b) => (b.vecesUsado || 0) - (a.vecesUsado || 0))
+                .slice(offset, offset + limit);
+        }
+
+        return await query
             .offset(offset)
             .limit(limit)
             .toArray();
+    },
+
+    /**
+     * Obtiene estadísticas de diagnósticos
+     */
+    async getEstadisticas() {
+        const todos = await db.diagnosticos.toArray();
+
+        // Obtener especialidades únicas
+        const especialidadesSet = new Set<string>();
+        todos.forEach(diag => {
+            diag.especialidad?.forEach(esp => especialidadesSet.add(esp));
+        });
+
+        return {
+            total: todos.length,
+            especialidades: Array.from(especialidadesSet).sort(),
+            masUsados: todos
+                .sort((a, b) => (b.vecesUsado || 0) - (a.vecesUsado || 0))
+                .slice(0, 5)
+        };
+    },
+
+    /**
+     * Incrementa el contador de uso de un diagnóstico
+     * 
+     * @param id - ID del diagnóstico
+     */
+    async incrementarUso(id: number): Promise<void> {
+        const diagnostico = await db.diagnosticos.get(id);
+        if (diagnostico) {
+            await db.diagnosticos.update(id, {
+                vecesUsado: (diagnostico.vecesUsado || 0) + 1
+            });
+        }
     },
 
     /**
@@ -84,7 +140,8 @@ export const diagnosticoService = {
 
         return await db.diagnosticos.add({
             ...data,
-            palabrasClave
+            palabrasClave,
+            vecesUsado: 0
         });
     },
 
@@ -122,3 +179,4 @@ export const diagnosticoService = {
         await db.diagnosticos.delete(id);
     }
 };
+
