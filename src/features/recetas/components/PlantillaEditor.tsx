@@ -1282,6 +1282,10 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                             Guardar Plantilla
                         </Button>
+                        <Button variant="outline" onClick={handleExportJson}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar Plantilla
+                        </Button>
                     </div>
                 </div>
 
