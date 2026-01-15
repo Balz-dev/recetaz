@@ -3,8 +3,15 @@
 /**
  * Editor de Plantillas de Recetas Médicas
  * 
- * Permite al usuario diseñar plantillas personalizadas mediante drag & drop,
- * configurando posición y tamaño de campos de datos médicos, de paciente y de receta.
+ * Herramienta visual tipo Drag & Drop para diseñar el formato de impresión de las recetas.
+ * 
+ * Funcionalidades principales:
+ * - Lienzo interactivo (Canvas) con soporte para arrastrar y soltar.
+ * - Barra lateral de herramientas con campos disponibles (datos médico, paciente, receta).
+ * - Gestión de elementos decorativos (imágenes, textos estáticos, formas).
+ * - Configuración de propiedades por elemento (tamaño, posición, fuente).
+ * - Soporte para importación/exportación de plantillas (JSON).
+ * - Integración con galería de plantillas predefinidas.
  */
 
 import React, { useState, useEffect, useRef } from "react"
@@ -770,7 +777,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         setImagenFondo(data.imagenFondo)
                         setActiva(data.activa)
                         setImprimirFondo(data.imprimirFondo)
-                        setCampos(data.campos)
+                        setCampos(data.campos || [])
                     } else {
                         toast({ title: "Error", description: "Plantilla no encontrada", variant: "destructive" })
                         router.push('/recetas/plantillas')
@@ -1423,7 +1430,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 {availableFields.filter(f =>
                                     f.id.startsWith('paciente_') || f.id.startsWith('datos_') || f.id === 'fecha'
                                 ).map(def => {
-                                    const isAdded = campos.some(c => c.id === def.id);
+                                    const isAdded = (campos || []).some(c => c.id === def.id);
                                     return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
@@ -1438,7 +1445,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 {availableFields.filter(f =>
                                     ['tratamiento_completo', 'instrucciones_generales', 'receta_folio', 'receta_fecha', 'diagnostico'].includes(f.id)
                                 ).map(def => {
-                                    const isAdded = campos.some(c => c.id === def.id);
+                                    const isAdded = (campos || []).some(c => c.id === def.id);
                                     return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
@@ -1453,7 +1460,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                 {availableFields.filter(f =>
                                     f.id.startsWith('medico_')
                                 ).map(def => {
-                                    const isAdded = campos.some(c => c.id === def.id);
+                                    const isAdded = (campos || []).some(c => c.id === def.id);
                                     return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>

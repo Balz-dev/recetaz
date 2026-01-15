@@ -19,24 +19,25 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/shared/components/ui/select';
+import { Switch } from '@/shared/components/ui/switch';
+import { Label } from '@/shared/components/ui/label';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { useToast } from '@/shared/components/ui/use-toast';
+import { useRouter } from 'next/navigation';
 import { medicoService } from '@/features/config-medico/services/medico.service';
 import { plantillaService } from '@/features/recetas/services/plantilla.service';
 import { db } from '@/shared/db/db.config';
 import { EspecialidadCatalogo, MedicoConfigFormData } from '@/types';
 import { PlantillaGallery } from '@/features/recetas/components/PlantillaGallery';
+import { SpecialtySelect } from '@/shared/components/catalog/SpecialtySelect';
 import Image from 'next/image';
 
 interface OnboardingWizardProps {
-    onComplete: () => void;
+    /**
+     * Callback que se ejecuta al finalizar exitosamente el proceso de onboarding.
+     * @param redirectPath - Ruta opcional a la que redirigir tras cerrar el modal.
+     */
+    onComplete: (redirectPath?: string) => void;
 }
 
 const STEPS = [
@@ -48,11 +49,38 @@ const STEPS = [
     { title: 'Finalizar', icon: <CheckCircle2 /> },
 ];
 
+/**
+ * Componente principal del Asistente de Configuración Inicial (Onboarding).
+ * 
+ * Guía al médico a través de los pasos necesarios para configurar su perfil profesional,
+ * datos del consultorio, y diseño de la receta médica.
+ * 
+ * @param props - Propiedades del componente
+ * @param props.onComplete - Función a ejecutar al completar todo el proceso
+ * @returns Componente JSX con el wizard paso a paso
+ */
+/**
+ * Asistente de Onboarding (Wizard)
+ * 
+ * Guía al médico paso a paso a través de la configuración inicial de su perfil
+ * y consultorio.
+ * 
+ * Pasos:
+ * 1. Bienvenida e Identidad (Nombre, Cédula, Especialidad).
+ * 2. Logo (Opcional).
+ * 3. Configuración de Consultorio (Dirección, Contacto).
+ * 4. Diseño de Receta (Selección de plantilla inicial).
+ * 
+ * @param props - Propiedades del componente.
+ * @param props.onComplete - Callback ejecutado al finalizar. Recibe ruta de redirección opcional.
+ */
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [especialidades, setEspecialidades] = useState<EspecialidadCatalogo[]>([]);
+    const [goToEditor, setGoToEditor] = useState(true);
     const { toast } = useToast();
+    const router = useRouter();
 
     // Estado del formulario
     const [formData, setFormData] = useState<MedicoConfigFormData>({
@@ -86,6 +114,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     direccion: existing.direccion || '',
                     logo: existing.logo,
                 });
+            } else if (specs.length > 0) {
+                const defaultSpec = specs.find(s => s.id === 'general') || specs[0];
+                setFormData(prev => ({
+                    ...prev,
+                    especialidad: defaultSpec.label,
+                    especialidadKey: defaultSpec.id,
+                }));
             }
         };
         init();
@@ -94,6 +129,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
+    /**
+     * Maneja la carga de archivos (logo o diseño de receta).
+     * Valida el tamaño del archivo (máx 1MB) y lo convierte a Base64.
+     * 
+     * @param e - Evento del input file
+     * @param type - Tipo de archivo a cargar: 'logo' o 'design'
+     */
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'design') => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -112,15 +154,34 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         reader.readAsDataURL(file);
     };
 
+    /**
+     * Guarda toda la configuración y finaliza el proceso.
+     * 1. Guarda los datos del médico
+     * 2. Crea/Configura la plantilla de receta
+     * 3. Redirige al usuario según su elección
+     */
+    /**
+     * Guarda la configuración completa del médico y finaliza el onboarding.
+     * 
+     * Acciones:
+     * 1. Guarda/Actualiza los datos del médico (perfil, consultorio).
+     * 2. Gestiona la creación de la plantilla de receta inicial:
+     *    - Si se eligió galería: Clona la plantilla seleccionada incluyendo todos sus campos.
+     *    - Si es diseño manual: Crea una plantilla básica en blanco o por defecto.
+     * 3. Determina la ruta de redirección según la preferencia del usuario (ir al editor o al dashboard).
+     * 4. Ejecuta el callback `onComplete` con la ruta destino.
+     */
     const handleSaveAndComplete = async () => {
         setIsLoading(true);
         try {
             // 1. Guardar datos del médico
             await medicoService.save(formData);
 
+            let createdPlantillaId = '';
+
             // 2. Manejar plantilla
             if (customDesign) {
-                await plantillaService.create({
+                createdPlantillaId = await plantillaService.create({
                     nombre: 'Mi Diseño Personalizado',
                     activa: true,
                     tamanoPapel: 'media_carta',
@@ -133,12 +194,25 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     ]
                 });
             } else if (selectedGalleryTemplate) {
-                // Ya la galería tiene su propio sistema de importación, pero aquí lo haremos manual si es necesario
-                // O mejor, el componente ya importó. Si lo seleccionó, lo marcamos.
+                // Si seleccionó de galería, crearla/activarla
+                // FIX: Las plantillas de galería vienen con una propiedad 'content' que tiene la config real
+                const templateData = selectedGalleryTemplate.content || selectedGalleryTemplate;
+
+                createdPlantillaId = await plantillaService.create({
+                    ...templateData,
+                    activa: true,
+                    updatedAt: new Date()
+                });
             }
 
             toast({ title: "¡Configuración exitosa!", description: "Bienvenido a RecetaZ" });
-            onComplete();
+
+            // Finalizar proceso de onboarding pasando la ruta de redirección
+            onComplete(
+                goToEditor
+                    ? (createdPlantillaId ? `/recetas/plantillas/${createdPlantillaId}` : '/recetas/plantillas/nueva')
+                    : '/dashboard'
+            );
         } catch (error) {
             console.error(error);
             toast({ title: "Error", description: "No se pudieron guardar los datos", variant: "destructive" });
@@ -147,6 +221,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         }
     };
 
+    /**
+     * Renderiza el contenido del paso actual del wizard.
+     */
     const renderStepContent = () => {
         switch (currentStep) {
             case 0: // Bienvenida
@@ -199,10 +276,19 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                     onChange={e => setFormData(prev => ({ ...prev, cedula: e.target.value }))}
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Especialidad</label>
+                                <SpecialtySelect
+                                    value={formData.especialidadKey}
+                                    onValueChange={(key: string, label: string) => {
+                                        setFormData(prev => ({ ...prev, especialidadKey: key, especialidad: label }));
+                                    }}
+                                />
+                            </div>
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep} disabled={!formData.nombre || !formData.cedula}>Continuar</Button>
+                            <Button className="flex-1" onClick={nextStep} disabled={!formData.nombre || !formData.cedula || !formData.especialidadKey}>Continuar</Button>
                         </div>
                     </div>
                 );
@@ -246,25 +332,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                             <p className="text-slate-500 text-sm">Dirección del consultorio y datos de contacto.</p>
                         </div>
                         <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Especialidad</label>
-                                <Select
-                                    value={formData.especialidadKey}
-                                    onValueChange={val => {
-                                        const spec = especialidades.find(s => s.id === val);
-                                        setFormData(prev => ({ ...prev, especialidadKey: val, especialidad: spec?.label || '' }));
-                                    }}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {especialidades.map(s => (
-                                            <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Teléfono de contacto</label>
                                 <Input
@@ -330,9 +397,36 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                             </div>
                         )}
 
+                        {/* Toggle de Edición Completa */}
+                        <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl space-y-3 border border-blue-100 dark:border-blue-900/30">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="goToEditor" className="text-sm font-bold text-blue-900 dark:text-blue-300">
+                                        Perfeccionar diseño al finalizar
+                                    </Label>
+                                    <p className="text-xs text-blue-700/70 dark:text-blue-400/70">
+                                        Se abrirá el editor para ajustar márgenes y campos.
+                                    </p>
+                                </div>
+                                <Switch
+                                    id="goToEditor"
+                                    checked={goToEditor}
+                                    onCheckedChange={setGoToEditor}
+                                />
+                            </div>
+                            {!goToEditor && (
+                                <p className="text-[11px] text-amber-600 dark:text-amber-400 italic flex gap-1 items-center">
+                                    <Info size={12} />
+                                    Podrá editar este diseño después desde el menú de Plantillas.
+                                </p>
+                            )}
+                        </div>
+
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>Finalizar configuración</Button>
+                            <Button className="flex-1" onClick={nextStep} disabled={!customDesign && !selectedGalleryTemplate}>
+                                Finalizar configuración
+                            </Button>
                         </div>
                     </div>
                 );
@@ -358,10 +452,11 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                 <p><strong>Cédula:</strong> {formData.cedula}</p>
                                 <p><strong>Especialidad:</strong> {formData.especialidad}</p>
                                 <p><strong>Formato:</strong> {customDesign ? 'Diseño proporcionado' : (selectedGalleryTemplate?.nombre || 'Predeterminado')}</p>
+                                <p><strong>Siguiente paso:</strong> {goToEditor ? 'Personalizar en el editor' : 'Ir al Dashboard'}</p>
                             </div>
                         </div>
                         <Button size="lg" className="w-full h-14 text-lg font-bold" onClick={handleSaveAndComplete} disabled={isLoading}>
-                            {isLoading ? 'Guardando...' : 'Comenzar a emitir recetas'}
+                            {isLoading ? 'Guardando...' : goToEditor ? 'Guardar y personalizar diseño' : 'Comenzar a emitir recetas'}
                         </Button>
                     </div>
                 );

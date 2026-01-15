@@ -15,15 +15,9 @@ import {
 } from "@/shared/components/ui/form"
 import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/shared/components/ui/select"
 import { useState, useRef, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
+import { SpecialtySelect } from "@/shared/components/catalog/SpecialtySelect"
 import { medicoService } from "@/features/config-medico/services/medico.service"
 import { Loader2, Save, Upload, X } from "lucide-react"
 import Image from "next/image"
@@ -278,33 +272,15 @@ export function MedicoConfigForm({ onSuccess, hideSubmitButton = false, onLoadin
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Especialidad</FormLabel>
-                                <Select
-                                    key={`especialidad-select-${especialidades.length}`}
-                                    onValueChange={(value) => {
-                                        field.onChange(value);
-                                        // Actualizar también el label visual
-                                        const spec = especialidades.find(e => e.id === value);
-                                        if (spec) form.setValue('especialidad', spec.label);
-                                    }}
-                                    defaultValue={field.value}
-                                    value={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Seleccione su especialidad" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="z-[250]">
-                                        {(() => {
-                                            console.log('MedicoConfigForm: Renderizando dropdown con especialidades:', especialidades.length);
-                                            return especialidades.map((esp) => (
-                                                <SelectItem key={esp.id} value={esp.id}>
-                                                    {esp.label}
-                                                </SelectItem>
-                                            ));
-                                        })()}
-                                    </SelectContent>
-                                </Select>
+                                <FormControl>
+                                    <SpecialtySelect
+                                        value={field.value}
+                                        onValueChange={(key, label) => {
+                                            field.onChange(key);
+                                            form.setValue('especialidad', label);
+                                        }}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
