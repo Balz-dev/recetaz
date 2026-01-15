@@ -43,10 +43,11 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
             e.preventDefault();
             setDeferredPrompt(e);
 
-            // Si no está instalada, mostramos el gate FULL
-            if (!window.matchMedia('(display-mode: standalone)').matches) {
-                setGateState('FULL');
-            }
+            // Si no está instalada, no mostramos el gate FULL automáticamente
+            // Dejamos que el usuario decida cuándo instalar desde el wizard o menú
+            // if (!window.matchMedia('(display-mode: standalone)').matches) {
+            //     setGateState('FULL');
+            // }
         };
 
         const handleAppInstalled = () => {
@@ -64,6 +65,13 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
+    /**
+     * Inicia el flujo de instalación de la PWA.
+     * 
+     * Si el navegador ha capturado un evento `beforeinstallprompt` (Chrome/Android),
+     * lo utiliza para mostrar el aviso nativo.
+     * Si el usuario rechaza, se puede optar por mostrar un estado limitado (feedback).
+     */
     const installApp = useCallback(async () => {
         if (!deferredPrompt) return;
 

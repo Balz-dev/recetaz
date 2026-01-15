@@ -14,7 +14,8 @@ import {
     Upload,
     X,
     Info,
-    Layout
+    Layout,
+    Palette
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -31,6 +32,8 @@ import { EspecialidadCatalogo, MedicoConfigFormData } from '@/types';
 import { PlantillaGallery } from '@/features/recetas/components/PlantillaGallery';
 import { SpecialtySelect } from '@/shared/components/catalog/SpecialtySelect';
 import Image from 'next/image';
+import { usePWA } from '@/shared/providers/PWAProvider';
+import { Download, Smartphone, Check } from 'lucide-react';
 
 interface OnboardingWizardProps {
     /**
@@ -45,7 +48,8 @@ const STEPS = [
     { title: 'Identidad', icon: <User /> },
     { title: 'Logo', icon: <ImageIcon /> },
     { title: 'Consultorio', icon: <MapPin /> },
-    { title: 'Diseño', icon: <Layout /> },
+    { title: 'Diseño', icon: <Palette /> },
+    { title: 'Instalación', icon: <Smartphone /> }, // Nuevo paso
     { title: 'Finalizar', icon: <CheckCircle2 /> },
 ];
 
@@ -81,6 +85,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const [goToEditor, setGoToEditor] = useState(true);
     const { toast } = useToast();
     const router = useRouter();
+    const { installApp, isInstalled, isIOS, hasPrompt } = usePWA();
 
     // Estado del formulario
     const [formData, setFormData] = useState<MedicoConfigFormData>({
@@ -126,7 +131,15 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         init();
     }, []);
 
-    const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
+    const nextStep = () => {
+        // Lógica de salto para paso de instalación PWA
+        // Si el siguiente es la instalación (índice 5) y ya está instalada, saltamos al final (6)
+        if (currentStep + 1 === 5 && isInstalled) {
+            setCurrentStep(prev => Math.min(prev + 2, STEPS.length - 1));
+            return;
+        }
+        setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
+    };
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
     /**
@@ -431,7 +444,86 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 );
 
-            case 5: // Finalizar
+            case 5: // Instalación PWA
+                /**
+                 * Renderiza el paso de invitación a instalar la PWA.
+                 * Se muestra solo si la app no está instalada o estamos en un entorno compatible.
+                 */
+                return (
+                    <div className="space-y-6 animate-in slide-in-from-right duration-500">
+                        <div className="text-center space-y-2">
+                            <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+                                <Smartphone className="w-8 h-8" />
+                            </div>
+                            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                Mejora tu experiencia
+                            </h2>
+                            <p className="text-slate-500 max-w-md mx-auto">
+                                Instala la aplicación para tener un <strong>acceso directo en tu dispositivo</strong> y usar RecetaZ sin necesidad de abrir el navegador.
+                            </p>
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+                            {isInstalled ? (
+                                <div className="text-center space-y-4">
+                                    <div className="flex items-center justify-center gap-2 text-green-600 font-bold">
+                                        <Check className="w-5 h-5" />
+                                        <span>¡Ya tienes la aplicación instalada!</span>
+                                    </div>
+                                    <Button className="w-full" onClick={nextStep}>Continuar</Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {isIOS ? (
+                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                            <p className="font-bold mb-2 text-blue-700 dark:text-blue-300">Para instalar en iPhone/iPad:</p>
+                                            <ol className="list-decimal list-inside space-y-1">
+                                                <li>Toca el botón <strong>Compartir</strong> del navegador.</li>
+                                                <li>Busca y selecciona <strong>"Agregar a Inicio"</strong>.</li>
+                                            </ol>
+                                        </div>
+                                    ) : hasPrompt ? (
+                                        <Button className="w-full h-12 text-lg font-bold shadow-lg shadow-blue-200 dark:shadow-none animate-pulse" onClick={installApp}>
+                                            <Download className="mr-2 h-5 w-5" /> Instalar Aplicación
+                                        </Button>
+                                    ) : (
+                                        <div className="text-center space-y-4 relative">
+                                            <div className="absolute -top-12 right-0 hidden md:block animate-bounce delay-700">
+                                                {/* Flecha indicativa hacia la barra de direcciones */}
+                                                <svg width="60" height="60" viewBox="0 0 100 100" className="text-blue-500 -rotate-12">
+                                                    <path d="M50 80 Q 70 40 90 20" stroke="currentColor" strokeWidth="4" fill="none" markerEnd="url(#arrowhead)" />
+                                                    <defs>
+                                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                                                            <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
+                                                        </marker>
+                                                    </defs>
+                                                </svg>
+                                            </div>
+
+                                            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 p-4 rounded-lg text-amber-800 dark:text-amber-200 text-sm">
+                                                <p className="font-bold mb-1 flex items-center justify-center gap-2">
+                                                    <Info size={16} />
+                                                    Instalación manual
+                                                </p>
+                                                <p>
+                                                    Busca el botón <strong>"Instalar"</strong> <span className="hidden md:inline">en la barra de direcciones de tu navegador (arriba a la derecha)</span> o en el menú de opciones.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="pt-2">
+                                        <Button variant="ghost" className="w-full text-slate-400 hover:text-slate-600" onClick={nextStep}>
+                                            Decidir más tarde, continuar ahora
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+
+            case 6: // Finalizar
                 return (
                     <div className="space-y-8 text-center py-6">
                         <div className="flex justify-center">
@@ -460,7 +552,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </Button>
                     </div>
                 );
-
             default:
                 return null;
         }
