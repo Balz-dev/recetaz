@@ -8,6 +8,7 @@
  * - Crear nuevos medicamentos
  * - Editar medicamentos existentes
  * - Eliminar medicamentos
+ * - Importar/Exportar datos en formato JSON
  */
 
 "use client"
@@ -23,8 +24,7 @@ import {
 } from '@/shared/services/medicamentos.service'
 import { MedicamentoCatalogo, MedicamentoCatalogoFormData } from '@/types'
 import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import { Card, CardContent } from '@/shared/components/ui/card'
 import {
     Table,
     TableBody,
@@ -66,12 +66,20 @@ import {
     FormLabel,
     FormMessage,
 } from '@/shared/components/ui/form'
+import { Input } from '@/shared/components/ui/input'
 import { useToast } from '@/shared/components/ui/use-toast'
-import { Plus, Pencil, Trash2, Search, Package, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Badge } from '@/shared/components/ui/badge'
+import { Plus, Package, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Skeleton } from '../../../shared/components/ui/skeleton'
+import { CatalogHeader } from '@/shared/components/catalog/CatalogHeader'
+import { StatsCards } from '@/shared/components/catalog/StatsCards'
+import { CatalogFilters } from '@/shared/components/catalog/CatalogFilters'
+import { ImportExportButtons } from '@/shared/components/catalog/ImportExportButtons'
+import { TableActions } from '@/shared/components/catalog/TableActions'
+import { exportToJSON, getFormattedDate } from '@/shared/utils/import-export.utils'
 
 /**
  * Schema de validación para formulario de medicamentos
@@ -108,6 +116,7 @@ export default function MedicamentosPage() {
     const [medicamentoEliminar, setMedicamentoEliminar] = useState<MedicamentoCatalogo | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [paginaActual, setPaginaActual] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
     const itemsPorPagina = 20
     const { toast } = useToast()
 
@@ -161,9 +170,10 @@ export default function MedicamentosPage() {
 
             // Paginación
             const offset = (paginaActual - 1) * itemsPorPagina
-            const meds = await obtenerMedicamentos(filtros, { offset, limit: itemsPorPagina })
+            const { items, total } = await obtenerMedicamentos(filtros, { offset, limit: itemsPorPagina })
 
-            setMedicamentos(meds)
+            setMedicamentos(items)
+            setTotalItems(total)
         } finally {
             setIsLoading(false)
         }
@@ -283,105 +293,124 @@ export default function MedicamentosPage() {
         }
     }
 
+    /**
+     * Exporta todos los medicamentos a JSON
+     */
+    const handleExport = async () => {
+        const { items } = await obtenerMedicamentos({}, { offset: 0, limit: 10000 })
+        const date = getFormattedDate()
+        exportToJSON(items, `medicamentos-${date}`, 'medicamentos')
+    }
+
+    /**
+     * Importa medicamentos desde JSON
+     */
+    const handleImport = async (data: any[]) => {
+        let importados = 0
+        for (const item of data) {
+            try {
+                // Verificar si ya existe por nombre
+                const filtros = { busqueda: item.nombre }
+                const { items: existentes } = await obtenerMedicamentos(filtros, { offset: 0, limit: 1 })
+
+                if (existentes.length === 0) {
+                    await agregarMedicamento(item)
+                    importados++
+                }
+            } catch (error) {
+                console.error('Error importando medicamento:', error)
+            }
+        }
+
+        if (importados > 0) {
+            await cargarMedicamentos()
+        }
+
+        toast({
+            title: "Importación completada",
+            description: `Se importaron ${importados} de ${data.length} medicamentos.`
+        })
+    }
+
     return (
         <div className="container mx-auto py-6 space-y-6">
             {/* Header */}
             <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold">Catálogo de Medicamentos</h1>
-                    <p className="text-muted-foreground">
-                        Administra el catálogo completo de medicamentos
-                    </p>
-                </div>
-                <Button onClick={handleNuevoMedicamento}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nuevo Medicamento
-                </Button>
+                <CatalogHeader
+                    title="Catálogo de Medicamentos"
+                    description="Administra el catálogo completo de medicamentos"
+                    buttonText="Nuevo Medicamento"
+                    onButtonClick={handleNuevoMedicamento}
+                    ButtonIcon={Plus}
+                />
+                <ImportExportButtons
+                    onExport={handleExport}
+                    onImport={handleImport}
+                    entityName="medicamentos"
+                />
             </div>
 
             {/* Estadísticas */}
             {estadisticas && (
-                <div className="grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Medicamentos</CardTitle>
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{estadisticas.total}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Del Catálogo</CardTitle>
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{estadisticas.delCatalogo}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Personalizados</CardTitle>
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{estadisticas.personalizados}</div>
-                        </CardContent>
-                    </Card>
-                </div>
+                <StatsCards
+                    stats={[
+                        {
+                            title: "Total Medicamentos",
+                            value: estadisticas.total,
+                            icon: Package
+                        },
+                        {
+                            title: "Del Catálogo",
+                            value: estadisticas.delCatalogo,
+                            icon: Package
+                        },
+                        {
+                            title: "Personalizados",
+                            value: estadisticas.personalizados,
+                            icon: Package
+                        }
+                    ]}
+                />
             )}
 
             {/* Filtros y Búsqueda */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Filtros</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid gap-4 md:grid-cols-4">
-                        <div className="relative">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar medicamento..."
-                                value={busqueda}
-                                onChange={(e) => setBusqueda(e.target.value)}
-                                className="pl-8"
-                            />
-                        </div>
-                        <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Categoría" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="todas">Todas las categorías</SelectItem>
-                                {estadisticas?.categorias.map((cat) => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Select value={filtroTipo} onValueChange={(value: any) => setFiltroTipo(value)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="todos">Todos</SelectItem>
-                                <SelectItem value="catalogo">Del catálogo</SelectItem>
-                                <SelectItem value="personalizados">Personalizados</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select value={ordenPor} onValueChange={(value: any) => setOrdenPor(value)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Ordenar por" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="nombre">Nombre</SelectItem>
-                                <SelectItem value="uso">Más usados</SelectItem>
-                                <SelectItem value="reciente">Más recientes</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
+            <CatalogFilters
+                searchValue={busqueda}
+                onSearchChange={setBusqueda}
+                searchPlaceholder="Buscar medicamento..."
+            >
+                <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="todas">Todas las categorías</SelectItem>
+                        {estadisticas?.categorias.map((cat) => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select value={filtroTipo} onValueChange={(value: any) => setFiltroTipo(value)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="todos">Todos</SelectItem>
+                        <SelectItem value="catalogo">Del catálogo</SelectItem>
+                        <SelectItem value="personalizados">Personalizados</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Select value={ordenPor} onValueChange={(value: any) => setOrdenPor(value)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="nombre">Nombre</SelectItem>
+                        <SelectItem value="uso">Más usados</SelectItem>
+                        <SelectItem value="reciente">Más recientes</SelectItem>
+                    </SelectContent>
+                </Select>
+            </CatalogFilters>
 
             {/* Tabla de Medicamentos */}
             <Card>
@@ -426,33 +455,23 @@ export default function MedicamentosPage() {
                                         <TableCell>{med.categoria || '-'}</TableCell>
                                         <TableCell className="text-center">
                                             {med.esPersonalizado ? (
-                                                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                                <Badge variant="info">
                                                     Personalizado
-                                                </span>
+                                                </Badge>
                                             ) : (
-                                                <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                <Badge variant="success">
                                                     Catálogo
-                                                </span>
+                                                </Badge>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-center">{med.vecesUsado}</TableCell>
                                         <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleEditarMedicamento(med)}
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => setMedicamentoEliminar(med)}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </div>
+                                            <TableActions
+                                                onEdit={() => handleEditarMedicamento(med)}
+                                                onDelete={() => setMedicamentoEliminar(med)}
+                                                editLabel="Editar medicamento"
+                                                deleteLabel="Eliminar medicamento"
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -463,7 +482,7 @@ export default function MedicamentosPage() {
                     {/* Controles de Paginación */}
                     <div className="flex items-center justify-end space-x-2 py-4 px-2 border-t mt-4">
                         <div className="flex-1 text-sm text-muted-foreground">
-                            Página {paginaActual}
+                            Mostrando {Math.min((paginaActual - 1) * itemsPorPagina + 1, totalItems)} - {Math.min(paginaActual * itemsPorPagina, totalItems)} de {totalItems} registros
                         </div>
                         <div className="space-x-2">
                             <Button
@@ -479,7 +498,7 @@ export default function MedicamentosPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setPaginaActual(prev => prev + 1)}
-                                disabled={medicamentos.length < itemsPorPagina || isLoading}
+                                disabled={paginaActual * itemsPorPagina >= totalItems || isLoading}
                             >
                                 Siguiente
                                 <ChevronRight className="h-4 w-4 ml-1" />

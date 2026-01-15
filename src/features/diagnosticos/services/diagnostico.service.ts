@@ -60,13 +60,91 @@ export const diagnosticoService = {
     },
 
     /**
-     * Obtiene todos los diagnósticos paginados
+     * Obtiene todos los diagnósticos paginados con ordenamiento y búsqueda opcional
+     * 
+     * @param offset - Desplazamiento para paginación
+     * @param limit - Límite de resultados
+     * @param ordenarPor - Criterio de ordenamiento ('nombre' | 'uso' | 'reciente')
+     * @param busqueda - Término de búsqueda opcional
+     * @returns Objeto con array de diagnósticos y total de registros
      */
-    async getAll(offset = 0, limit = 50): Promise<DiagnosticoCatalogo[]> {
-        return await db.diagnosticos
-            .offset(offset)
-            .limit(limit)
-            .toArray();
+    async getAll(
+        offset = 0,
+        limit = 50,
+        ordenarPor: 'nombre' | 'uso' | 'reciente' = 'uso',
+        busqueda: string = ""
+    ): Promise<{ items: DiagnosticoCatalogo[]; total: number }> {
+        let collection: import('dexie').Collection<DiagnosticoCatalogo, number>;
+
+        if (busqueda && busqueda.trim().length > 0) {
+            const queryNorm = busqueda.toLowerCase().trim();
+            collection = db.diagnosticos.toCollection().filter(diag => {
+                return !!(
+                    diag.codigo.toLowerCase().includes(queryNorm) ||
+                    diag.nombre.toLowerCase().includes(queryNorm) ||
+                    diag.sinonimos?.some(s => s.toLowerCase().includes(queryNorm)) ||
+                    diag.especialidad?.some(e => e.toLowerCase().includes(queryNorm))
+                );
+            });
+        } else {
+            collection = db.diagnosticos.toCollection();
+        }
+
+        // Obtener total antes de paginar
+        const total = await collection.count();
+
+        // Obtener items y ordenar en memoria
+        let items = await collection.toArray();
+
+        // Aplicar ordenamiento
+        if (ordenarPor === 'nombre') {
+            items.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        } else if (ordenarPor === 'uso') {
+            items.sort((a, b) => (b.vecesUsado || 0) - (a.vecesUsado || 0));
+        } else if (ordenarPor === 'reciente') {
+            // No hay fecha explícita, usamos vecesUsado como proxy o simplemente el orden actual
+            items.sort((a, b) => (b.vecesUsado || 0) - (a.vecesUsado || 0));
+        }
+
+        // Aplicar paginación
+        const pagedItems = items.slice(offset, offset + limit);
+
+        return { items: pagedItems, total };
+    },
+
+    /**
+     * Obtiene estadísticas de diagnósticos
+     */
+    async getEstadisticas() {
+        const todos = await db.diagnosticos.toArray();
+
+        // Obtener especialidades únicas
+        const especialidadesSet = new Set<string>();
+        todos.forEach(diag => {
+            diag.especialidad?.forEach(esp => especialidadesSet.add(esp));
+        });
+
+        return {
+            total: todos.length,
+            especialidades: Array.from(especialidadesSet).sort(),
+            masUsados: todos
+                .sort((a, b) => (b.vecesUsado || 0) - (a.vecesUsado || 0))
+                .slice(0, 5)
+        };
+    },
+
+    /**
+     * Incrementa el contador de uso de un diagnóstico
+     * 
+     * @param id - ID del diagnóstico
+     */
+    async incrementarUso(id: number): Promise<void> {
+        const diagnostico = await db.diagnosticos.get(id);
+        if (diagnostico) {
+            await db.diagnosticos.update(id, {
+                vecesUsado: (diagnostico.vecesUsado || 0) + 1
+            });
+        }
     },
 
     /**
@@ -84,7 +162,8 @@ export const diagnosticoService = {
 
         return await db.diagnosticos.add({
             ...data,
-            palabrasClave
+            palabrasClave,
+            vecesUsado: 0
         });
     },
 
@@ -122,3 +201,4 @@ export const diagnosticoService = {
         await db.diagnosticos.delete(id);
     }
 };
+

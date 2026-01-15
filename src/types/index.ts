@@ -2,7 +2,7 @@ export interface Paciente {
     id: string;
     nombre: string;
     edad?: number;
-    direccion?: string;
+    fechaNacimiento?: Date;
     alergias?: string;
     antecedentes?: string;
     peso?: string; // Permitir "70 kg" o solo "70"
@@ -84,7 +84,7 @@ export type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfigFormData, 'logo'>
 export type PacienteFormData = {
     nombre: string;
     edad?: number;
-    direccion?: string;
+    fechaNacimiento?: Date;
     alergias?: string;
     antecedentes?: string;
     peso?: string;
@@ -97,10 +97,11 @@ export type RecetaFormData = {
     pacienteId?: string;
     pacienteNombre: string;
     pacienteEdad?: number;
-    pacienteDireccion?: string;
-    pacienteCedula?: string;
+    pacienteFechaNacimiento?: Date;
     pacientePeso?: string;
     pacienteTalla?: string;
+    pacienteAlergias?: string;
+    pacienteAntecedentes?: string;
     // Datos de la receta
     diagnostico: string;
     medicamentos: Omit<Medicamento, 'id'>[];
@@ -254,6 +255,7 @@ export interface DiagnosticoCatalogo {
     sinonimos?: string[]; // Términos alternativos para facilitar búsqueda
     especialidad?: string[]; // Especialidades relacionadas
     palabrasClave?: string[]; // Tokens normalizados para búsqueda
+    vecesUsado?: number;  // Contador de veces que se ha usado en recetas
 }
 
 /**

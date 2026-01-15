@@ -15,15 +15,9 @@ import {
 } from "@/shared/components/ui/form"
 import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/shared/components/ui/select"
 import { useState, useRef, useEffect } from "react"
 import { useToast } from "@/shared/components/ui/use-toast"
+import { SpecialtySelect } from "@/shared/components/catalog/SpecialtySelect"
 import { medicoService } from "@/features/config-medico/services/medico.service"
 import { Loader2, Save, Upload, X } from "lucide-react"
 import Image from "next/image"
@@ -52,9 +46,11 @@ const medicoFormSchema = z.object({
 
 interface MedicoConfigFormProps {
     onSuccess?: () => void;
+    hideSubmitButton?: boolean;
+    onLoadingChange?: (loading: boolean) => void;
 }
 
-export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
+export function MedicoConfigForm({ onSuccess, hideSubmitButton = false, onLoadingChange }: MedicoConfigFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [logoBase64, setLogoBase64] = useState<string | undefined>(undefined)
@@ -169,9 +165,9 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
         }
     }
 
-    // Manejar envío del formulario
     async function onSubmit(values: MedicoConfigFormDataWithoutLogo) {
         setIsLoading(true)
+        onLoadingChange?.(true)
         try {
             // Asegurar que el nombre de la especialidad coincida con la key seleccionada
             const selectedSpecialty = especialidades.find(e => e.id === (values.especialidadKey || 'general'));
@@ -198,12 +194,13 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
             })
         } finally {
             setIsLoading(false)
+            onLoadingChange?.(false)
         }
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form id="medico-config-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Logo Institucional */}
                 <div className="space-y-4">
                     <div>
@@ -275,33 +272,15 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Especialidad</FormLabel>
-                                <Select
-                                    key={`especialidad-select-${especialidades.length}`}
-                                    onValueChange={(value) => {
-                                        field.onChange(value);
-                                        // Actualizar también el label visual
-                                        const spec = especialidades.find(e => e.id === value);
-                                        if (spec) form.setValue('especialidad', spec.label);
-                                    }}
-                                    defaultValue={field.value}
-                                    value={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Seleccione su especialidad" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent className="z-[250]">
-                                        {(() => {
-                                            console.log('MedicoConfigForm: Renderizando dropdown con especialidades:', especialidades.length);
-                                            return especialidades.map((esp) => (
-                                                <SelectItem key={esp.id} value={esp.id}>
-                                                    {esp.label}
-                                                </SelectItem>
-                                            ));
-                                        })()}
-                                    </SelectContent>
-                                </Select>
+                                <FormControl>
+                                    <SpecialtySelect
+                                        value={field.value}
+                                        onValueChange={(key, label) => {
+                                            field.onChange(key);
+                                            form.setValue('especialidad', label);
+                                        }}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -357,19 +336,21 @@ export function MedicoConfigForm({ onSuccess }: MedicoConfigFormProps) {
                     )}
                 />
 
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Guardando...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Guardar Configuración
-                        </>
-                    )}
-                </Button>
+                {!hideSubmitButton && (
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Guardando...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="mr-2 h-4 w-4" />
+                                Guardar Configuración
+                            </>
+                        )}
+                    </Button>
+                )}
             </form>
         </Form>
     )

@@ -2,13 +2,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
-import { Plus, Search, Edit, Trash2 } from "lucide-react"
+import { Plus, Package, ChevronLeft, ChevronRight } from "lucide-react"
 import { DiagnosticoCatalogo } from "@/types"
 import { diagnosticoService } from "@/features/diagnosticos/services/diagnostico.service"
 import { DiagnosticoDialog } from "@/features/diagnosticos/components/DiagnosticoDialog"
 import { useToast } from "@/shared/components/ui/use-toast"
+import { Badge } from "@/shared/components/ui/badge"
 import {
     Table,
     TableBody,
@@ -27,28 +26,49 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/shared/components/ui/select"
+import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent } from "@/shared/components/ui/card"
+import { CatalogHeader } from "@/shared/components/catalog/CatalogHeader"
+import { StatsCards } from "@/shared/components/catalog/StatsCards"
+import { CatalogFilters } from "@/shared/components/catalog/CatalogFilters"
+import { ImportExportButtons } from "@/shared/components/catalog/ImportExportButtons"
+import { TableActions } from "@/shared/components/catalog/TableActions"
+import { exportToJSON, getFormattedDate } from "@/shared/utils/import-export.utils"
 
 export default function DiagnosticosPage() {
     const [diagnosticos, setDiagnosticos] = useState<DiagnosticoCatalogo[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+    const [ordenPor, setOrdenPor] = useState<'nombre' | 'uso' | 'reciente'>('uso')
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedDiagnostico, setSelectedDiagnostico] = useState<DiagnosticoCatalogo | null>(null)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [diagnosticoToDelete, setDiagnosticoToDelete] = useState<number | null>(null)
+    const [paginaActual, setPaginaActual] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
+    const itemsPorPagina = 50
+    const [estadisticas, setEstadisticas] = useState<{
+        total: number
+        especialidades: string[]
+        masUsados: DiagnosticoCatalogo[]
+    } | null>(null)
 
     const { toast } = useToast()
 
     const loadDiagnosticos = async () => {
         setLoading(true)
         try {
-            let data;
-            if (searchTerm.length >= 2) {
-                data = await diagnosticoService.search(searchTerm)
-            } else {
-                data = await diagnosticoService.getAll(0, 50)
-            }
-            setDiagnosticos(data)
+            const offset = (paginaActual - 1) * itemsPorPagina
+            const { items, total } = await diagnosticoService.getAll(offset, itemsPorPagina, ordenPor, searchTerm)
+            setDiagnosticos(items)
+            setTotalItems(total)
         } catch (error) {
             console.error(error)
             toast({
@@ -61,12 +81,31 @@ export default function DiagnosticosPage() {
         }
     }
 
-    // Debounce search
+    const loadEstadisticas = async () => {
+        try {
+            const stats = await diagnosticoService.getEstadisticas()
+            setEstadisticas(stats)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    // Cargar estadísticas al montar
+    useEffect(() => {
+        loadEstadisticas()
+    }, [])
+
+    // Cargar diagnósticos cuando cambian los filtros o la página
     useEffect(() => {
         const timer = setTimeout(() => {
             loadDiagnosticos()
         }, 500)
         return () => clearTimeout(timer)
+    }, [searchTerm, ordenPor, paginaActual])
+
+    // Reiniciar a la primera página si cambia la búsqueda
+    useEffect(() => {
+        setPaginaActual(1)
     }, [searchTerm])
 
     const handleCreate = () => {
@@ -94,6 +133,7 @@ export default function DiagnosticosPage() {
                 toast({ title: "Diagnóstico creado exitosamente" })
             }
             loadDiagnosticos()
+            loadEstadisticas()
         } catch (error) {
             console.error(error)
             toast({
@@ -110,6 +150,7 @@ export default function DiagnosticosPage() {
             await diagnosticoService.delete(diagnosticoToDelete)
             toast({ title: "Diagnóstico eliminado" })
             loadDiagnosticos()
+            loadEstadisticas()
         } catch (error) {
             toast({ title: "Error al eliminar", variant: "destructive" })
         } finally {
@@ -118,97 +159,188 @@ export default function DiagnosticosPage() {
         }
     }
 
+    const handleExport = async () => {
+        const { items } = await diagnosticoService.getAll(0, 10000)
+        const date = getFormattedDate()
+        exportToJSON(items, `diagnosticos-${date}`, 'diagnosticos')
+    }
+
+    const handleImport = async (data: any[]) => {
+        let importados = 0
+        for (const item of data) {
+            try {
+                // Verificar si ya existe por código
+                const existente = await diagnosticoService.search(item.codigo)
+                if (existente.length === 0) {
+                    await diagnosticoService.create(item)
+                    importados++
+                }
+            } catch (error) {
+                console.error('Error importando diagnóstico:', error)
+            }
+        }
+
+        if (importados > 0) {
+            loadDiagnosticos()
+            loadEstadisticas()
+        }
+
+        toast({
+            title: "Importación completada",
+            description: `Se importaron ${importados} de ${data.length} diagnósticos.`
+        })
+    }
+
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto py-6 space-y-6">
+            {/* Header */}
             <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                        Catálogo de Diagnósticos
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        Gestiona los códigos CIE-11 y diagnósticos frecuentes.
-                    </p>
-                </div>
-                <Button onClick={handleCreate} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Nuevo Diagnóstico
-                </Button>
+                <CatalogHeader
+                    title="Catálogo de Diagnósticos"
+                    description="Gestiona los códigos CIE-11 y diagnósticos frecuentes."
+                    buttonText="Nuevo Diagnóstico"
+                    onButtonClick={handleCreate}
+                    ButtonIcon={Plus}
+                />
+                <ImportExportButtons
+                    onExport={handleExport}
+                    onImport={handleImport}
+                    entityName="diagnósticos"
+                />
             </div>
 
-            <div className="flex gap-4 items-center bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm">
-                <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-                    <Input
-                        placeholder="Buscar por código, nombre o especialidad..."
-                        className="pl-9"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-            </div>
+            {/* Estadísticas */}
+            {estadisticas && (
+                <StatsCards
+                    stats={[
+                        {
+                            title: "Total Diagnósticos",
+                            value: estadisticas.total,
+                            icon: Package
+                        },
+                        {
+                            title: "Especialidades",
+                            value: estadisticas.especialidades.length,
+                            icon: Package
+                        },
+                        {
+                            title: "Más Usados",
+                            value: estadisticas.masUsados.length,
+                            icon: Package
+                        }
+                    ]}
+                />
+            )}
 
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[100px]">Código</TableHead>
-                            <TableHead>Nombre</TableHead>
-                            <TableHead className="hidden md:table-cell">Especialidad</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
+            {/* Filtros */}
+            <CatalogFilters
+                searchValue={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Buscar por código, nombre o especialidad..."
+            >
+                <Select value={ordenPor} onValueChange={(value: any) => setOrdenPor(value)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="nombre">Nombre</SelectItem>
+                        <SelectItem value="uso">Más usados</SelectItem>
+                        <SelectItem value="reciente">Más recientes</SelectItem>
+                    </SelectContent>
+                </Select>
+            </CatalogFilters>
+
+            {/* Tabla */}
+            <Card>
+                <CardContent className="pt-6">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
-                                    Cargando...
-                                </TableCell>
+                                <TableHead className="w-[100px]">Código</TableHead>
+                                <TableHead>Nombre</TableHead>
+                                <TableHead className="hidden md:table-cell">Especialidad</TableHead>
+                                <TableHead className="text-center">Usos</TableHead>
+                                <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
-                        ) : diagnosticos.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center text-slate-500">
-                                    No se encontraron diagnósticos.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            diagnosticos.map((diag) => (
-                                <TableRow key={diag.id}>
-                                    <TableCell className="font-medium font-mono text-xs text-slate-500">
-                                        {diag.codigo}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-medium">{diag.nombre}</div>
-                                        {diag.sinonimos && diag.sinonimos.length > 0 && (
-                                            <div className="text-xs text-slate-500 truncate max-w-[300px]">
-                                                {diag.sinonimos.join(", ")}
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell">
-                                        <div className="flex gap-1 flex-wrap">
-                                            {diag.especialidad?.slice(0, 2).map((esp, i) => (
-                                                <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                                                    {esp}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(diag)}>
-                                                <Edit className="h-4 w-4 text-slate-500" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(diag.id!)}>
-                                                <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
-                                        </div>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-24 text-center">
+                                        Cargando...
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            ) : diagnosticos.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                                        No se encontraron diagnósticos.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                diagnosticos.map((diag) => (
+                                    <TableRow key={diag.id}>
+                                        <TableCell className="font-medium font-mono text-xs text-slate-500">
+                                            {diag.codigo}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{diag.nombre}</div>
+                                            {diag.sinonimos && diag.sinonimos.length > 0 && (
+                                                <div className="text-xs text-slate-500 truncate max-w-[300px]">
+                                                    {diag.sinonimos.join(", ")}
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            <div className="flex gap-1 flex-wrap">
+                                                {diag.especialidad?.slice(0, 2).map((esp, i) => (
+                                                    <Badge key={i} variant="info">
+                                                        {esp}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-center">{diag.vecesUsado || 0}</TableCell>
+                                        <TableCell className="text-right">
+                                            <TableActions
+                                                onEdit={() => handleEdit(diag)}
+                                                onDelete={() => confirmDelete(diag.id!)}
+                                                editLabel="Editar diagnóstico"
+                                                deleteLabel="Eliminar diagnóstico"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                    {/* Paginación */}
+                    <div className="flex items-center justify-end space-x-2 py-4 px-2 border-t mt-4">
+                        <div className="flex-1 text-sm text-muted-foreground">
+                            Mostrando {Math.min((paginaActual - 1) * itemsPorPagina + 1, totalItems)} - {Math.min(paginaActual * itemsPorPagina, totalItems)} de {totalItems} registros
+                        </div>
+                        <div className="space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+                                disabled={paginaActual === 1 || loading}
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" />
+                                Anterior
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPaginaActual(prev => prev + 1)}
+                                disabled={paginaActual * itemsPorPagina >= totalItems || loading}
+                            >
+                                Siguiente
+                                <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <DiagnosticoDialog
                 open={isDialogOpen}

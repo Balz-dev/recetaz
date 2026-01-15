@@ -38,8 +38,6 @@ function generarPacientes(): Paciente[] {
 
     const nombres = ['Juan', 'María', 'Carlos', 'Ana', 'Luis', 'Laura', 'Roberto', 'Diana', 'Miguel', 'Patricia', 'José', 'Sofía', 'Alejandro', 'Carolina', 'Ángel', 'Elena', 'Alberto', 'Teresa', 'David', 'Gabriela', 'Fernando', 'Mónica', 'Jorge', 'Adriana', 'Ricardo', 'Verónica', 'Manuel', 'Silvia', 'Francisco', 'Elizabeth', 'Antonio', 'Martha', 'Daniel', 'Rosa', 'Pablo', 'Andrea', 'Jesús', 'Lucía', 'Pedro', 'Yolanda'];
     const apellidos = ['Pérez', 'González', 'Rodríguez', 'López', 'Martínez', 'Sánchez', 'Hernández', 'Cruz', 'García', 'Ramírez', 'Mendoza', 'Torres', 'Flores', 'Díaz', 'Ruiz', 'Morales', 'Ortiz', 'Vargas', 'Castillo', 'Romero', 'Álvarez', 'Castro', 'Méndez', 'Guzmán', 'Herrera', 'Aguilar', 'Delgado', 'Jiménez', 'Moreno', 'Chávez', 'Ramos', 'Rivera', 'Juárez', 'Reyes'];
-    const calles = ['Av. Reforma', 'Calle Morelos', 'Av. Juárez', 'Calle Insurgentes', 'Av. Universidad', 'Calle Hidalgo', 'Av. Revolución', 'Calle Madero'];
-    const colonias = ['Centro', 'Roma', 'Condesa', 'Del Valle', 'San Ángel', 'Polanco', 'Juárez', 'Narvarte', 'Coyoacán', 'Pedregal'];
     const antecedentesOpts = ['Ninguno', 'Hipertensión', 'Diabetes', 'Asma', 'Gastritis', 'Ninguno', 'Ninguno', 'Alergia estacional'];
 
     const getRandomItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
@@ -52,7 +50,6 @@ function generarPacientes(): Paciente[] {
         const nombreCompleto = [primerNombre, segundoNombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(' ');
 
         const edad = Math.floor(Math.random() * 80) + 5;
-        const direccion = `${getRandomItem(calles)} ${Math.floor(Math.random() * 900) + 1}, Col. ${getRandomItem(colonias)}`;
         const diasAntiguedad = Math.floor(Math.random() * 365);
         const fechaRegistro = new Date(now.getTime() - diasAntiguedad * 24 * 60 * 60 * 1000);
 
@@ -60,7 +57,6 @@ function generarPacientes(): Paciente[] {
             id: uuidv4(),
             nombre: nombreCompleto,
             edad: edad,
-            direccion: direccion,
             alergias: Math.random() > 0.7 ? 'Penicilina' : '',
             antecedentes: getRandomItem(antecedentesOpts),
             peso: `${Math.floor(Math.random() * 40) + 50} kg`,
@@ -295,7 +291,7 @@ function generarPlantillas(): PlantillaReceta[] {
 /**
  * Genera la configuración financiera
  */
-function generarConfiguracionFinanciera(): ConfiguracionFinanciera {
+export function generarConfiguracionFinanciera(): ConfiguracionFinanciera {
     return {
         id: 'default',
         costoConsulta: 500,
@@ -306,118 +302,73 @@ function generarConfiguracionFinanciera(): ConfiguracionFinanciera {
 /**
  * Función principal que ejecuta el seed en el navegador
  * 
+ * @param isDemo - Si es true, añade datos ficticios (pacientes, recetas, etc.).
  * @returns Promise que se resuelve cuando el seed se completa exitosamente
  */
-export async function seedDatabase(): Promise<void> {
+export async function seedDatabase(isDemo: boolean = false): Promise<void> {
     try {
-        console.log('🌱 Iniciando población de base de datos...\n');
+        console.log(`🌱 Iniciando población de base de datos (${isDemo ? 'MODO DEMO' : 'MODO REAL'})...\n`);
 
-        // Limpiar datos existentes
-        console.log('🧹 Limpiando datos existentes...');
+        // Limpiar datos existentes (Solo médico, pacientes y recetas para evitar pérdida de catálogos si ya existen)
+        // En una instalación desde cero, todo estará vacío.
+        console.log('🧹 Limpiando datos previo a inicialización...');
         await db.medico.clear();
         await db.pacientes.clear();
         await db.recetas.clear();
         await db.finanzas.clear();
         await db.configuracionFinanciera.clear();
-        console.log('✅ Datos limpiados\n');
-
-        // Insertar configuración del médico
-        console.log('👨‍⚕️ Insertando configuración del médico...');
-        const medico = generarMedicoConfig();
-        await db.medico.add(medico);
-        console.log(`✅ Médico: ${medico.nombre}\n`);
-
-        // Insertar pacientes
-        console.log('👥 Insertando pacientes...');
-        const pacientes = generarPacientes();
-        await db.pacientes.bulkAdd(pacientes);
-        console.log(`✅ ${pacientes.length} pacientes insertados\n`);
-
-        // Insertar recetas
-        console.log('📋 Insertando recetas...');
-        const recetas = generarRecetas(pacientes);
-        await db.recetas.bulkAdd(recetas);
-        console.log(`✅ ${recetas.length} recetas insertadas\n`);
-
-        // Insertar movimientos financieros
-        console.log('💰 Insertando movimientos financieros...');
-        const movimientos = generarMovimientosFinancieros(recetas);
-        await db.finanzas.bulkAdd(movimientos);
-        console.log(`✅ ${movimientos.length} movimientos financieros insertados\n`);
-
-        // Insertar configuración financiera
-        console.log('⚙️ Insertando configuración financiera...');
-        const configFinanciera = generarConfiguracionFinanciera();
-        await db.configuracionFinanciera.add(configFinanciera);
-        console.log(`✅ Costo de consulta: $${configFinanciera.costoConsulta}.00 MXN\n`);
-
-        console.log('🎉 ¡Base de datos poblada exitosamente!\n');
-        console.log('📊 Resumen:');
-        console.log(`   - 1 médico configurado`);
-        console.log(`   - ${pacientes.length} pacientes`);
-        console.log(`   - ${recetas.length} recetas`);
-        console.log(`   - ${movimientos.length} movimientos financieros`);
-
-        // Insertar plantillas predeterminadas
-        console.log('📄 Insertando plantillas...');
-        const plantillas = generarPlantillas();
-        await db.plantillas.bulkAdd(plantillas);
-        console.log(`✅ ${plantillas.length} plantillas insertadas\n`);
-
-        console.log(`   - ${plantillas.length} plantillas configuradas`);
-        console.log('💊 Insertando catálogo de medicamentos...');
-
-        // Limpiar catálogo previo
+        await db.plantillas.clear();
         await db.medicamentos.clear();
+        await db.diagnosticos.clear();
+        await db.especialidades.clear();
+        await db.tratamientosHabituales.clear();
+        console.log('✅ Tablas base limpiadas\n');
 
-        // Preparar datos para inserción (agregando campos calculados)
-        const now = new Date();
-        const medicamentosParaInsertar = catalogoMedicamentosInicial.map(med => ({
-            ...med,
-            nombreBusqueda: med.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-            vecesUsado: 0,
-            fechaCreacion: now,
-            fechaUltimoUso: undefined
-        }));
+        if (isDemo) {
+            // Insertar configuración del médico ficticio
+            console.log('👨‍⚕️ [DEMO] Insertando configuración del médico...');
+            const medico = generarMedicoConfig();
+            await db.medico.add(medico);
+            console.log(`✅ Médico: ${medico.nombre}\n`);
 
-        // Insertar en lotes si es muy grande (opcional, pero buena práctica)
-        await db.medicamentos.bulkAdd(medicamentosParaInsertar);
+            // Insertar pacientes ficticios
+            console.log('👥 [DEMO] Insertando pacientes...');
+            const pacientes = generarPacientes();
+            await db.pacientes.bulkAdd(pacientes);
+            console.log(`✅ ${pacientes.length} pacientes insertados\n`);
 
-        console.log(`✅ ${medicamentosParaInsertar.length} medicamentos insertados en catálogo\n`);
-        console.log(`   - Configuración financiera establecida\n`);
-        console.log('🔄 Recarga la página para ver los cambios');
+            // Insertar recetas ficticias
+            console.log('📋 [DEMO] Insertando recetas...');
+            const recetas = generarRecetas(pacientes);
+            await db.recetas.bulkAdd(recetas);
+            console.log(`✅ ${recetas.length} recetas insertadas\n`);
+
+            // Insertar movimientos financieros ficticios
+            console.log('💰 [DEMO] Insertando movimientos financieros...');
+            const movimientos = generarMovimientosFinancieros(recetas);
+            await db.finanzas.bulkAdd(movimientos);
+            console.log(`✅ ${movimientos.length} movimientos financieros insertados\n`);
+        }
+
+        // --- DATOS COMUNES Y CATÁLOGOS (DEMO Y REAL) ---
+        // Delegamos la carga de catálogos base al servicio de sincronización
+        console.log('🏥 Sincronizando catálogos base y operativos...');
+        const { catalogSyncService } = await import('@/shared/services/catalog-sync.service');
+        await catalogSyncService.syncAll();
+
+        console.log('🎉 ¡Base de datos inicializada correctamente!\n');
+
+        if (isDemo) {
+            console.log('📊 Resumen Demo:');
+            console.log(`   - 1 médico configurado`);
+            console.log(`   - 50 pacientes`);
+            console.log(`   - Historial de recetas y finanzas activo`);
+        } else {
+            console.log('🚀 Entorno operativo listo para su uso.');
+        }
+
     } catch (error) {
         console.error('❌ Error al poblar la base de datos:', error);
         throw error;
-    }
-}
-
-/**
- * Inicializa el catálogo de medicamentos si está vacío.
- * Operación segura que NO borra datos existentes si ya hay medicamentos.
- */
-export async function inicializarMedicamentosSiVacio(): Promise<void> {
-    try {
-        const count = await db.medicamentos.count();
-        if (count > 0) {
-            return; // Ya hay datos, no hacer nada
-        }
-
-        console.log('💊 Catálogo vacío detectado. Inicializando medicamentos...');
-
-        // Preparar datos para inserción
-        const now = new Date();
-        const medicamentosParaInsertar = catalogoMedicamentosInicial.map(med => ({
-            ...med,
-            nombreBusqueda: med.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-            vecesUsado: 0,
-            fechaCreacion: now,
-            fechaUltimoUso: undefined
-        }));
-
-        await db.medicamentos.bulkAdd(medicamentosParaInsertar);
-        console.log(`✅ ${medicamentosParaInsertar.length} medicamentos insertados automáticamente.`);
-    } catch (error) {
-        console.error('❌ Error al inicializar medicamentos:', error);
     }
 }

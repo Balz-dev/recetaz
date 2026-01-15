@@ -1,7 +1,19 @@
 [
     {
-        "filename": "Receta_Dr._Manuel.json",
+        "filename": "Receta_Dr_Manuel.json",
         "nombre": "Receta Dr. Manuel",
+        "tamanoPapel": "media-carta",
+        "imagenFondo": ""
+    },
+     {
+        "filename": "Receta_Demo.json",
+        "nombre": "Receta Demo",
+        "tamanoPapel": "media-carta",
+        "imagenFondo": ""
+    },
+    {
+        "filename": "Receta_Dr_Herbich.json",
+        "nombre": "Receta Dr. Herbich",
         "tamanoPapel": "carta",
         "imagenFondo": ""
     }

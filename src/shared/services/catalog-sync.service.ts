@@ -1,5 +1,6 @@
 import { db } from "@/shared/db/db.config";
 import { MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual, EspecialidadCatalogo } from "@/types";
+import { generarConfiguracionFinanciera } from "@/shared/utils/seed";
 
 const MEDICAMENTOS_URL = '/data/medicamentos-v1.json';
 const DIAGNOSTICOS_URL = '/data/diagnosticos-v1.json';
@@ -22,11 +23,31 @@ export const catalogSyncService = {
                 this.syncMedicamentos(),
                 this.syncDiagnosticos(),
                 this.syncTratamientos(),
-                this.syncEspecialidades()
+                this.syncEspecialidades(),
+                this.syncConfigFinanciera()
             ]);
             console.log('✅ Sincronización de catálogos completada.');
         } catch (error) {
             console.error('❌ Error general en sincronización de catálogos:', error);
+        }
+    },
+
+
+
+    /**
+     * Sincroniza la configuración financiera base si no existe.
+     */
+    async syncConfigFinanciera() {
+        try {
+            const count = await db.configuracionFinanciera.count();
+            if (count === 0) {
+                console.log('⚙️ Cargando configuración financiera base...');
+                const config = generarConfiguracionFinanciera();
+                await db.configuracionFinanciera.add(config);
+                console.log('✅ Configuración financiera base cargada.');
+            }
+        } catch (error) {
+            console.error('Error sincronizando configuración financiera:', error);
         }
     },
 

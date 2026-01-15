@@ -3,8 +3,15 @@
 /**
  * Editor de Plantillas de Recetas Médicas
  * 
- * Permite al usuario diseñar plantillas personalizadas mediante drag & drop,
- * configurando posición y tamaño de campos de datos médicos, de paciente y de receta.
+ * Herramienta visual tipo Drag & Drop para diseñar el formato de impresión de las recetas.
+ * 
+ * Funcionalidades principales:
+ * - Lienzo interactivo (Canvas) con soporte para arrastrar y soltar.
+ * - Barra lateral de herramientas con campos disponibles (datos médico, paciente, receta).
+ * - Gestión de elementos decorativos (imágenes, textos estáticos, formas).
+ * - Configuración de propiedades por elemento (tamaño, posición, fuente).
+ * - Soporte para importación/exportación de plantillas (JSON).
+ * - Integración con galería de plantillas predefinidas.
  */
 
 import React, { useState, useEffect, useRef } from "react"
@@ -19,13 +26,21 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Switch } from "@/shared/components/ui/switch"
-import { Card, CardContent } from "@/shared/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/shared/components/ui/dialog"
 import { ToggleLeft, Trash2, Copy, Download } from "lucide-react"
-import { Loader2, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
+import { Loader2, Plus, Save, Layout, Type, GripVertical, Trash, ArrowLeft, Image as ImageIcon, Upload, ChevronDown, ChevronRight, Settings, UserCircle, FileText, Stethoscope, Minus, Square, Palette } from "lucide-react"
 import { ToolbarPropiedades } from "./ToolbarPropiedades"
+import { PlantillaGallery } from "./PlantillaGallery"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -233,9 +248,11 @@ function SidebarDraggableItem({ field, isAdded, onAdd }: { field: EditorFieldDef
         <div ref={setNodeRef} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50")}>
             <Button
                 variant={isAdded ? "secondary" : "outline"}
+                size="sm"
                 className={cn(
-                    "w-full justify-start cursor-grab active:cursor-grabbing",
-                    isAdded && 'bg-blue-50 border-blue-200 text-blue-700'
+                    "w-full justify-start text-xs h-auto py-2 px-2",
+                    "cursor-grab active:cursor-grabbing border-slate-200 shadow-sm bg-white hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300",
+                    isAdded && 'bg-blue-50/50 border-blue-200 text-blue-600 shadow-none opacity-70 hover:opacity-100 hover:bg-blue-50'
                 )}
                 onClick={(e) => {
                     // Si no estamos arrastrando (click simple), añadimos
@@ -243,9 +260,10 @@ function SidebarDraggableItem({ field, isAdded, onAdd }: { field: EditorFieldDef
                     // Para mayor seguridad podríamos chequear movimiento, pero por ahora onClick directo es UX standard.
                     onAdd && onAdd();
                 }}
+                title={field.etiqueta}
             >
-                {isAdded ? <Layout className="mr-2 h-4 w-4" /> : <Type className="mr-2 h-4 w-4" />}
-                {field.etiqueta}
+                {isAdded ? <Layout className="mr-1.5 h-3 w-3 flex-shrink-0" /> : <Type className="mr-1.5 h-3 w-3 text-slate-400 flex-shrink-0" />}
+                <span className="truncate">{field.etiqueta}</span>
             </Button>
         </div>
     )
@@ -698,7 +716,8 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     // Estado del Editor
     const [medicoConfig, setMedicoConfig] = useState<any>(null)
     const [campos, setCampos] = useState<CampoPlantilla[]>([])
-    // ... (rest of state)
+    // Estado para importación
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
     // Cargar config del médico
     useEffect(() => {
@@ -758,7 +777,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         setImagenFondo(data.imagenFondo)
                         setActiva(data.activa)
                         setImprimirFondo(data.imprimirFondo)
-                        setCampos(data.campos)
+                        setCampos(data.campos || [])
                     } else {
                         toast({ title: "Error", description: "Plantilla no encontrada", variant: "destructive" })
                         router.push('/recetas/plantillas')
@@ -1116,6 +1135,79 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
     };
 
     /**
+     * Maneja la importación de una plantilla desde un archivo JSON.
+     * Lee el archivo seleccionado, valida su estructura básica y actualiza el estado del editor.
+     * 
+     * @param e - Evento de cambio del input de archivo
+     */
+    const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const content = event.target?.result as string;
+                const data = JSON.parse(content);
+
+                // Validación básica de la estructura
+                if (!data.campos || !Array.isArray(data.campos)) {
+                    throw new Error("El archivo no tiene un formato de plantilla válido.");
+                }
+
+                // Cargar los datos al estado
+                setNombre(data.nombre || `${nombre} (Importado)`);
+                setTamanoPapel((data.tamanoPapel || 'media_carta').replace('-', '_'));
+                setImagenFondo(data.imagenFondo);
+                setImprimirFondo(!!data.imprimirFondo);
+                setCampos(data.campos);
+                setActiva(true);
+
+                toast({
+                    title: "Plantilla Importada y Activada",
+                    description: "Los datos se han cargado en el editor. Puedes editarlos para mejorar la precisión y el diseño personalizado.",
+                });
+            } catch (error) {
+                console.error("Error al importar plantilla:", error);
+                toast({
+                    title: "Error de Importación",
+                    description: error instanceof Error ? error.message : "No se pudo leer el archivo JSON.",
+                    variant: "destructive",
+                });
+            } finally {
+                // Limpiar el input para permitir volver a subir el mismo archivo
+                e.target.value = '';
+                setIsImportDialogOpen(false); // Cerrar modal al tener éxito o error
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    /**
+     * Importa una plantilla de la galería directamente al editor.
+     */
+    const handleSelectFromGallery = (template: any) => {
+        const data = template.content;
+        if (!data || !data.campos) {
+            toast({ title: "Error", description: "Contenido de plantilla inválido", variant: "destructive" });
+            return;
+        }
+
+        setNombre(data.nombre || `${template.nombre}`);
+        setTamanoPapel((data.tamanoPapel || 'media_carta').replace('-', '_'));
+        setImagenFondo(data.imagenFondo);
+        setImprimirFondo(!!data.imprimirFondo);
+        setCampos(data.campos);
+        setActiva(true);
+
+        toast({
+            title: "Plantilla Cargada y Activada",
+            description: `Se ha cargado la plantilla "${template.nombre}". Puedes editarla para mejorar la precisión y el diseño personalizado.`,
+        });
+        setIsImportDialogOpen(false);
+    };
+
+    /**
      * Añade un campo al centro del canvas (Click-to-Add).
      */
     const handleAddField = (def: EditorFieldDef) => {
@@ -1193,7 +1285,7 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         <Link href="/recetas/plantillas">
                             <Button variant="outline">Cancelar</Button>
                         </Link>
-                        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600">
+                        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 shadow-md transition-all active:scale-95">
                             {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                             Guardar Plantilla
                         </Button>
@@ -1204,7 +1296,64 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
+                {/* Modal de Selección de Importación */}
+                <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+                        <div className="bg-white flex flex-col h-full">
+                            <DialogHeader className="p-6 pb-2">
+                                <DialogTitle className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                                    <Layout className="h-6 w-6 text-blue-600" />
+                                    Galería de Diseños Profesionales
+                                </DialogTitle>
+                                <DialogDescription className="text-sm font-medium text-slate-400">
+                                    Selecciona una base para comenzar tu diseño o importa un archivo local.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="flex-grow overflow-y-auto px-6 py-4 custom-scrollbar">
+                                <div className="space-y-8">
+                                    {/* Sección de Importación Local compacta */}
+                                    <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-blue-600 p-2 rounded-lg shadow-blue-200 shadow-md">
+                                                <Upload className="h-4 w-4 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-800 leading-tight">¿Tienes un diseño offline?</p>
+                                                <p className="text-[11px] font-medium text-blue-600/70">Sube tu archivo .json exportado previamente</p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            className="w-full md:w-auto font-bold bg-white text-blue-600 border-blue-200 hover:bg-blue-50 shadow-sm"
+                                            onClick={() => document.getElementById('import-plantilla-file')?.click()}
+                                        >
+                                            Explorar Archivos
+                                        </Button>
+                                    </div>
+
+                                    {/* Separador Visual */}
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-px bg-slate-100 flex-grow" />
+                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">O elige de la galería</span>
+                                        <div className="h-px bg-slate-100 flex-grow" />
+                                    </div>
+
+                                    <PlantillaGallery onSelectTemplate={handleSelectFromGallery} />
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-slate-50 border-t flex justify-end">
+                                <Button variant="ghost" onClick={() => setIsImportDialogOpen(false)} className="font-bold text-slate-400 hover:text-slate-600">
+                                    Cancelar
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow overflow-hidden">
                     <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 pb-10">
                         {/* Config Panels */}
                         <SidebarAccordion
@@ -1227,12 +1376,8 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="flex items-center justify-between border p-2 rounded">
-                                    <Label htmlFor="active" className="cursor-pointer font-normal">Activa</Label>
-                                    <Switch id="active" checked={activa} onCheckedChange={setActiva} />
-                                </div>
                                 <div className="space-y-2 border-t pt-2">
-                                    <Label>Fondo</Label>
+                                    <Label>Cargar imagen de receta membretada</Label>
                                     <div className="flex flex-col gap-2">
                                         {!imagenFondo ? (
                                             <Button
@@ -1267,6 +1412,13 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             </div>
                         </SidebarAccordion>
 
+                        <div className="flex items-center justify-between border p-3 rounded-lg bg-white shadow-sm hover:border-blue-200 transition-colors">
+                            <Label htmlFor="active" className="cursor-pointer font-medium text-slate-700 leading-tight pr-4">
+                                Hacer ésta plantilla principal para sus impresiones PDF
+                            </Label>
+                            <Switch id="active" checked={activa} onCheckedChange={setActiva} />
+                        </div>
+
 
 
                         <SidebarAccordion
@@ -1274,11 +1426,11 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             icon={<UserCircle className="h-4 w-4" />}
                             defaultOpen={true}
                         >
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 {availableFields.filter(f =>
                                     f.id.startsWith('paciente_') || f.id.startsWith('datos_') || f.id === 'fecha'
                                 ).map(def => {
-                                    const isAdded = campos.some(c => c.id === def.id);
+                                    const isAdded = (campos || []).some(c => c.id === def.id);
                                     return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
@@ -1289,11 +1441,11 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             icon={<FileText className="h-4 w-4" />}
                             defaultOpen={true}
                         >
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 {availableFields.filter(f =>
                                     ['tratamiento_completo', 'instrucciones_generales', 'receta_folio', 'receta_fecha', 'diagnostico'].includes(f.id)
                                 ).map(def => {
-                                    const isAdded = campos.some(c => c.id === def.id);
+                                    const isAdded = (campos || []).some(c => c.id === def.id);
                                     return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
@@ -1302,13 +1454,13 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                         <SidebarAccordion
                             title="Datos del Médico"
                             icon={<Stethoscope className="h-4 w-4" />}
-                            defaultOpen={false}
+                            defaultOpen={true}
                         >
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 {availableFields.filter(f =>
                                     f.id.startsWith('medico_')
                                 ).map(def => {
-                                    const isAdded = campos.some(c => c.id === def.id);
+                                    const isAdded = (campos || []).some(c => c.id === def.id);
                                     return <SidebarDraggableItem key={def.id} field={def} isAdded={isAdded} onAdd={() => handleAddField(def)} />;
                                 })}
                             </div>
@@ -1318,22 +1470,58 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                     </div>
 
                     {/* Canvas Area Container */}
-                    <div className="lg:col-span-2 flex flex-col gap-4 overflow-hidden">
-                        {/* Barra de Herramientas Decorativas Superior */}
-                        <div className="bg-white p-2 rounded-lg border shadow-sm flex items-center justify-center gap-4">
-                            <div className="flex items-center gap-1 pr-4 border-r">
-                                <Palette className="h-4 w-4 text-slate-400 mr-2" />
-                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Decoración</span>
+                    <div className="lg:col-span-3 flex flex-col gap-4 overflow-hidden">
+                        {/* Barra de Herramientas de Diseño Superior */}
+                        <div
+                            className="p-2 rounded-xl border border-slate-700 shadow-2xl flex flex-wrap items-center justify-center gap-4 mx-2 md:mx-0"
+                            style={{ backgroundColor: 'rgba(80, 80, 80, 1)' }}
+                        >
+                            <div className="flex items-center gap-1 pr-4 border-r border-slate-700 mb-2 md:mb-0 w-full md:w-auto justify-center md:justify-start">
+                                <Settings className="h-4 w-4 text-blue-400 mr-2" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Caja de Herramientas</span>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center justify-center gap-4">
                                 {DECORATIVE_FIELDS.map(def => (
                                     <div key={def.id} className="group relative">
                                         <SidebarIconItem field={def} onAdd={() => handleAddField(def)} />
-                                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                            {def.etiqueta}
+                                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700">
+                                            Agregar {def.etiqueta} al canvas
                                         </div>
                                     </div>
                                 ))}
+
+                                {/* Separador interno */}
+                                <div className="h-8 w-px bg-slate-700 mx-2" />
+
+                                {/* Botón de Ver Galería */}
+                                <div className="group relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-10 h-10 bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all duration-300 shadow-sm"
+                                        onClick={() => setIsImportDialogOpen(true)}
+                                    >
+                                        <Layout className="h-5 w-5" />
+                                    </Button>
+                                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700">
+                                        Ver galería de plantillas
+                                    </div>
+                                </div>
+
+                                {/* Botón de Exportar (Guardar Configuración) */}
+                                <div className="group relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-10 h-10 bg-slate-800 border border-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all duration-300 shadow-sm"
+                                        onClick={handleExportJson}
+                                    >
+                                        <Download className="h-5 w-5" />
+                                    </Button>
+                                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-slate-700">
+                                        Guardar configuración de plantilla
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1385,9 +1573,28 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
 
                                 {campos.length === 0 && (
                                     <div className="absolute inset-0 flex items-center justify-center text-slate-300 pointer-events-none">
-                                        <div className="text-center">
-                                            <Layout className="h-16 w-16 mx-auto mb-2" />
-                                            <p>Arrastre campos aquí</p>
+                                        <div className="text-center space-y-4">
+                                            <div className="relative">
+                                                <Layout className="h-16 w-16 mx-auto mb-2 opacity-20" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <Plus className="h-6 w-6 text-blue-400 animate-pulse" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-slate-400 font-medium">El lienzo está vacío</p>
+                                                <p className="text-xs text-slate-300 mb-4">Comienza arrastrando campos o...</p>
+                                            </div>
+                                            <Button
+                                                variant="secondary"
+                                                className="pointer-events-auto shadow-md border border-blue-100 hover:border-blue-300 transition-all"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsImportDialogOpen(true);
+                                                }}
+                                            >
+                                                <Layout className="mr-2 h-4 w-4 text-blue-500" />
+                                                Elegir de la Galería
+                                            </Button>
                                         </div>
                                     </div>
                                 )}

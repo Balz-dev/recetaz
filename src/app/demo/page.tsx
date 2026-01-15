@@ -11,10 +11,13 @@ export default function DemoPage() {
     useEffect(() => {
         const initDemo = async () => {
             try {
+                // Persistir modo demo en el navegador
+                localStorage.setItem('recetaz_is_demo', 'true');
+
                 setStatus("Limpiando y poblando base de datos...");
 
-                // Ejecutar ssemilla real
-                await seedDatabase();
+                // Ejecutar ssemilla real con datos demo
+                await seedDatabase(true);
 
                 setStatus("Datos cargados exitosamente.");
 
