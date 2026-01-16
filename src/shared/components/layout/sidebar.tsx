@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { OfflineLink } from '@/shared/components/ui/OfflineLink';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -126,7 +126,7 @@ export function Sidebar() {
 
             {/* Header del Sidebar */}
             <div className={cn("p-3 transition-all duration-300", isCollapsed ? "items-center flex flex-col" : "")}>
-                <Link href="/dashboard" className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg">
+                <OfflineLink href="/dashboard" className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg">
                     <h1 className="p-0 text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent cursor-pointer overflow-hidden">
                         {isCollapsed ? (
                             <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
@@ -136,7 +136,7 @@ export function Sidebar() {
                             <Image src="/fenotipo.svg" alt="Logo" width={150} height={34} style={{ width: 'auto', height: 'auto' }} priority />
                         )}
                     </h1>
-                </Link>
+                </OfflineLink>
                 {!isCollapsed && (
                     <p className="pt-0 text-xs text-slate-400 mt-1 text-[10px] color-cyan-400 animate-in fade-in duration-500">
                         Tu aliado en la creación de recetas médicas
@@ -152,7 +152,7 @@ export function Sidebar() {
 
                     return (
                         <Tooltip key={route.href} content={route.label} disabled={!isCollapsed}>
-                            <Link
+                            <OfflineLink
                                 href={route.href}
                                 onClick={(e) => handleNavigation(e, route)}
                                 className="w-full block"
@@ -179,7 +179,7 @@ export function Sidebar() {
                                         </div>
                                     )}
                                 </Button>
-                            </Link>
+                            </OfflineLink>
                         </Tooltip>
                     );
                 })}
@@ -188,7 +188,7 @@ export function Sidebar() {
             {/* Acciones Rápidas */}
             <div className={cn("p-4 border-t border-slate-800 flex flex-col gap-2 transition-all duration-300", isCollapsed && "p-2 items-center")}>
                 <Tooltip content="Nueva Receta" disabled={!isCollapsed}>
-                    <Link href="/recetas?create=true" className="w-full">
+                    <OfflineLink href="/recetas?create=true" className="w-full">
                         <Button className={cn(
                             "gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all duration-300 border-b-4 border-blue-800",
                             isCollapsed ? "w-10 h-10 p-0 justify-center rounded-lg" : "w-full"
@@ -196,11 +196,11 @@ export function Sidebar() {
                             <PlusCircle size={20} />
                             {!isCollapsed && <span className="animate-in fade-in duration-300">Nueva Receta</span>}
                         </Button>
-                    </Link>
+                    </OfflineLink>
                 </Tooltip>
 
                 <Tooltip content="Plantilla Receta" disabled={!isCollapsed}>
-                    <Link href="/recetas/plantillas/nueva" className="w-full">
+                    <OfflineLink href="/recetas/plantillas/nueva" className="w-full">
                         <Button variant="outline" className={cn(
                             "gap-2 border-slate-700/50 bg-slate-800/20 text-slate-300 hover:border-cyan-400/50 hover:text-cyan-400 hover:bg-cyan-400/5 hover:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all duration-300 group",
                             isCollapsed ? "w-10 h-10 p-0 justify-center rounded-lg" : "w-full"
@@ -208,11 +208,11 @@ export function Sidebar() {
                             <FileType size={20} className="group-hover:scale-110 transition-transform duration-100" />
                             {!isCollapsed && <span className="animate-in fade-in duration-300">Plantilla Receta</span>}
                         </Button>
-                    </Link>
+                    </OfflineLink>
                 </Tooltip>
 
                 <Tooltip content="Configuración" disabled={!isCollapsed}>
-                    <Link href="/configuracion" className="w-full">
+                    <OfflineLink href="/configuracion" className="w-full">
                         <Button variant="ghost" className={cn(
                             "gap-2 text-slate-400 hover:text-white hover:bg-slate-800/50 mt-2 transition-all duration-300",
                             isCollapsed ? "w-10 h-10 p-0 justify-center rounded-lg mt-1" : "w-full justify-start"
@@ -220,7 +220,7 @@ export function Sidebar() {
                             <Settings size={20} />
                             {!isCollapsed && <span className="animate-in fade-in duration-300">Configuración</span>}
                         </Button>
-                    </Link>
+                    </OfflineLink>
                 </Tooltip>
             </div>
 

@@ -156,27 +156,42 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
         // Cargar configuración de especialidad desde BD
         const loadConfig = async () => {
             try {
+                // Esperar a que Dexie esté listo
+                await db.open().catch(() => { }); // Ignorar si ya está abierto
+
                 const config = await medicoService.get();
                 if (config && config.especialidadKey) {
-                    const spConfig = await db.especialidades.get(config.especialidadKey);
-                    if (spConfig) {
-                        // Adaptar para mantener compatibilidad si recetaz usa specialtyName (bug fix/improvement)
-                        setSpecialtyConfig({ ...spConfig, specialtyName: spConfig.label });
-                    } else {
-                        const generalConfig = await db.especialidades.get('general');
-                        setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
-                    }
+                    try {
+                        const spConfig = await db.especialidades.get(config.especialidadKey);
+                        if (spConfig) {
+                            setSpecialtyConfig({ ...spConfig, specialtyName: spConfig.label });
+                        } else {
+                            const generalConfig = await db.especialidades.get('general');
+                            setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label || 'General' });
+                        }
 
-                    // Detectar pediatría
-                    if (config.especialidadKey === 'pediatria' || config.especialidad?.toLowerCase().includes('pediatra')) {
-                        setIsPediatric(true);
+                        // Detectar pediatría
+                        if (config.especialidadKey === 'pediatria' || config.especialidad?.toLowerCase().includes('pediatra')) {
+                            setIsPediatric(true);
+                        }
+                    } catch (dbError) {
+                        console.error("Error accediendo a especialidades:", dbError);
+                        // Fallback: configuración mínima para permitir funcionamiento
+                        setSpecialtyConfig({ specialtyName: 'General', prescriptionFields: [], patientFields: [] });
                     }
                 } else {
-                    const generalConfig = await db.especialidades.get('general');
-                    setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
+                    try {
+                        const generalConfig = await db.especialidades.get('general');
+                        setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label || 'General' });
+                    } catch (dbError) {
+                        console.error("Error cargando config general:", dbError);
+                        setSpecialtyConfig({ specialtyName: 'General', prescriptionFields: [], patientFields: [] });
+                    }
                 }
             } catch (error) {
                 console.error("Error cargando configuración de especialidad:", error);
+                // Fallback crítico: permitir que el formulario funcione sin campos dinámicos
+                setSpecialtyConfig({ specialtyName: 'General', prescriptionFields: [], patientFields: [] });
             }
         };
         loadConfig();
@@ -600,8 +615,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             if (onSuccess) {
                 onSuccess(recetaId)
             } else {
-                // Redirigir a la receta creada si no hay callback
-                router.push(`/recetas/${recetaId}`)
+                // Usar window.location para evitar RSC payload fetch offline
+                window.location.href = `/recetas/${recetaId}`
             }
         } catch (error) {
             console.error(error)

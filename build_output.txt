@@ -1,0 +1,61 @@
+
+> recetaz-app@1.0.0 build /mnt/HOME/Proyectos/recetaz
+> next build --webpack
+
+   ▲ Next.js 16.0.7 (webpack)
+
+   Creating an optimized production build ...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /mnt/HOME/Proyectos/recetaz/node_modules/.pnpm/next-pwa@5.6.0_@babel+core@7.28.5_@types+babel__core@7.20.5_next@16.0.7_@babel+core@7.2_35252d86ef453300439b3808aec3a5a4/node_modules/next-pwa/register.js
+> [PWA] Service worker: /mnt/HOME/Proyectos/recetaz/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+Failed to compile.
+
+./src/shared/components/layout/sidebar.tsx
+Error:   [31mx[0m Expected '</', got 'jsx text (
+  [31m|[0m                 )'
+     ,-[[36;1;4m/mnt/HOME/Proyectos/recetaz/src/shared/components/layout/sidebar.tsx[0m:199:1]
+ [2m196[0m |                                 <PlusCircle size={20} />
+ [2m197[0m |                                 {!isCollapsed && <span className="animate-in fade-in duration-300">Nueva Receta</span>}
+ [2m198[0m |                             </Button>
+ [2m199[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m                     </Link>
+ [2m200[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m                 </Tooltip>
+ [2m201[0m |     
+ [2m202[0m |                     <Tooltip content="Plantilla Receta" disabled={!isCollapsed}>
+ [2m203[0m |                         <OfflineLink href="/recetas/plantillas/nueva" className="w-full">
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/shared/components/layout/sidebar.tsx
+./src/shared/components/layout/header.tsx
+
+./src/shared/components/layout/sidebar.tsx
+Error:   [31mx[0m Expected '</', got 'jsx text (
+  [31m|[0m                 )'
+     ,-[[36;1;4m/mnt/HOME/Proyectos/recetaz/src/shared/components/layout/sidebar.tsx[0m:199:1]
+ [2m196[0m |                                 <PlusCircle size={20} />
+ [2m197[0m |                                 {!isCollapsed && <span className="animate-in fade-in duration-300">Nueva Receta</span>}
+ [2m198[0m |                             </Button>
+ [2m199[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m                     </Link>
+ [2m200[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m                 </Tooltip>
+ [2m201[0m |     
+ [2m202[0m |                     <Tooltip content="Plantilla Receta" disabled={!isCollapsed}>
+ [2m203[0m |                         <OfflineLink href="/recetas/plantillas/nueva" className="w-full">
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/shared/components/layout/sidebar.tsx
+./src/app/(platform)/layout.tsx
+
+
+> Build failed because of webpack errors
+ ELIFECYCLE  Command failed with exit code 1.

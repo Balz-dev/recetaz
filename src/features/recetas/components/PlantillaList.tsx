@@ -6,9 +6,10 @@ import { plantillaService } from "@/features/recetas/services/plantilla.service"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Plus, Edit, Trash2, CheckCircle, FileText } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/shared/components/ui/use-toast"
+import Link from "next/link";
+import { OfflineLink } from "@/shared/components/ui/OfflineLink";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/shared/components/ui/use-toast";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -273,7 +274,7 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                                         )}
 
                                         <div className="flex gap-2">
-                                            <Link href={`/recetas/plantillas/${plantilla.id}`}>
+                                            <OfflineLink href={`/recetas/plantillas/${plantilla.id}`}>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -282,7 +283,7 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Button>
-                                            </Link>
+                                            </OfflineLink>
                                             <Button
                                                 variant="outline"
                                                 size="sm"

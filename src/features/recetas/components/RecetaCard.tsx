@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Calendar, Eye } from "lucide-react";
-import Link from "next/link";
+import { OfflineLink } from "@/shared/components/ui/OfflineLink";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Receta } from "@/types";
@@ -61,12 +61,12 @@ export function RecetaCard({ receta, patientName }: RecetaCardProps) {
                 </div>
 
                 <div className="w-full mt-auto pt-2 border-t">
-                    <Link href={`/recetas/${receta.id}`} className="w-full">
+                    <OfflineLink href={`/recetas/${receta.id}`} className="w-full">
                         <Button variant="ghost" size="sm" className="w-full h-8 text-xs gap-2">
                             <Eye className="h-3 w-3" />
                             Ver Receta
                         </Button>
-                    </Link>
+                    </OfflineLink>
                 </div>
             </CardContent>
         </Card>
