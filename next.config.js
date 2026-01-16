@@ -2,9 +2,9 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: false, // Habilitado para permitir verificar cache en desarrollo
-  // Fallback para navegación offline - Configurado para servir el Dashboard como App Shell
-  navigateFallback: '/dashboard',
+  disable: process.env.NODE_ENV === 'development',
+  // Fallback para navegación offline - Removido para evitar error non-precached-url
+  navigateFallback: null,
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,

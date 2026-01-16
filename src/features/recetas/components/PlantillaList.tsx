@@ -7,7 +7,6 @@ import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Plus, Edit, Trash2, CheckCircle, FileText } from "lucide-react"
 import Link from "next/link";
-import { OfflineLink } from "@/shared/components/ui/OfflineLink";
 
 import { useRouter } from "next/navigation";
 import { useToast } from "@/shared/components/ui/use-toast";
@@ -149,12 +148,12 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                         Diseñe y configure el formato de impresión de sus recetas.
                     </p>
                 </div>
-                <OfflineLink href="/recetas/plantillas/nueva">
+                <Link href="/recetas/plantillas/nueva">
                     <Button>
                         <Plus className="mr-2 h-4 w-4" />
                         Nueva Plantilla
                     </Button>
-                </OfflineLink>
+                </Link>
             </div>
 
             {/* Simulación de Tabs */}
@@ -198,9 +197,9 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                                     Comience creando su primera plantilla personalizada para adaptar la impresión a sus necesidades.
                                 </p>
                             </div>
-                            <OfflineLink href="/recetas/plantillas/nueva">
+                            <Link href="/recetas/plantillas/nueva">
                                 <Button variant="outline">Crear mi primera plantilla</Button>
-                            </OfflineLink>
+                            </Link>
                         </CardContent>
                     </Card>
                 ) : (
@@ -275,7 +274,7 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                                         )}
 
                                         <div className="flex gap-2">
-                                            <OfflineLink href={`/recetas/plantillas/${plantilla.id}`}>
+                                            <Link href={`/recetas/plantillas/${plantilla.id}`}>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -284,7 +283,7 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Button>
-                                            </OfflineLink>
+                                            </Link>
                                             <Button
                                                 variant="outline"
                                                 size="sm"

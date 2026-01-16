@@ -13,19 +13,16 @@ RecetaZ es una aplicación OFFLINE-FIRST.
 La red NUNCA es un requisito para navegar, ver pantallas o cargar datos médicos.
 
 🧱 REGLAS OBLIGATORIAS PARA LA IA EDITORA
-1️⃣ Navegación SIEMPRE offline-safe
+1️⃣ Navegación con Next/Link y CacheFirst
 
-Toda navegación (/, /dashboard, /pacientes/[id], etc.) debe:
+Toda navegación debe usar el componente estándar `Link` de `next/link` o `router.push`.
+Para que esto funcione offline sin errores de RSC (Server Component Payload):
 
-Funcionar sin internet
+- Se DEBE mantener la estrategia `CacheFirst` para peticiones de navegación en el SW.
+- Se DEBE usar el App Shell (index/dashboard) servido desde cache.
+- ❌ PROHIBIDO: Usar `prefetch` en enlaces si la ruta depende de datos de red no cacheados (por defecto `Link` prefetch funciona bien con la configuración de cache actual).
 
-Servirse desde cache (app shell)
-
-❌ Nunca depender de red para abrir una ruta
-
-❌ Nunca mostrar pantallas de “sin conexión”
-
-2️⃣ Rutas dinámicas = Client Components
+2️⃣ Rutas dinámicas = Client Components obligatorios
 
 Toda ruta con parámetros ([id], ?paciente=) debe:
 
@@ -58,19 +55,16 @@ SIEMPRE se cargan desde IndexedDB (Dexie)
 
 ❌ Nunca bloquear render esperando datos
 
-4️⃣ Service Worker: App Shell obligatorio
+4️⃣ Service Worker: Configuración Técnica Intocable
 
-El Service Worker debe:
+El archivo `next.config.js` DEBE mantener:
 
-Cachear index.html
-
-Servir todas las rutas de navegación con CacheFirst
-
-Ignorar el estado de red para navegación
+- `handler: 'CacheFirst'` para `request.mode === 'navigate'`.
+- `navigateFallback: null` (para evitar errores de Workbox con URLs dinámicas no precacheadas).
+- `disable: process.env.NODE_ENV === 'development'` (opcional, pero recomendado para estabilidad en build).
 
 Regla técnica obligatoria:
-
-request.mode === "navigate" → CacheFirst
+`request.mode === "navigate" → CacheFirst` en el objeto de `runtimeCaching` para `pages`.
 
 5️⃣ Prohibiciones absolutas
 
@@ -116,19 +110,13 @@ Deben inicializar IndexedDB antes de uso
 
 Nunca depender de servidor
 
-8️⃣ UX offline correcta (producto médico)
+8️⃣ UX 100% Local (Invisibilidad de Conexión)
 
-El usuario NO debe notar diferencia offline/online
+El usuario NO debe notar si la aplicación está conectada o no. Se busca una experiencia de "App nativa local".
 
-Permitido:
-
-Indicador discreto “Trabajando sin conexión”
-
-Prohibido:
-
-Alertas de error por red
-
-Bloqueos funcionales
+- ❌ PROHIBIDO: Mostrar mensajes de "Offline", "En línea" o "Sin conexión".
+- ❌ PROHIBIDO: Usar iconos de internet (Wifi/WifiOff) para indicar estado.
+- ✅ PERMITIDO: Fallar silenciosamente en segundo plano si una sincronización (que no bloquee al usuario) no ocurre.
 
 🧪 VALIDACIÓN OBLIGATORIA (AUTOCHECK DE IA)
 
