@@ -15,7 +15,9 @@ import {
     X,
     Info,
     Layout,
-    Palette
+    Palette,
+    Shield,
+    Lock
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -45,11 +47,12 @@ interface OnboardingWizardProps {
 
 const STEPS = [
     { title: 'Bienvenida', icon: <PlusSquare /> },
+    { title: 'Instalación', icon: <Smartphone /> },
     { title: 'Identidad', icon: <User /> },
     { title: 'Logo', icon: <ImageIcon /> },
     { title: 'Consultorio', icon: <MapPin /> },
     { title: 'Diseño', icon: <Palette /> },
-    { title: 'Instalación', icon: <Smartphone /> }, // Nuevo paso
+    { title: 'Cuenta', icon: <Shield /> },
     { title: 'Finalizar', icon: <CheckCircle2 /> },
 ];
 
@@ -132,9 +135,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     }, []);
 
     const nextStep = () => {
-        // Lógica de salto para paso de instalación PWA
-        // Si el siguiente es la instalación (índice 5) y ya está instalada, saltamos al final (6)
-        if (currentStep + 1 === 5 && isInstalled) {
+        // Lógica de salto para paso de instalación PWA (Ahora índice 1)
+        // Si estamos en Bienvenida (0) y vamos al siguiente (1), verificamos si ya está instalada.
+        if (currentStep + 1 === 1 && isInstalled) {
             setCurrentStep(prev => Math.min(prev + 2, STEPS.length - 1));
             return;
         }
@@ -265,7 +268,70 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 );
 
-            case 1: // Identidad
+            case 1: // Instalación PWA (Reubicado desde 5)
+                return (
+                    <div className="space-y-6 animate-in slide-in-from-right duration-500">
+                        <div className="text-center space-y-2">
+                            <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+                                <Smartphone className="w-8 h-8" />
+                            </div>
+                            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                ¿Desea un acceso más rápido?
+                            </h2>
+                            <p className="text-slate-500 max-w-md mx-auto text-lg">
+                                Podemos colocar un icono en su pantalla para que entre directo, sin abrir el navegador.
+                            </p>
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+                            {isInstalled ? (
+                                <div className="text-center space-y-4">
+                                    <div className="flex items-center justify-center gap-2 text-green-600 font-bold">
+                                        <Check className="w-5 h-5" />
+                                        <span>¡Ya tiene el acceso rápido habilitado!</span>
+                                    </div>
+                                    <Button className="w-full" onClick={nextStep}>Continuar</Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {isIOS ? (
+                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                            <p className="font-bold mb-2 text-blue-700 dark:text-blue-300">Para iPad/iPhone:</p>
+                                            <ol className="list-decimal list-inside space-y-1">
+                                                <li>Toque el botón <strong>Compartir</strong> del navegador.</li>
+                                                <li>Seleccione <strong>"Agregar a Inicio"</strong>.</li>
+                                            </ol>
+                                        </div>
+                                    ) : hasPrompt ? (
+                                        <Button className="w-full h-14 text-lg font-bold shadow-lg shadow-blue-200 dark:shadow-none animate-pulse" onClick={installApp}>
+                                            Sí, agregar icono
+                                        </Button>
+                                    ) : (
+                                        <div className="text-center space-y-4 relative">
+                                            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 p-4 rounded-lg text-amber-800 dark:text-amber-200 text-sm">
+                                                <p className="font-bold mb-1 flex items-center justify-center gap-2">
+                                                    <Info size={16} />
+                                                    Instalación manual
+                                                </p>
+                                                <p>
+                                                    Busca la opción <strong>"Instalar aplicación"</strong> en el menú del navegador.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="pt-2 text-center">
+                                        <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={nextStep}>
+                                            No por ahora, continuar en navegador
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+
+            case 2: // Identidad
                 return (
                     <div className="space-y-6">
                         <div className="space-y-2">
@@ -306,7 +372,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 );
 
-            case 2: // Logo
+            case 3: // Logo
                 return (
                     <div className="space-y-6">
                         <div className="space-y-2">
@@ -337,7 +403,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 );
 
-            case 3: // Consultorio
+            case 4: // Consultorio
                 return (
                     <div className="space-y-6">
                         <div className="space-y-2">
@@ -370,7 +436,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 );
 
-            case 4: // Diseño
+            case 5: // Diseño
                 return (
                     <div className="space-y-6">
                         <div className="space-y-2">
@@ -444,86 +510,55 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 );
 
-            case 5: // Instalación PWA
-                /**
-                 * Renderiza el paso de invitación a instalar la PWA.
-                 * Se muestra solo si la app no está instalada o estamos en un entorno compatible.
-                 */
+            case 6: // Cuenta (Registro Opcional)
                 return (
                     <div className="space-y-6 animate-in slide-in-from-right duration-500">
                         <div className="text-center space-y-2">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
-                                <Smartphone className="w-8 h-8" />
+                            <div className="bg-amber-100 dark:bg-amber-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
+                                <Shield className="w-8 h-8" />
                             </div>
-                            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                Mejora tu experiencia
-                            </h2>
-                            <p className="text-slate-500 max-w-md mx-auto">
-                                Instala la aplicación para tener un <strong>acceso directo en tu dispositivo</strong> y usar RecetaZ sin necesidad de abrir el navegador.
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Protege tu Información</h2>
+                            <p className="text-slate-500 max-w-md mx-auto text-sm">
+                                Este paso es <strong>opcional</strong>. Crea una cuenta para habilitar copias de seguridad cifradas en tu Google Drive personal.
                             </p>
                         </div>
 
-                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
-                            {isInstalled ? (
-                                <div className="text-center space-y-4">
-                                    <div className="flex items-center justify-center gap-2 text-green-600 font-bold">
-                                        <Check className="w-5 h-5" />
-                                        <span>¡Ya tienes la aplicación instalada!</span>
+                        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+                            <CardContent className="p-6 space-y-4">
+                                <div className="space-y-3">
+                                    <div className="space-y-1">
+                                        <Label>Correo Electrónico</Label>
+                                        <Input type="email" placeholder="doctor@ejemplo.com" />
                                     </div>
-                                    <Button className="w-full" onClick={nextStep}>Continuar</Button>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {isIOS ? (
-                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                                            <p className="font-bold mb-2 text-blue-700 dark:text-blue-300">Para instalar en iPhone/iPad:</p>
-                                            <ol className="list-decimal list-inside space-y-1">
-                                                <li>Toca el botón <strong>Compartir</strong> del navegador.</li>
-                                                <li>Busca y selecciona <strong>"Agregar a Inicio"</strong>.</li>
-                                            </ol>
-                                        </div>
-                                    ) : hasPrompt ? (
-                                        <Button className="w-full h-12 text-lg font-bold shadow-lg shadow-blue-200 dark:shadow-none animate-pulse" onClick={installApp}>
-                                            <Download className="mr-2 h-5 w-5" /> Instalar Aplicación
-                                        </Button>
-                                    ) : (
-                                        <div className="text-center space-y-4 relative">
-                                            <div className="absolute -top-12 right-0 hidden md:block animate-bounce delay-700">
-                                                {/* Flecha indicativa hacia la barra de direcciones */}
-                                                <svg width="60" height="60" viewBox="0 0 100 100" className="text-blue-500 -rotate-12">
-                                                    <path d="M50 80 Q 70 40 90 20" stroke="currentColor" strokeWidth="4" fill="none" markerEnd="url(#arrowhead)" />
-                                                    <defs>
-                                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-                                                            <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
-                                                        </marker>
-                                                    </defs>
-                                                </svg>
-                                            </div>
-
-                                            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 p-4 rounded-lg text-amber-800 dark:text-amber-200 text-sm">
-                                                <p className="font-bold mb-1 flex items-center justify-center gap-2">
-                                                    <Info size={16} />
-                                                    Instalación manual
-                                                </p>
-                                                <p>
-                                                    Busca el botón <strong>"Instalar"</strong> <span className="hidden md:inline">en la barra de direcciones de tu navegador (arriba a la derecha)</span> o en el menú de opciones.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="pt-2">
-                                        <Button variant="ghost" className="w-full text-slate-400 hover:text-slate-600" onClick={nextStep}>
-                                            Decidir más tarde, continuar ahora
-                                        </Button>
+                                    <div className="space-y-1">
+                                        <Label>Contraseña</Label>
+                                        <Input type="password" placeholder="••••••••" />
                                     </div>
                                 </div>
-                            )}
+
+                                <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-lg flex gap-3 items-start text-xs text-blue-800 dark:text-blue-300">
+                                    <Lock size={14} className="mt-0.5 shrink-0" />
+                                    <p>
+                                        Tus pacientes y recetas permanecen <strong>100% locales</strong> en este dispositivo.
+                                        La cuenta solo se usa para autenticar el respaldo en la nube.
+                                    </p>
+                                </div>
+
+                                <Button className="w-full font-bold" onClick={nextStep}>
+                                    Crear Cuenta Local
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        <div className="text-center">
+                            <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={nextStep}>
+                                Saltar este paso
+                            </Button>
                         </div>
                     </div>
                 );
 
-            case 6: // Finalizar
+            case 7: // Finalizar
                 return (
                     <div className="space-y-8 text-center py-6">
                         <div className="flex justify-center">
