@@ -9,6 +9,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Search, UserPlus, User, Calendar, Phone } from "lucide-react"
 import Link from "next/link"
+import { OfflineLink } from "@/shared/components/ui/OfflineLink";
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
@@ -103,7 +104,7 @@ export function PacienteList() {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {pacientes.map((paciente) => (
-                        <Link key={paciente.id} href={`/pacientes/${paciente.id}`}>
+                        <OfflineLink key={paciente.id} href={`/pacientes/${paciente.id}`}>
                             <Card className="hover:border-blue-400 transition-colors cursor-pointer h-full">
                                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                     <CardTitle className="text-base font-bold line-clamp-1">
@@ -124,7 +125,7 @@ export function PacienteList() {
                                     </div>
                                 </CardContent>
                             </Card>
-                        </Link>
+                        </OfflineLink>
                     ))}
                 </div>
             )}

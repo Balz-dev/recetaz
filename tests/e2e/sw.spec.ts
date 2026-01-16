@@ -21,23 +21,24 @@ test.describe('Service Worker and offline', () => {
     expect(reg).toBeTruthy();
   });
 
-  test('offline fallback serves offline.html for navigations', async ({ page }) => {
+  test('offline fallback serves app shell (dashboard) for navigations', async ({ page }) => {
     // Ensure page and assets are loaded at least once to allow SW caching strategies to populate
-    await page.goto('/');
-    await page.waitForTimeout(500);
+    await page.goto('/dashboard');
+    await page.waitForTimeout(1000);
 
     // Go offline and navigate to a route that doesn't exist to force navigation fallback
     await page.context().setOffline(true);
 
-    // Try to navigate to a random path which should trigger offline fallback to offline.html
-    const response = await page.goto('/some-non-existent-route');
+    // Try to navigate to a random path which should trigger offline fallback to /dashboard (App Shell)
+    const response = await page.goto('/some-non-existent-route-offline');
 
-    // If the SW serves offline.html, the response should be OK and body contains 'offline' marker
-    // We check the page content for the presence of the word 'offline' (offline.html in this project)
+    // If the SW serves the App Shell, the response should be OK and body contains dashboard marker
     const body = await page.content();
 
     expect(response && response.status()).toBeGreaterThanOrEqual(200);
-    expect(body.toLowerCase()).toContain('offline');
+    // Verificamos que se cargó el App Shell buscando elementos del layout o dashboard
+    // 'Dashboard' es el título h2 en la página de dashboard
+    expect(body).toContain('Dashboard');
 
     // Restore online state
     await page.context().setOffline(false);

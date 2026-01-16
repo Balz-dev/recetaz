@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { OfflineLink } from '@/shared/components/ui/OfflineLink';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';

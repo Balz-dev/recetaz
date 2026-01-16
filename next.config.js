@@ -2,12 +2,9 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  // Fallback para navegación offline - sirve el app shell
+  disable: false, // Habilitado para permitir verificar cache en desarrollo
+  // Fallback para navegación offline - Configurado para servir el Dashboard como App Shell
   navigateFallback: '/dashboard',
-  navigateFallbackDenylist: [/^\/api/, /^\/_next\/data/],
-  // Permitir todas las rutas de la app
-  navigateFallbackAllowlist: [/^\/(?!api|_next\/data).*/],
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
@@ -98,6 +95,17 @@ const withPWA = require('next-pwa')({
       },
     },
     {
+      urlPattern: /.*_rsc=.*/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'next-rsc',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
+        },
+      },
+    },
+    {
       urlPattern: /\/_next\/data\/.+\/.+\.json$/i,
       handler: 'StaleWhileRevalidate',
       options: {
@@ -110,7 +118,7 @@ const withPWA = require('next-pwa')({
     },
     {
       urlPattern: /\.(?:json|xml|csv)$/i,
-      handler: 'NetworkFirst',
+      handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'static-data-assets',
         expiration: {
@@ -135,13 +143,24 @@ const withPWA = require('next-pwa')({
       },
     },
     {
-      urlPattern: ({ url }) => url.pathname.startsWith('/'),
+      urlPattern: ({ url }) => url.pathname === '/dashboard' || url.pathname === '/',
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'app-shell',
+        expiration: {
+          maxEntries: 5,
+          maxAgeSeconds: 90 * 24 * 60 * 60,
+        },
+      },
+    },
+    {
+      urlPattern: ({ request }) => request.mode === 'navigate',
       handler: 'CacheFirst',
       options: {
         cacheName: 'pages',
         expiration: {
           maxEntries: 100,
-          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días (3 meses)
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
       },
     }

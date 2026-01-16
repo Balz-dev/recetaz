@@ -3,7 +3,6 @@ import "../globals.css";
 import { Sidebar } from "@/shared/components/layout/sidebar";
 import { Header } from "@/shared/components/layout/header";
 import { Toaster } from "@/shared/components/ui/toaster";
-import { OnlineStatusIndicator } from "@/shared/components/ui/OnlineStatusIndicator";
 import { DatabaseInitializer } from "@/shared/components/layout/DatabaseInitializer";
 import ServiceWorkerRegister from './ServiceWorkerRegister';
 import Script from 'next/script';
@@ -54,7 +53,6 @@ export default function PlatformLayout({
                         </main>
                     </div>
                     <Toaster />
-                    <OnlineStatusIndicator />
                     <DatabaseInitializer />
                     <InitialConfigModal />
                     <InstallGate />

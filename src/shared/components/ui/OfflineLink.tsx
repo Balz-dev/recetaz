@@ -1,3 +1,5 @@
+"use client"
+
 /**
  * Link optimizado para navegación offline en rutas dinámicas.
  * 

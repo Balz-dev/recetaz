@@ -106,12 +106,12 @@ export function PanelGanancias() {
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <span className="absolute left-2.5 top-2.5 text-gray-500">$</span>
-                                        <Input 
-                                            type="number" 
-                                            id="costo" 
-                                            value={costo} 
+                                        <Input
+                                            type="number"
+                                            id="costo"
+                                            value={costo}
                                             onChange={(e) => setCosto(Number(e.target.value))}
-                                            className="pl-6" 
+                                            className="pl-6"
                                         />
                                     </div>
                                     <Button onClick={handleSaveCosto} disabled={saving} size="icon" title="Guardar Costo">
@@ -123,7 +123,7 @@ export function PanelGanancias() {
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div className="space-y-1">
                             <div className="text-sm font-medium text-muted-foreground">Ganancia Estimada Total</div>
                             <div className="text-3xl font-bold text-green-600 dark:text-green-400">
@@ -134,34 +134,34 @@ export function PanelGanancias() {
                             </p>
                         </div>
                     </div>
-                    
+
                     {/* Gráfico */}
                     <div className="lg:w-3/4 h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-slate-200 dark:stroke-slate-700" />
-                                <XAxis 
-                                    dataKey="fecha" 
-                                    axisLine={false} 
-                                    tickLine={false} 
+                                <XAxis
+                                    dataKey="fecha"
+                                    axisLine={false}
+                                    tickLine={false}
                                     tick={{ fontSize: 12, fill: '#888888' }}
                                     dy={10}
                                 />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tickFormatter={(value) => `$${value}`} 
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickFormatter={(value) => `$${value}`}
                                     tick={{ fontSize: 12, fill: '#888888' }}
                                 />
-                                <Tooltip 
+                                <Tooltip
                                     cursor={{ fill: 'transparent' }}
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     formatter={(value: number) => [`$${value}`, 'Ganancia']}
                                 />
-                                <Bar 
-                                    dataKey="ganancia" 
-                                    fill="#2563eb" 
-                                    radius={[4, 4, 0, 0]} 
+                                <Bar
+                                    dataKey="ganancia"
+                                    fill="#2563eb"
+                                    radius={[4, 4, 0, 0]}
                                     name="Ganancia"
                                     animationDuration={1500}
                                 />

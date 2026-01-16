@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Calendar, Eye } from "lucide-react";
+import Link from "next/link";
 import { OfflineLink } from "@/shared/components/ui/OfflineLink";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/sha
 import { Plus, Edit, Trash2, CheckCircle, FileText } from "lucide-react"
 import Link from "next/link";
 import { OfflineLink } from "@/shared/components/ui/OfflineLink";
+
 import { useRouter } from "next/navigation";
 import { useToast } from "@/shared/components/ui/use-toast";
 import {
@@ -148,12 +149,12 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                         Diseñe y configure el formato de impresión de sus recetas.
                     </p>
                 </div>
-                <Link href="/recetas/plantillas/nueva">
+                <OfflineLink href="/recetas/plantillas/nueva">
                     <Button>
                         <Plus className="mr-2 h-4 w-4" />
                         Nueva Plantilla
                     </Button>
-                </Link>
+                </OfflineLink>
             </div>
 
             {/* Simulación de Tabs */}
@@ -197,9 +198,9 @@ export function PlantillaList({ defaultTab = 'mine' }: PlantillaListProps) {
                                     Comience creando su primera plantilla personalizada para adaptar la impresión a sus necesidades.
                                 </p>
                             </div>
-                            <Link href="/recetas/plantillas/nueva">
+                            <OfflineLink href="/recetas/plantillas/nueva">
                                 <Button variant="outline">Crear mi primera plantilla</Button>
-                            </Link>
+                            </OfflineLink>
                         </CardContent>
                     </Card>
                 ) : (

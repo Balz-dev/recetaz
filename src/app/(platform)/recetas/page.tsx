@@ -1,6 +1,9 @@
+"use client"
+
 import { RecetaList } from "@/features/recetas/components/RecetaList";
 import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
+import { OfflineLink } from "@/shared/components/ui/OfflineLink";
 import { Settings } from "lucide-react";
 import { Suspense } from "react";
 
@@ -14,12 +17,12 @@ export default function RecetasPage() {
                         Historial de recetas emitidas y creación de nuevos documentos.
                     </p>
                 </div>
-                <Link href="/recetas/plantillas">
+                <OfflineLink href="/recetas/plantillas">
                     <Button variant="outline" className="gap-2">
                         <Settings className="h-4 w-4" />
                         Configurar Plantillas
                     </Button>
-                </Link>
+                </OfflineLink>
             </div>
 
             <Suspense fallback={<div>Cargando listado...</div>}>

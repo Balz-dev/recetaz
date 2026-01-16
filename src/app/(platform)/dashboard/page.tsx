@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/sha
 import { Button } from "@/shared/components/ui/button";
 import { FileText, Users, Activity, Plus } from "lucide-react";
 import Link from "next/link";
+import { OfflineLink } from "@/shared/components/ui/OfflineLink";
 import { PanelGanancias } from "@/features/finanzas/components/PanelGanancias";
 import { RecetaDialog } from "@/features/recetas/components/RecetaDialog";
 
@@ -154,7 +155,7 @@ export default function HomePage() {
 
             {/* Secciones Principales */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Link href="/pacientes">
+                <OfflineLink href="/pacientes">
                     <Card className="hover:bg-accent transition-colors cursor-pointer">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -166,9 +167,9 @@ export default function HomePage() {
                             </CardDescription>
                         </CardHeader>
                     </Card>
-                </Link>
+                </OfflineLink>
 
-                <Link href="/recetas">
+                <OfflineLink href="/recetas">
                     <Card className="hover:bg-accent transition-colors cursor-pointer">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -180,9 +181,9 @@ export default function HomePage() {
                             </CardDescription>
                         </CardHeader>
                     </Card>
-                </Link>
+                </OfflineLink>
 
-                <Link href="/configuracion">
+                <OfflineLink href="/configuracion">
                     <Card className="hover:bg-accent transition-colors cursor-pointer">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -194,7 +195,7 @@ export default function HomePage() {
                             </CardDescription>
                         </CardHeader>
                     </Card>
-                </Link>
+                </OfflineLink>
             </div>
 
             {/* Panel de Finanzas */}
