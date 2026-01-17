@@ -43,7 +43,7 @@ import { ToolbarPropiedades } from "./ToolbarPropiedades"
 import { PlantillaGallery } from "./PlantillaGallery"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 /**
  * Obtiene el texto de ejemplo para un campo específico.

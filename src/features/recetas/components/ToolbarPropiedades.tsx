@@ -3,7 +3,7 @@ import { CampoPlantilla } from "@/types";
 import { SelectorColor } from "./SelectorColor";
 import { Button } from "@/shared/components/ui/button";
 import { Trash2, Copy, Type, Minus, Square, Bold, Edit2, Layers, ArrowUp, ArrowDown, Layout, Image as ImageIcon, RotateCcw, RotateCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { Input } from "@/shared/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 

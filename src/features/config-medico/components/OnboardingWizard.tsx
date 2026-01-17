@@ -17,7 +17,9 @@ import {
     Layout,
     Palette,
     Shield,
-    Lock
+    Lock,
+    Smartphone,
+    Check
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -35,7 +37,8 @@ import { PlantillaGallery } from '@/features/recetas/components/PlantillaGallery
 import { SpecialtySelect } from '@/shared/components/catalog/SpecialtySelect';
 import Image from 'next/image';
 import { usePWA } from '@/shared/providers/PWAProvider';
-import { Download, Smartphone, Check } from 'lucide-react';
+import { DraZoylaAvatar } from './DraZoylaAvatar';
+import { Bocadillo } from './Bocadillo';
 
 interface OnboardingWizardProps {
     /**
@@ -57,29 +60,53 @@ const STEPS = [
 ];
 
 /**
- * Componente principal del Asistente de Configuración Inicial (Onboarding).
- * 
- * Guía al médico a través de los pasos necesarios para configurar su perfil profesional,
- * datos del consultorio, y diseño de la receta médica.
- * 
- * @param props - Propiedades del componente
- * @param props.onComplete - Función a ejecutar al completar todo el proceso
- * @returns Componente JSX con el wizard paso a paso
+ * Configuración de Dra. Zoyla para cada paso.
  */
+const ZOYLA_CONFIG: Record<number, { pose: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10, text: React.ReactNode, direction: 'left' | 'right' | 'top' | 'bottom' }> = {
+    0: { // Bienvenida
+        pose: 1, // Saludo
+        text: "¡Hola! Soy la Dra. Zoyla, tu asistente virtual. Estoy aquí para ayudarte a configurar tu consultorio digital en RecetaZ. ¡Es súper fácil y rápido!",
+        direction: 'left'
+    },
+    1: { // Instalación
+        pose: 9, // Entusiasmo
+        text: "¿Te gustaría entrar más rápido? Puedo instalar un acceso directo en tu pantalla de inicio. ¡Así estaré siempre a un toque de distancia!",
+        direction: 'left'
+    },
+    2: { // Identidad
+        pose: 2, // Apunta Izquierda
+        text: "Primero, vamos a presentarnos. ¿Cuál es tu nombre y especialidad? Estos datos aparecerán en tus recetas para darles ese toque profesional.",
+        direction: 'left'
+    },
+    3: { // Logo
+        pose: 5, // Apunta Derecha Sutil (o izquierda según layout, usamos izquierda por consistencia móvil/desktop stack)
+        text: "¿Tienes un logotipo? ¡Súbelo aquí! Si no, no te preocupes, podemos dejarlo para después. Lo importante es que tu receta hable bien de ti.",
+        direction: 'left'
+    },
+    4: { // Consultorio
+        pose: 6, // Apunta Abajo (o izquierda)
+        text: "Ahora, cuéntame dónde está tu consultorio. Si añades tu dirección y teléfono, tus pacientes sabrán exactamente dónde encontrarte.",
+        direction: 'left'
+    },
+    5: { // Diseño
+        pose: 9, // Entusiasmo
+        text: "¡La parte divertida! Elige el diseño de tu receta. Tenemos plantillas hermosas o puedes subir la tuya propia. ¡Haz que luzca increíble!",
+        direction: 'left'
+    },
+    6: { // Cuenta
+        pose: 3, // Sutil
+        text: "Esto es opcional, pero muy útil. Si creas una cuenta (es gratis), puedo guardar copias de seguridad cifradas en tu Google Drive. ¡Seguridad ante todo!",
+        direction: 'left'
+    },
+    7: { // Finalizar
+        pose: 9, // OK
+        text: "¡Increíble! Ya está todo listo. Tu consultorio digital ha quedado perfecto. ¿Empezamos a crear tu primera receta?",
+        direction: 'left'
+    }
+};
+
 /**
- * Asistente de Onboarding (Wizard)
- * 
- * Guía al médico paso a paso a través de la configuración inicial de su perfil
- * y consultorio.
- * 
- * Pasos:
- * 1. Bienvenida e Identidad (Nombre, Cédula, Especialidad).
- * 2. Logo (Opcional).
- * 3. Configuración de Consultorio (Dirección, Contacto).
- * 4. Diseño de Receta (Selección de plantilla inicial).
- * 
- * @param props - Propiedades del componente.
- * @param props.onComplete - Callback ejecutado al finalizar. Recibe ruta de redirección opcional.
+ * Componente principal del Asistente de Configuración Inicial (Onboarding).
  */
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const [currentStep, setCurrentStep] = useState(0);
@@ -100,6 +127,19 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         direccion: '',
         logo: undefined,
     });
+
+    // Responsividad del bocadillo
+    const [bocadilloDirection, setBocadilloDirection] = useState<'left' | 'bottom'>('bottom');
+
+    useEffect(() => {
+        const handleResize = () => {
+            setBocadilloDirection(window.innerWidth >= 768 ? 'left' : 'bottom');
+        };
+
+        handleResize(); // Initial
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Estado para diseño de receta
     const [customDesign, setCustomDesign] = useState<string | null>(null);
@@ -135,8 +175,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     }, []);
 
     const nextStep = () => {
-        // Lógica de salto para paso de instalación PWA (Ahora índice 1)
-        // Si estamos en Bienvenida (0) y vamos al siguiente (1), verificamos si ya está instalada.
+        // Lógica de salto para paso de instalación PWA (1)
         if (currentStep + 1 === 1 && isInstalled) {
             setCurrentStep(prev => Math.min(prev + 2, STEPS.length - 1));
             return;
@@ -145,13 +184,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     };
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
-    /**
-     * Maneja la carga de archivos (logo o diseño de receta).
-     * Valida el tamaño del archivo (máx 1MB) y lo convierte a Base64.
-     * 
-     * @param e - Evento del input file
-     * @param type - Tipo de archivo a cargar: 'logo' o 'design'
-     */
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'design') => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -170,23 +202,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         reader.readAsDataURL(file);
     };
 
-    /**
-     * Guarda toda la configuración y finaliza el proceso.
-     * 1. Guarda los datos del médico
-     * 2. Crea/Configura la plantilla de receta
-     * 3. Redirige al usuario según su elección
-     */
-    /**
-     * Guarda la configuración completa del médico y finaliza el onboarding.
-     * 
-     * Acciones:
-     * 1. Guarda/Actualiza los datos del médico (perfil, consultorio).
-     * 2. Gestiona la creación de la plantilla de receta inicial:
-     *    - Si se eligió galería: Clona la plantilla seleccionada incluyendo todos sus campos.
-     *    - Si es diseño manual: Crea una plantilla básica en blanco o por defecto.
-     * 3. Determina la ruta de redirección según la preferencia del usuario (ir al editor o al dashboard).
-     * 4. Ejecuta el callback `onComplete` con la ruta destino.
-     */
     const handleSaveAndComplete = async () => {
         setIsLoading(true);
         try {
@@ -210,10 +225,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     ]
                 });
             } else if (selectedGalleryTemplate) {
-                // Si seleccionó de galería, crearla/activarla
-                // FIX: Las plantillas de galería vienen con una propiedad 'content' que tiene la config real
                 const templateData = selectedGalleryTemplate.content || selectedGalleryTemplate;
-
                 createdPlantillaId = await plantillaService.create({
                     ...templateData,
                     activa: true,
@@ -223,7 +235,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
             toast({ title: "¡Configuración exitosa!", description: "Bienvenido a RecetaZ" });
 
-            // Finalizar proceso de onboarding pasando la ruta de redirección
             onComplete(
                 goToEditor
                     ? (createdPlantillaId ? `/recetas/plantillas/${createdPlantillaId}` : '/recetas/plantillas/nueva')
@@ -237,52 +248,28 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         }
     };
 
-    /**
-     * Renderiza el contenido del paso actual del wizard.
-     */
     const renderStepContent = () => {
+        // Envolvemos el contenido específico del paso
+
         switch (currentStep) {
             case 0: // Bienvenida
                 return (
                     <div className="space-y-6 text-center py-4">
-                        <div className="flex justify-center">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-6 rounded-full text-blue-600 animate-bounce">
-                                <Stethoscope size={64} />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <h2 className="text-3xl font-bold">¡Bienvenido a RecetaZ!</h2>
-                            <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                                Estamos emocionados de ayudarte a digitalizar tu consultorio de forma segura.
-                            </p>
-                        </div>
-                        <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200 text-sm flex gap-3 items-start text-left">
+                        <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200 text-sm flex gap-3 items-start text-left mt-4">
                             <Info size={20} className="shrink-0 mt-0.5" />
                             <p>
                                 <strong>Sus datos son privados:</strong> Toda la información que ingrese se guarda únicamente en su dispositivo. No la enviamos a ningún servidor.
                             </p>
                         </div>
-                        <Button size="lg" className="w-full h-14 text-lg" onClick={nextStep}>
-                            Comenzar configuración profesional
+                        <Button size="lg" className="w-full h-14 text-lg mt-8" onClick={nextStep}>
+                            Comenzar configuración
                         </Button>
                     </div>
                 );
 
-            case 1: // Instalación PWA (Reubicado desde 5)
+            case 1: // Instalación PWA
                 return (
                     <div className="space-y-6 animate-in slide-in-from-right duration-500">
-                        <div className="text-center space-y-2">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
-                                <Smartphone className="w-8 h-8" />
-                            </div>
-                            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                ¿Desea un acceso más rápido?
-                            </h2>
-                            <p className="text-slate-500 max-w-md mx-auto text-lg">
-                                Podemos colocar un icono en su pantalla para que entre directo, sin abrir el navegador.
-                            </p>
-                        </div>
-
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
                             {isInstalled ? (
                                 <div className="text-center space-y-4">
@@ -334,10 +321,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 2: // Identidad
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Perfil Profesional</h2>
-                            <p className="text-slate-500 text-sm">Estos datos aparecerán en el encabezado de sus recetas.</p>
-                        </div>
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Nombre completo (con título)</label>
@@ -375,10 +358,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 3: // Logo
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Identidad Institucional</h2>
-                            <p className="text-slate-500 text-sm">Suba el logo que desea que aparezca en el formato de sus recetas (Opcional).</p>
-                        </div>
                         <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl bg-slate-50 dark:bg-slate-900/50 hover:border-blue-400 transition-colors cursor-pointer" onClick={() => document.getElementById('logo-input')?.click()}>
                             <input id="logo-input" type="file" accept="image/*" className="hidden" onChange={e => handleFileChange(e, 'logo')} />
                             {formData.logo ? (
@@ -406,10 +385,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 4: // Consultorio
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Ubicación y Contacto</h2>
-                            <p className="text-slate-500 text-sm">Dirección del consultorio y datos de contacto.</p>
-                        </div>
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Teléfono de contacto</label>
@@ -439,10 +414,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 5: // Diseño
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Diseño de Receta</h2>
-                            <p className="text-slate-500 text-sm">Elija una plantilla de nuestra galería o suba su propio diseño de hoja membretada.</p>
-                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Card className={`cursor-pointer transition-all ${!customDesign && selectedGalleryTemplate ? 'ring-2 ring-blue-500' : ''}`} onClick={() => setCustomDesign(null)}>
                                 <CardContent className="p-4 flex flex-col items-center text-center gap-2 pt-6">
@@ -476,7 +447,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* Toggle de Edición Completa */}
                         <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl space-y-3 border border-blue-100 dark:border-blue-900/30">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
@@ -513,16 +483,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 6: // Cuenta (Registro Opcional)
                 return (
                     <div className="space-y-6 animate-in slide-in-from-right duration-500">
-                        <div className="text-center space-y-2">
-                            <div className="bg-amber-100 dark:bg-amber-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
-                                <Shield className="w-8 h-8" />
-                            </div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Protege tu Información</h2>
-                            <p className="text-slate-500 max-w-md mx-auto text-sm">
-                                Este paso es <strong>opcional</strong>. Crea una cuenta para habilitar copias de seguridad cifradas en tu Google Drive personal.
-                            </p>
-                        </div>
-
                         <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
                             <CardContent className="p-6 space-y-4">
                                 <div className="space-y-3">
@@ -561,17 +521,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 7: // Finalizar
                 return (
                     <div className="space-y-8 text-center py-6">
-                        <div className="flex justify-center">
-                            <div className="bg-green-100 dark:bg-green-900/30 p-6 rounded-full text-green-600 animate-in zoom-in-50 duration-500">
-                                <CheckCircle2 size={64} />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">¡Todo listo!</h2>
-                            <p className="text-slate-500 dark:text-slate-400">
-                                Hemos configurado su entorno profesional. Podrá cambiar estos datos en cualquier momento desde el panel de ajustes.
-                            </p>
-                        </div>
                         <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl text-left space-y-3">
                             <h4 className="font-bold text-blue-900 dark:text-blue-300">Resumen profesional:</h4>
                             <div className="text-sm space-y-1 text-blue-800 dark:text-blue-200">
@@ -592,24 +541,23 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         }
     };
 
+    const zoylaState = ZOYLA_CONFIG[currentStep] || ZOYLA_CONFIG[0];
+
     return (
-        <div className="max-w-2xl mx-auto min-h-[500px] flex flex-col">
-            {/* Header / Stepper Progress */}
-            <div className="mb-8 pt-4">
-                <div className="flex items-center justify-between mb-2">
+        <div className="max-w-4xl mx-auto min-h-[500px] flex flex-col p-2">
+            {/* Header / Stepper Progress - Compacto */}
+            <div className="mb-4 pt-2">
+                <div className="flex items-center justify-between mb-2 px-4">
                     {STEPS.map((step, idx) => (
                         <div
                             key={idx}
                             className={`flex flex-col items-center transition-all ${idx <= currentStep ? 'text-blue-600 opacity-100' : 'text-slate-300 opacity-50'}`}
                         >
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 border-2 transition-all ${idx === currentStep ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : idx < currentStep ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-200 text-slate-300'}`}>
-                                {idx < currentStep ? <CheckCircle2 size={18} /> : React.cloneElement(step.icon as any, { size: 18 })}
-                            </div>
-                            <span className="text-[10px] font-bold hidden sm:block uppercase tracking-wider">{step.title}</span>
+                            <div className={`w-3 h-3 rounded-full transition-all ${idx === currentStep ? 'bg-blue-600 scale-125' : 'bg-slate-300'}`} />
                         </div>
                     ))}
                 </div>
-                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <motion.div
                         className="h-full bg-blue-600"
                         initial={{ width: 0 }}
@@ -619,20 +567,53 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </div>
             </div>
 
-            {/* Content Area with Animation */}
-            <div className="flex-1 overflow-hidden relative p-1">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentStep}
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -20, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="h-full"
-                    >
-                        {renderStepContent()}
-                    </motion.div>
-                </AnimatePresence>
+            {/* Main Layout con Dra. Zoyla */}
+            <div className="flex flex-col md:flex-row gap-8 items-start mt-4">
+                {/* Columna Izquierda: Dra. Zoyla */}
+                <div className="w-full md:w-1/3 flex flex-col items-center sticky top-4">
+                    <div className="relative">
+                        {/* Personaje */}
+                        <div className="transform scale-[0.6] md:scale-[0.85] origin-top md:origin-top-center -mt-8 md:mt-0">
+                            <DraZoylaAvatar pose={zoylaState.pose} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Columna Derecha: Bocadillo + Formulario */}
+                <div className="w-full md:w-2/3 flex flex-col gap-6">
+                    {/* Bocadillo en flujo normal para evitar superposiciones */}
+                    <div className="w-full md:max-w-[90%]">
+                        <Bocadillo
+                            direction={bocadilloDirection}
+                            className="text-sm md:text-base shadow-sm border-blue-100"
+                        >
+                            <p className="font-medium leading-relaxed">
+                                {zoylaState.text}
+                            </p>
+                        </Bocadillo>
+                    </div>
+
+                    <div className="bg-white dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm min-h-[400px]">
+                        <div className="mb-6 border-b border-slate-100 dark:border-white/5 pb-4">
+                            <h2 className="text-2xl font-bold flex items-center gap-2">
+                                {STEPS[currentStep].icon}
+                                {STEPS[currentStep].title}
+                            </h2>
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentStep}
+                                initial={{ x: 20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                exit={{ x: -20, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {renderStepContent()}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </div>
             </div>
         </div>
     );

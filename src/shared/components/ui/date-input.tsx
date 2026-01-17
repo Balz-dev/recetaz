@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/shared/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
     value?: Date;
