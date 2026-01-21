@@ -456,7 +456,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         )}
 
                         {!customDesign && (
-                            <div className="max-h-[300px] overflow-y-auto border rounded-xl p-4 bg-slate-50 dark:bg-slate-900/50">
+                            <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900/50 overflow-hidden">
                                 <PlantillaGallery
                                     onSelectTemplate={(t) => setSelectedGalleryTemplate(t)}
                                     selectedTemplate={selectedGalleryTemplate}

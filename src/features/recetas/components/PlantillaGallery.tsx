@@ -107,7 +107,7 @@ export function PlantillaGallery({ onSelectTemplate, selectedTemplate }: Plantil
     }
 
     return (
-        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 pb-8">
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
             {galleryTemplates.map((template, idx) => {
                 // Ensure we have a valid unique identifier for comparison. Use filename as fallback if id is missing.
                 const validSelectedId = selectedTemplate?.id || selectedTemplate?.filename;
@@ -116,68 +116,69 @@ export function PlantillaGallery({ onSelectTemplate, selectedTemplate }: Plantil
                 const isSelected = !!validSelectedId && (validSelectedId === validTemplateId);
 
                 return (
-                    <Card
-                        key={idx}
-                        className={`relative overflow-hidden transition-all duration-300 bg-white shadow-md flex flex-col h-full cursor-pointer group
-                            ${isSelected
-                                ? 'ring-2 ring-green-500 border-green-500 shadow-xl scale-[1.01]'
-                                : 'hover:shadow-xl hover:-translate-y-1 hover:border-blue-300 border-slate-200'
-                            }`}
-                        onClick={() => onSelectTemplate(template)}
-                    >
-                        {isSelected && (
-                            <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg z-30 shadow-sm flex items-center gap-1">
-                                <span className="uppercase tracking-wider">Seleccionada</span>
-                            </div>
-                        )}
-                        {!isSelected && (
-                            <div className="absolute top-0 right-0 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg shadow-sm z-20 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
-                                Clic para seleccionar
-                            </div>
-                        )}
-
-                        <CardHeader className="p-4 pb-2">
-                            <CardTitle className={`text-lg font-extrabold transition-colors duration-300 truncate ${isSelected ? 'text-green-700' : 'text-slate-900 group-hover:text-blue-600'}`}>
-                                {template.nombre}
-                            </CardTitle>
-                            <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-                                {template.tamanoPapel === 'carta' ? 'Papel Carta (8.5" x 11")' : 'Media Carta (8.5" x 5.5")'}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0 flex-grow flex flex-col">
-                            <div className={`border rounded-lg flex items-center justify-center mb-0 relative overflow-hidden mx-auto bg-slate-50/30
-                                ${template.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'} w-full shadow-inner transition-all duration-500
-                                ${isSelected ? 'border-green-200 bg-green-50/20' : 'border-slate-100 group-hover:bg-white'}`}
-                            >
-                                {template.imagenFondo || template.content?.imagenFondo ? (
-                                    <img
-                                        src={template.imagenFondo || template.content?.imagenFondo}
-                                        alt="Previsualización"
-                                        className="w-full h-full object-contain opacity-95 transition-all group-hover:scale-105 duration-700"
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center gap-3 text-slate-200">
-                                        <FileText className="h-10 w-10 opacity-10" />
-                                    </div>
-                                )}
-                                {/* Overlay de campos (puntos/bloques) */}
-                                <div className="absolute inset-0 p-2 overflow-hidden pointer-events-none opacity-30 group-hover:opacity-40 transition-opacity">
-                                    {template.content?.campos?.filter((c: any) => c.visible !== false).slice(0, 15).map((c: any) => (
-                                        <div
-                                            key={c.id}
-                                            className={`absolute border-[0.5px] rounded-[1px] ${isSelected ? 'bg-green-500/10 border-green-400/20' : 'bg-blue-500/20 border-blue-400/30'}`}
-                                            style={{
-                                                left: `${c.x}%`,
-                                                top: `${c.y}%`,
-                                                width: `${c.ancho}%`,
-                                                height: `${c.alto || 4}%`
-                                            }}
-                                        />
-                                    ))}
+                    <div key={idx} className="snap-center shrink-0 w-[240px]">
+                        <Card
+                            className={`relative overflow-hidden transition-all duration-300 bg-white shadow-md flex flex-col h-full cursor-pointer group
+                                ${isSelected
+                                    ? 'ring-2 ring-green-500 border-green-500 shadow-xl scale-[1.01]'
+                                    : 'hover:shadow-xl hover:-translate-y-1 hover:border-blue-300 border-slate-200'
+                                }`}
+                            onClick={() => onSelectTemplate(template)}
+                        >
+                            {isSelected && (
+                                <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg z-30 shadow-sm flex items-center gap-1">
+                                    <span className="uppercase tracking-wider">Seleccionada</span>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            )}
+                            {!isSelected && (
+                                <div className="absolute top-0 right-0 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg shadow-sm z-20 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Clic para seleccionar
+                                </div>
+                            )}
+
+                            <CardHeader className="p-3 pb-1">
+                                <CardTitle className={`text-base font-extrabold transition-colors duration-300 truncate ${isSelected ? 'text-green-700' : 'text-slate-900 group-hover:text-blue-600'}`}>
+                                    {template.nombre}
+                                </CardTitle>
+                                <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                                    {template.tamanoPapel === 'carta' ? 'Carta' : 'Media Carta'}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-0 flex-grow flex flex-col">
+                                <div className={`border rounded-lg flex items-center justify-center mb-0 relative overflow-hidden mx-auto bg-slate-50/30
+                                    ${template.tamanoPapel === 'carta' ? 'aspect-[8.5/11]' : 'aspect-[8.5/5.5]'} w-full shadow-inner transition-all duration-500
+                                    ${isSelected ? 'border-green-200 bg-green-50/20' : 'border-slate-100 group-hover:bg-white'}`}
+                                >
+                                    {template.imagenFondo || template.content?.imagenFondo ? (
+                                        <img
+                                            src={template.imagenFondo || template.content?.imagenFondo}
+                                            alt="Previsualización"
+                                            className="w-full h-full object-contain opacity-95 transition-all group-hover:scale-105 duration-700"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-3 text-slate-200">
+                                            <FileText className="h-10 w-10 opacity-10" />
+                                        </div>
+                                    )}
+                                    {/* Overlay de campos (puntos/bloques) */}
+                                    <div className="absolute inset-0 p-2 overflow-hidden pointer-events-none opacity-30 group-hover:opacity-40 transition-opacity">
+                                        {template.content?.campos?.filter((c: any) => c.visible !== false).slice(0, 15).map((c: any) => (
+                                            <div
+                                                key={c.id}
+                                                className={`absolute border-[0.5px] rounded-[1px] ${isSelected ? 'bg-green-500/10 border-green-400/20' : 'bg-blue-500/20 border-blue-400/30'}`}
+                                                style={{
+                                                    left: `${c.x}%`,
+                                                    top: `${c.y}%`,
+                                                    width: `${c.ancho}%`,
+                                                    height: `${c.alto || 4}%`
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 );
             })}
         </div>
