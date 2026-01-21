@@ -19,6 +19,7 @@ import {
     Shield,
     Lock,
     Smartphone,
+    Monitor,
     Check
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -49,59 +50,60 @@ interface OnboardingWizardProps {
 }
 
 const STEPS = [
-    { title: 'Bienvenida', icon: <PlusSquare /> },
-    { title: 'Instalación', icon: <Smartphone /> },
-    { title: 'Identidad', icon: <User /> },
-    { title: 'Logo', icon: <ImageIcon /> },
-    { title: 'Consultorio', icon: <MapPin /> },
-    { title: 'Diseño', icon: <Palette /> },
-    { title: 'Cuenta', icon: <Shield /> },
-    { title: 'Finalizar', icon: <CheckCircle2 /> },
+    { title: 'Bienvenida', description: 'Inicio', icon: <PlusSquare /> },
+    { title: 'Instalación', description: 'App', icon: <Monitor /> },
+    { title: 'Identidad', description: 'Perfil', icon: <User /> },
+    { title: 'Logo', description: 'Marca', icon: <ImageIcon /> },
+    { title: 'Consultorio', description: 'Ubicación', icon: <MapPin /> },
+    { title: 'Diseño', description: 'Receta', icon: <Palette /> },
+    { title: 'Cuenta', description: 'Seguridad', icon: <Shield /> },
+    { title: 'Finalizar', description: 'Listo', icon: <CheckCircle2 /> },
 ];
 
 /**
  * Configuración de Dra. Zoyla para cada paso.
  */
-const ZOYLA_CONFIG: Record<number, { pose: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10, text: React.ReactNode, direction: 'left' | 'right' | 'top' | 'bottom' }> = {
+const ZOYLA_CONFIG: Record<number, { pose: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10, text: React.ReactNode, direction: 'left' | 'right' | 'top' | 'bottom', flipped?: boolean }> = {
     0: { // Bienvenida
         pose: 1, // Saludo
         text: "¡Hola! Soy la Dra. Zoyla, tu asistente virtual. Estoy aquí para ayudarte a configurar tu consultorio digital en RecetaZ. ¡Es súper fácil y rápido!",
-        direction: 'left'
+        direction: 'right'
     },
     1: { // Instalación
         pose: 9, // Entusiasmo
         text: "¿Te gustaría entrar más rápido? Puedo instalar un acceso directo en tu pantalla de inicio. ¡Así estaré siempre a un toque de distancia!",
-        direction: 'left'
+        direction: 'right'
     },
     2: { // Identidad
         pose: 2, // Apunta Izquierda
-        text: "Primero, vamos a presentarnos. ¿Cuál es tu nombre y especialidad? Estos datos aparecerán en tus recetas para darles ese toque profesional.",
-        direction: 'left'
+        text: "Tus pacientes necesitan saber quién los atiende. Escribe tu nombre y especialidad exactamente como quieres que aparezcan impresos en el encabezado de tus recetas.",
+        direction: 'right'
     },
     3: { // Logo
-        pose: 5, // Apunta Derecha Sutil (o izquierda según layout, usamos izquierda por consistencia móvil/desktop stack)
+        pose: 5, // Apunta Derecha Sutil (Invertido apuntará a la izquierda, hacia el form)
+        flipped: true,
         text: "¿Tienes un logotipo? ¡Súbelo aquí! Si no, no te preocupes, podemos dejarlo para después. Lo importante es que tu receta hable bien de ti.",
-        direction: 'left'
+        direction: 'right'
     },
     4: { // Consultorio
         pose: 6, // Apunta Abajo (o izquierda)
-        text: "Ahora, cuéntame dónde está tu consultorio. Si añades tu dirección y teléfono, tus pacientes sabrán exactamente dónde encontrarte.",
-        direction: 'left'
+        text: "La dirección y el teléfono son vitales para que tus pacientes te contacten. Estos datos se imprimirán e incluirán automáticamente en todos tus reportes y recetas.",
+        direction: 'right'
     },
     5: { // Diseño
         pose: 9, // Entusiasmo
-        text: "¡La parte divertida! Elige el diseño de tu receta. Tenemos plantillas hermosas o puedes subir la tuya propia. ¡Haz que luzca increíble!",
-        direction: 'left'
+        text: "¡La parte divertida! Elige el diseño de tu receta. Selecciona una de nuestras plantillas profesionales o sube tu propio diseño membretado.",
+        direction: 'right'
     },
     6: { // Cuenta
         pose: 3, // Sutil
         text: "Esto es opcional, pero muy útil. Si creas una cuenta (es gratis), puedo guardar copias de seguridad cifradas en tu Google Drive. ¡Seguridad ante todo!",
-        direction: 'left'
+        direction: 'right'
     },
     7: { // Finalizar
         pose: 9, // OK
         text: "¡Increíble! Ya está todo listo. Tu consultorio digital ha quedado perfecto. ¿Empezamos a crear tu primera receta?",
-        direction: 'left'
+        direction: 'right'
     }
 };
 
@@ -129,11 +131,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     });
 
     // Responsividad del bocadillo
-    const [bocadilloDirection, setBocadilloDirection] = useState<'left' | 'bottom'>('bottom');
+    // Desktop: 'right' (apunta a la derecha hacia Dra. Zoyla que está en col derecha)
+    // Mobile: 'top' (apunta arriba hacia Dra. Zoyla que está arriba)
+    const [bocadilloDirection, setBocadilloDirection] = useState<'right' | 'top'>('top');
 
     useEffect(() => {
         const handleResize = () => {
-            setBocadilloDirection(window.innerWidth >= 768 ? 'left' : 'bottom');
+            setBocadilloDirection(window.innerWidth >= 768 ? 'right' : 'top');
         };
 
         handleResize(); // Initial
@@ -175,7 +179,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     }, []);
 
     const nextStep = () => {
-        // Lógica de salto para paso de instalación PWA (1)
         if (currentStep + 1 === 1 && isInstalled) {
             setCurrentStep(prev => Math.min(prev + 2, STEPS.length - 1));
             return;
@@ -183,6 +186,16 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
     };
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
+
+    // Navegación directa por click en header
+    const goToStep = (stepIndex: number) => {
+        // Permitimos navegar a cualquier paso ya visitado o al siguiente inmediato
+        // O simplificamos permitiendo navegar libremente ya que es un wizard de config inicial
+        // Para mejor UX, permitamos volver atrás libremente, y adelante solo si los datos requeridos están.
+
+        // Simplemente actualizamos estado
+        setCurrentStep(stepIndex);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'design') => {
         const file = e.target.files?.[0];
@@ -249,8 +262,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     };
 
     const renderStepContent = () => {
-        // Envolvemos el contenido específico del paso
-
         switch (currentStep) {
             case 0: // Bienvenida
                 return (
@@ -414,22 +425,25 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 5: // Diseño
                 return (
                     <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className={`cursor-pointer transition-all ${!customDesign && selectedGalleryTemplate ? 'ring-2 ring-blue-500' : ''}`} onClick={() => setCustomDesign(null)}>
-                                <CardContent className="p-4 flex flex-col items-center text-center gap-2 pt-6">
-                                    <Layout className="text-blue-500" size={32} />
-                                    <h3 className="font-bold">Usar Galería</h3>
-                                    <p className="text-xs text-slate-500">Elija entre diseños predeterminados profesionales.</p>
-                                </CardContent>
-                            </Card>
-                            <Card className={`cursor-pointer transition-all ${customDesign ? 'ring-2 ring-blue-500 shadow-lg' : ''}`} onClick={() => document.getElementById('design-input')?.click()}>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button
+                                variant="outline"
+                                className={`h-auto py-3 border-2 flex flex-col sm:flex-row items-center justify-center gap-2 ${!customDesign && selectedGalleryTemplate ? 'border-blue-500 bg-blue-50/50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-slate-50'}`}
+                                onClick={() => setCustomDesign(null)}
+                            >
+                                <Layout size={20} className={!customDesign && selectedGalleryTemplate ? "text-blue-500" : "text-slate-400"} />
+                                <span className="font-bold text-xs sm:text-sm">Galería</span>
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                className={`h-auto py-3 border-2 flex flex-col sm:flex-row items-center justify-center gap-2 ${customDesign ? 'border-green-500 bg-green-50/50 text-green-700' : 'border-slate-200 text-slate-600 hover:border-green-300 hover:bg-slate-50'}`}
+                                onClick={() => document.getElementById('design-input')?.click()}
+                            >
                                 <input id="design-input" type="file" accept="image/*" className="hidden" onChange={e => handleFileChange(e, 'design')} />
-                                <CardContent className="p-4 flex flex-col items-center text-center gap-2 pt-6">
-                                    <Upload className="text-green-500" size={32} />
-                                    <h3 className="font-bold">Subir Mi Diseño</h3>
-                                    <p className="text-xs text-slate-500">Cargue una imagen de su propia hoja membretada.</p>
-                                </CardContent>
-                            </Card>
+                                <Upload size={20} className={customDesign ? "text-green-500" : "text-slate-400"} />
+                                <span className="font-bold text-xs sm:text-sm">Subir Propia</span>
+                            </Button>
                         </div>
 
                         {customDesign && (
@@ -443,7 +457,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
                         {!customDesign && (
                             <div className="max-h-[300px] overflow-y-auto border rounded-xl p-4 bg-slate-50 dark:bg-slate-900/50">
-                                <PlantillaGallery onSelectTemplate={(t) => setSelectedGalleryTemplate(t)} />
+                                <PlantillaGallery
+                                    onSelectTemplate={(t) => setSelectedGalleryTemplate(t)}
+                                    selectedTemplate={selectedGalleryTemplate}
+                                />
                             </div>
                         )}
 
@@ -544,20 +561,52 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const zoylaState = ZOYLA_CONFIG[currentStep] || ZOYLA_CONFIG[0];
 
     return (
-        <div className="max-w-4xl mx-auto min-h-[500px] flex flex-col p-2">
-            {/* Header / Stepper Progress - Compacto */}
+        <div className="max-w-7xl mx-auto min-h-[500px] flex flex-col p-2">
+            {/* Header / Stepper Progress - Mejorado y Clickable */}
             <div className="mb-4 pt-2">
-                <div className="flex items-center justify-between mb-2 px-4">
-                    {STEPS.map((step, idx) => (
-                        <div
-                            key={idx}
-                            className={`flex flex-col items-center transition-all ${idx <= currentStep ? 'text-blue-600 opacity-100' : 'text-slate-300 opacity-50'}`}
-                        >
-                            <div className={`w-3 h-3 rounded-full transition-all ${idx === currentStep ? 'bg-blue-600 scale-125' : 'bg-slate-300'}`} />
-                        </div>
-                    ))}
+                <div className="hidden md:flex items-center justify-between mb-4 px-2">
+                    {STEPS.map((step, idx) => {
+                        const isCompleted = idx < currentStep;
+                        const isCurrent = idx === currentStep;
+                        const isClickable = true; // Habilitamos navegación libre por diseño de wizard moderno
+
+                        return (
+                            <div
+                                key={idx}
+                                className={`flex flex-col items-center gap-2 relative group cursor-pointer transition-all`}
+                                onClick={() => isClickable && goToStep(idx)}
+                            >
+                                {/* Línea de conexión */}
+                                {idx < STEPS.length - 1 && (
+                                    <div className={`absolute top-5 left-1/2 w-full h-[2px] transition-colors -z-10 ${idx < currentStep ? 'bg-blue-600' : 'bg-slate-200'
+                                        }`} />
+                                )}
+
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${isCurrent ? 'bg-blue-600 text-white border-blue-600 scale-110 shadow-lg' :
+                                    isCompleted ? 'bg-white text-blue-600 border-blue-600' :
+                                        'bg-white text-slate-300 border-slate-200'
+                                    }`}>
+                                    {isCompleted ? <Check size={20} /> : React.cloneElement(step.icon as any, { size: 20 })}
+                                </div>
+                                <div className="text-center">
+                                    <span className={`text-xs font-bold block ${isCurrent ? 'text-blue-700' : 'text-slate-500'}`}>
+                                        {step.title}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 hidden lg:block">
+                                        {step.description}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
-                <div className="h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+
+                {/* Header Móvil Simple */}
+                <div className="md:hidden flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-slate-500">Paso {currentStep + 1} de {STEPS.length}</span>
+                    <span className="text-sm font-bold text-blue-600">{STEPS[currentStep].title}</span>
+                </div>
+                <div className="flex md:hidden h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <motion.div
                         className="h-full bg-blue-600"
                         initial={{ width: 0 }}
@@ -568,20 +617,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             </div>
 
             {/* Main Layout con Dra. Zoyla */}
-            <div className="flex flex-col md:flex-row gap-8 items-start mt-4">
-                {/* Columna Izquierda: Dra. Zoyla */}
-                <div className="w-full md:w-1/3 flex flex-col items-center sticky top-4">
-                    <div className="relative">
-                        {/* Personaje */}
-                        <div className="transform scale-[0.6] md:scale-[0.85] origin-top md:origin-top-center -mt-8 md:mt-0">
-                            <DraZoylaAvatar pose={zoylaState.pose} />
-                        </div>
-                    </div>
-                </div>
+            {/* INVERTIDO: Columna Izquierda = Formulario, Columna Derecha = Avatar */}
+            <div className="flex flex-col-reverse md:flex-row gap-8 items-start mt-4">
 
-                {/* Columna Derecha: Bocadillo + Formulario */}
+                {/* Columna Izquierda: Bocadillo + Formulario */}
                 <div className="w-full md:w-2/3 flex flex-col gap-6">
-                    {/* Bocadillo en flujo normal para evitar superposiciones */}
+                    {/* Bocadillo en flujo normal */}
                     <div className="w-full md:max-w-[90%]">
                         <Bocadillo
                             direction={bocadilloDirection}
@@ -612,6 +653,19 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                 {renderStepContent()}
                             </motion.div>
                         </AnimatePresence>
+                    </div>
+                </div>
+
+                {/* Columna Derecha: Dra. Zoyla */}
+                <div className="w-full md:w-1/3 flex flex-col items-center sticky top-4">
+                    <div className="relative">
+                        {/* Personaje */}
+                        <div className="transform scale-[0.6] md:scale-[0.85] origin-top md:origin-top-center -mt-8 md:mt-0">
+                            <DraZoylaAvatar
+                                pose={zoylaState.pose}
+                                className={zoylaState.flipped ? "scale-x-[-1]" : ""}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

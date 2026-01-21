@@ -31,7 +31,7 @@ export function DraZoylaAvatar({ pose, className }: DraZoylaAvatarProps) {
 
     return (
         <div
-            className={cn("overflow-hidden relative", className)}
+            className={cn("overflow-hidden relative rounded-3xl", className)}
             style={{
                 width: '300px',
                 height: '300px' // Asumiendo altura cuadrada o ajustada por contenedor, pero fijamos base
