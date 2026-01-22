@@ -38,6 +38,12 @@ import { PlantillaGallery } from '@/features/recetas/components/PlantillaGallery
 import { SpecialtySelect } from '@/shared/components/catalog/SpecialtySelect';
 import Image from 'next/image';
 import { usePWA } from '@/shared/providers/PWAProvider';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/shared/components/ui/dialog";
 import { DraZoylaAvatar } from './DraZoylaAvatar';
 import { Bocadillo } from './Bocadillo';
 
@@ -55,7 +61,7 @@ const STEPS = [
     { title: 'Identidad', description: 'Perfil', icon: <User /> },
     { title: 'Logo', description: 'Marca', icon: <ImageIcon /> },
     { title: 'Consultorio', description: 'Ubicación', icon: <MapPin /> },
-    { title: 'Diseño', description: 'Receta', icon: <Palette /> },
+    { title: 'Diseño Receta', description: 'Receta', icon: <Palette /> },
     { title: 'Cuenta', description: 'Seguridad', icon: <Shield /> },
     { title: 'Finalizar', description: 'Listo', icon: <CheckCircle2 /> },
 ];
@@ -148,6 +154,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     // Estado para diseño de receta
     const [customDesign, setCustomDesign] = useState<string | null>(null);
     const [selectedGalleryTemplate, setSelectedGalleryTemplate] = useState<any>(null);
+    const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
 
     // Cargar datos existentes y especialidades
     useEffect(() => {
@@ -424,12 +431,15 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
             case 5: // Diseño
                 return (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <Button
                                 variant="outline"
                                 className={`h-auto py-3 border-2 flex flex-col sm:flex-row items-center justify-center gap-2 ${!customDesign && selectedGalleryTemplate ? 'border-blue-500 bg-blue-50/50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-slate-50'}`}
-                                onClick={() => setCustomDesign(null)}
+                                onClick={() => {
+                                    setCustomDesign(null);
+                                    setIsGalleryModalOpen(true);
+                                }}
                             >
                                 <Layout size={20} className={!customDesign && selectedGalleryTemplate ? "text-blue-500" : "text-slate-400"} />
                                 <span className="font-bold text-xs sm:text-sm">Galería</span>
@@ -447,20 +457,34 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
 
                         {customDesign && (
-                            <div className="relative w-full aspect-[8.5/11] border rounded-lg bg-slate-50 overflow-hidden">
+                            <div className="relative w-full aspect-[8.5/11] border rounded-lg bg-slate-50 overflow-hidden shadow-sm">
                                 <Image src={customDesign} alt="Background design" fill className="object-contain" />
                                 <div className="absolute top-2 right-2 flex gap-2">
-                                    <Button size="sm" variant="destructive" onClick={() => setCustomDesign(null)}>Eliminar</Button>
+                                    <Button size="sm" variant="destructive" className="h-8 text-xs" onClick={() => setCustomDesign(null)}>Eliminar</Button>
                                 </div>
                             </div>
                         )}
 
-                        {!customDesign && (
-                            <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900/50 overflow-hidden">
-                                <PlantillaGallery
-                                    onSelectTemplate={(t) => setSelectedGalleryTemplate(t)}
-                                    selectedTemplate={selectedGalleryTemplate}
-                                />
+                        {!customDesign && selectedGalleryTemplate && (
+                            <div className="border rounded-xl p-4 bg-blue-50/30 dark:bg-blue-900/5 flex flex-col items-center gap-2 border-blue-100 dark:border-blue-900/20">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <CheckCircle2 size={16} className="text-blue-500" />
+                                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Diseño seleccionado</span>
+                                </div>
+                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{selectedGalleryTemplate.name || selectedGalleryTemplate.filename}</div>
+                                <Button variant="ghost" size="sm" onClick={() => setIsGalleryModalOpen(true)} className="h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100/50 mt-1">
+                                    Cambiar diseño
+                                </Button>
+                            </div>
+                        )}
+
+                        {!customDesign && !selectedGalleryTemplate && (
+                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-slate-50/50 dark:bg-slate-900/20">
+                                <Palette size={32} className="text-slate-300 dark:text-slate-700" />
+                                <p className="text-sm text-slate-500 font-medium">No has seleccionado ningún diseño</p>
+                                <Button variant="secondary" size="sm" onClick={() => setIsGalleryModalOpen(true)}>
+                                    Abrir galería
+                                </Button>
                             </div>
                         )}
 
@@ -561,7 +585,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const zoylaState = ZOYLA_CONFIG[currentStep] || ZOYLA_CONFIG[0];
 
     return (
-        <div className="max-w-7xl mx-auto min-h-[500px] flex flex-col p-2">
+        <div className="w-full max-w-full h-auto flex flex-col p-0 overflow-hidden">
             {/* Header / Stepper Progress - Mejorado y Clickable */}
             <div className="mb-4 pt-2">
                 <div className="hidden md:flex items-center justify-between mb-4 px-2">
@@ -618,10 +642,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
             {/* Main Layout con Dra. Zoyla */}
             {/* INVERTIDO: Columna Izquierda = Formulario, Columna Derecha = Avatar */}
-            <div className="flex flex-col-reverse md:flex-row gap-8 items-start mt-4">
-
+            <div className="flex flex-col-reverse md:flex-row gap-6 items-start mt-2 w-full max-w-full overflow-hidden">
                 {/* Columna Izquierda: Bocadillo + Formulario */}
-                <div className="w-full md:w-2/3 flex flex-col gap-6">
+                <div className="w-full md:w-2/3 flex flex-col gap-4 min-w-0">
                     {/* Bocadillo en flujo normal */}
                     <div className="w-full md:max-w-[90%]">
                         <Bocadillo
@@ -634,7 +657,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </Bocadillo>
                     </div>
 
-                    <div className="bg-white dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm min-h-[400px]">
+                    <div className="bg-white dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm min-w-0 w-full flex flex-col">
                         <div className="mb-6 border-b border-slate-100 dark:border-white/5 pb-4">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
                                 {STEPS[currentStep].icon}
@@ -649,6 +672,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                 animate={{ x: 0, opacity: 1 }}
                                 exit={{ x: -20, opacity: 0 }}
                                 transition={{ duration: 0.3 }}
+                                className="w-full min-w-0 flex-1"
                             >
                                 {renderStepContent()}
                             </motion.div>
@@ -657,7 +681,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </div>
 
                 {/* Columna Derecha: Dra. Zoyla */}
-                <div className="w-full md:w-1/3 flex flex-col items-center sticky top-4">
+                <div className="w-full md:w-1/3 flex flex-col items-center sticky top-4 min-w-0 overflow-hidden">
                     <div className="relative">
                         {/* Personaje */}
                         <div className="transform scale-[0.6] md:scale-[0.85] origin-top md:origin-top-center -mt-8 md:mt-0">
@@ -669,6 +693,36 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Galería de Plantillas */}
+            <Dialog open={isGalleryModalOpen} onOpenChange={setIsGalleryModalOpen}>
+                <DialogContent className="max-w-[95vw] w-full lg:max-w-4xl p-0 overflow-hidden bg-white dark:bg-slate-950 border-none shadow-2xl z-[300]">
+                    <DialogHeader className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            <Layout className="text-blue-500" size={24} />
+                            Selecciona tu diseño profesional
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="p-6 overflow-x-hidden">
+                        <div className="mb-4 text-sm text-slate-500">
+                            Elige el estilo que mejor represente tu práctica médica. Podrás personalizarlo más adelante.
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-900/30 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                            <PlantillaGallery
+                                onSelectTemplate={(t) => {
+                                    setSelectedGalleryTemplate(t);
+                                    setCustomDesign(null);
+                                    // No cerramos inmediatamente para que vea la selección, o cerramos tras un pequeño delay
+                                    setTimeout(() => setIsGalleryModalOpen(false), 400);
+                                }}
+                                selectedTemplate={selectedGalleryTemplate}
+                            />
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

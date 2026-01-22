@@ -95,7 +95,7 @@ export function InitialConfigModal() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="max-w-[95vw] w-full lg:max-w-3xl max-h-[95vh] overflow-y-auto z-[200] p-0 border-none bg-white dark:bg-slate-950">
+            <DialogContent className="max-w-[95vw] w-full lg:max-w-3xl h-auto max-h-[95vh] overflow-y-auto overflow-x-hidden z-[150] p-0 border-none bg-white dark:bg-slate-950 shadow-2xl">
                 <div className="p-6 sm:p-8">
                     {!especialidadesReady ? (
                         <div className="flex items-center justify-center p-12">

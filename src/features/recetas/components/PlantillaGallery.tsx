@@ -107,7 +107,7 @@ export function PlantillaGallery({ onSelectTemplate, selectedTemplate }: Plantil
     }
 
     return (
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+        <div className="w-full max-w-full flex overflow-x-auto snap-x snap-mandatory gap-4 pb-8 px-1 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
             {galleryTemplates.map((template, idx) => {
                 // Ensure we have a valid unique identifier for comparison. Use filename as fallback if id is missing.
                 const validSelectedId = selectedTemplate?.id || selectedTemplate?.filename;
