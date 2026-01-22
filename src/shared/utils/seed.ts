@@ -13,13 +13,34 @@ import { catalogoMedicamentosInicial } from './seeds/medicamentos-data';
 import type { MedicamentoCatalogo } from '@/types';
 
 /**
+ * Genera una fecha relativa para datos demo.
+ * Distribuye los datos de forma que siempre haya actividad "hoy", "esta semana" y "este año".
+ */
+function generarFechaDemo(): Date {
+    const ahora = new Date();
+    const azar = Math.random();
+
+    // Distribución equilibrada para que todas las vistas tengan datos interesantes
+    if (azar > 0.9) {
+        // 10% son de HOY o AYER (Vista Semanal/Día activa)
+        return new Date(ahora.getTime() - Math.floor(Math.random() * 1.5 * 24 * 60 * 60 * 1000));
+    } else if (azar > 0.7) {
+        // 20% son de este MES (Vista Mensual activa)
+        return new Date(ahora.getTime() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000));
+    } else {
+        // 70% son del resto del AÑO (Vista Anual activa y bien poblada)
+        return new Date(ahora.getTime() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000));
+    }
+}
+
+/**
  * Genera datos de ejemplo para el médico
  */
 function generarMedicoConfig(): MedicoConfig {
     const now = new Date();
     return {
         id: 'default',
-        nombre: 'Dr. Juan Carlos Pérez González',
+        nombre: 'Juan Carlos Pérez González',
         especialidad: 'Medicina General',
         cedula: '1234567',
         telefono: '55-1234-5678',
@@ -42,7 +63,7 @@ function generarPacientes(): Paciente[] {
 
     const getRandomItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) {
         const primerNombre = getRandomItem(nombres);
         const segundoNombre = Math.random() > 0.5 ? getRandomItem(nombres) : '';
         const apellidoPaterno = getRandomItem(apellidos);
@@ -104,17 +125,11 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
     };
 
     pacientes.forEach(paciente => {
-        // Regla: Entre 1 y 5 recetas por paciente
-        const numRecetas = getRandomInt(1, 5);
+        // Regla: Entre 3 y 10 recetas por paciente para una demo robusta
+        const numRecetas = getRandomInt(3, 10);
 
         for (let i = 0; i < numRecetas; i++) {
-            // Fechas entre el 21 y 27 de Diciembre de 2025
-            const dia = getRandomInt(21, 27);
-            const hora = getRandomInt(9, 19);
-            const minuto = getRandomInt(0, 59);
-
-            // Nota: Mes 11 es Diciembre en Javascript
-            const fecha = new Date(2025, 11, dia, hora, minuto);
+            const fecha = generarFechaDemo();
             const dxData = getRandomItem(diagnosticos);
 
             const medicamentos: Medicamento[] = [];
@@ -191,17 +206,16 @@ function generarMovimientosFinancieros(recetas: Receta[]): MovimientoFinanciero[
     const hace7Dias = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     recetas.forEach(receta => {
-        if (receta.fechaEmision >= hace7Dias) {
-            movimientos.push({
-                id: uuidv4(),
-                tipo: 'ingreso',
-                categoria: 'consulta',
-                concepto: `Consulta - ${receta.pacienteNombre}`,
-                monto: costoConsulta,
-                fecha: receta.fechaEmision,
-                createdAt: receta.fechaEmision
-            });
-        }
+        // En Demo generamos movimientos para todas las recetas para poblar las gráficas anuales/mensuales
+        movimientos.push({
+            id: uuidv4(),
+            tipo: 'ingreso',
+            categoria: 'consulta',
+            concepto: `Consulta - ${receta.pacienteNombre}`,
+            monto: costoConsulta,
+            fecha: receta.fechaEmision,
+            createdAt: receta.fechaEmision
+        });
     });
 
     // Agregar algunos gastos operativos de ejemplo
