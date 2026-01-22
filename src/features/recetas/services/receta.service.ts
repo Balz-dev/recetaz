@@ -43,6 +43,15 @@ export const recetaService = {
     },
 
     /**
+     * Obtiene el número total de recetas emitidas para un paciente.
+     * @param pacienteId ID del paciente
+     * @returns Cantidad de recetas
+     */
+    async getCountByPacienteId(pacienteId: string): Promise<number> {
+        return await db.recetas.where('pacienteId').equals(pacienteId).count();
+    },
+
+    /**
      * Obtiene una receta específica por su ID.
      * @param id ID de la receta
      * @returns La receta encontrada o undefined

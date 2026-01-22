@@ -3,6 +3,7 @@ export interface Paciente {
     nombre: string;
     edad?: number;
     fechaNacimiento?: Date;
+    telefono?: string;
     alergias?: string;
     antecedentes?: string;
     peso?: string; // Permitir "70 kg" o solo "70"
@@ -85,6 +86,7 @@ export type PacienteFormData = {
     nombre: string;
     edad?: number;
     fechaNacimiento?: Date;
+    telefono?: string;
     alergias?: string;
     antecedentes?: string;
     peso?: string;

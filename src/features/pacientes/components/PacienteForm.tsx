@@ -37,6 +37,7 @@ const pacienteFormSchema = z.object({
         message: "El nombre es requerido.",
     }),
     edad: z.number().optional(),
+    telefono: z.string().optional(),
     peso: z.string().optional(),
     talla: z.string().optional(),
     alergias: z.string().optional(),
@@ -72,6 +73,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
             nombre: initialData?.nombre || "",
             edad: initialData?.edad,
             fechaNacimiento: initialData?.fechaNacimiento,
+            telefono: initialData?.telefono || "",
             peso: initialData?.peso || "",
             talla: initialData?.talla || "",
             alergias: initialData?.alergias || "",
@@ -227,7 +229,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                     </div>
                 )}
 
-                {/* Campos Dinámicos - Datos Personales */}
+                {/* Datos Personales */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                         control={form.control}
@@ -237,6 +239,20 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                 <FormLabel>Nombre Completo *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Nombre del paciente" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="telefono"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Teléfono / WhatsApp</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Ej: 5512345678" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
