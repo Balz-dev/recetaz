@@ -21,6 +21,8 @@ import {
     SelectValue,
 } from "@/shared/components/ui/select"
 
+import { useRouter } from "next/navigation"
+
 /**
  * Modos de visualización soportados para el directorio de pacientes.
  */
@@ -33,6 +35,7 @@ type ViewMode = 'grid' | 'compact' | 'list';
  * @returns Componente JSX con la interfaz de gestión de pacientes.
  */
 export function PacienteList() {
+    const router = useRouter()
     const [pacientes, setPacientes] = useState<Paciente[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
@@ -41,6 +44,17 @@ export function PacienteList() {
     const [currentPage, setCurrentPage] = useState(1)
     const [pageSize, setPageSize] = useState(9)
     const [recetasCounts, setRecetasCounts] = useState<Record<string, number>>({})
+
+    // Actualizar pageSize automáticamente según el modo de vista
+    useEffect(() => {
+        const modeSizes = {
+            grid: 9,
+            compact: 28,
+            list: 12
+        };
+        setPageSize(modeSizes[viewMode]);
+        setCurrentPage(1);
+    }, [viewMode]);
 
     // Cargar pacientes al montar el componente
     useEffect(() => {
@@ -168,31 +182,9 @@ export function PacienteList() {
                     </div>
                 </div>
 
-                {/* Info de resultados y paginación rápida */}
                 {pacientes.length > 0 && (
                     <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
                         <p>Mostrando {startIndex + 1}-{Math.min(startIndex + pageSize, pacientes.length)} de {pacientes.length} pacientes</p>
-                        <div className="flex items-center gap-4">
-                            <div className="hidden sm:flex items-center gap-2">
-                                <span>Mostrar:</span>
-                                <Select
-                                    value={pageSize.toString()}
-                                    onValueChange={(v) => {
-                                        setPageSize(Number(v))
-                                        setCurrentPage(1)
-                                    }}
-                                >
-                                    <SelectTrigger className="h-7 w-16 text-[10px] bg-transparent border-none">
-                                        <SelectValue placeholder={pageSize.toString()} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="6">6</SelectItem>
-                                        <SelectItem value="9">12</SelectItem>
-                                        <SelectItem value="24">24</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>
@@ -304,7 +296,7 @@ export function PacienteList() {
                                             <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-colors capitalize font-bold">
                                                 {paciente.nombre.charAt(0)}
                                             </div>
-                                            <div className="min-w-0 flex-1 text-left">
+                                            <div className="min-w-0 flex-1">
                                                 <h4 className="font-bold text-sm truncate">{paciente.nombre}</h4>
                                                 <p className="text-[10px] text-slate-500">
                                                     {paciente.edad} años • {recetasCounts[paciente.id] || 0} recetas
@@ -334,7 +326,7 @@ export function PacienteList() {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                         {paginatedPacientes.map((paciente) => (
-                                            <tr key={paciente.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group" onClick={() => (window.location.href = `/pacientes/${paciente.id}`)}>
+                                            <tr key={paciente.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all cursor-pointer group" onClick={() => router.push(`/pacientes/${paciente.id}`)}>
                                                 <td className="px-6 py-4">
                                                     <span className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600">{paciente.nombre}</span>
                                                 </td>
@@ -369,37 +361,70 @@ export function PacienteList() {
 
                     {/* Controles de Paginación */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-2 pt-4">
+                        <div className="flex flex-wrap items-center justify-center gap-3 pt-8 border-t border-slate-100 dark:border-slate-800">
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={prevPage}
                                 disabled={currentPage === 1}
-                                className="rounded-xl h-9 px-3"
+                                className="rounded-xl h-10 px-3 flex items-center gap-2 border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
                             >
-                                <ChevronLeft size={16} className="mr-1" /> Anterior
+                                <ChevronLeft size={16} />
+                                <span className="hidden sm:inline font-medium">Anterior</span>
                             </Button>
-                            <div className="flex items-center gap-1">
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <Button
-                                        key={i}
-                                        variant={currentPage === i + 1 ? 'default' : 'ghost'}
-                                        size="sm"
-                                        className="h-9 w-9 rounded-xl font-bold"
-                                        onClick={() => setCurrentPage(i + 1)}
-                                    >
-                                        {i + 1}
-                                    </Button>
-                                ))}
+
+                            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-2xl overflow-hidden">
+                                {(() => {
+                                    const pages = [];
+                                    const delta = 1; // Páginas a mostrar a cada lado de la actual
+                                    const left = currentPage - delta;
+                                    const right = currentPage + delta;
+
+                                    for (let i = 1; i <= totalPages; i++) {
+                                        if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                                            pages.push(i);
+                                        } else if (i === left - 1 || i === right + 1) {
+                                            pages.push("...");
+                                        }
+                                    }
+
+                                    return pages.map((page, i) => {
+                                        if (page === "...") {
+                                            return (
+                                                <span key={`ellipsis-${i}`} className="px-1 text-slate-400 text-xs font-bold">
+                                                    ...
+                                                </span>
+                                            );
+                                        }
+
+                                        const pageNum = page as number;
+                                        return (
+                                            <Button
+                                                key={pageNum}
+                                                variant={currentPage === pageNum ? 'secondary' : 'ghost'}
+                                                size="sm"
+                                                className={`h-8 min-w-[32px] px-2 rounded-xl font-bold text-xs transition-all ${currentPage === pageNum
+                                                    ? 'shadow-sm bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400'
+                                                    : 'text-slate-500 hover:text-blue-600'
+                                                    }`}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                            >
+                                                {pageNum}
+                                            </Button>
+                                        );
+                                    });
+                                })()}
                             </div>
+
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={nextPage}
                                 disabled={currentPage === totalPages}
-                                className="rounded-xl h-9 px-3"
+                                className="rounded-xl h-10 px-3 flex items-center gap-2 border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
                             >
-                                Siguiente <ChevronRight size={16} className="ml-1" />
+                                <span className="hidden sm:inline font-medium">Siguiente</span>
+                                <ChevronRight size={16} />
                             </Button>
                         </div>
                     )}

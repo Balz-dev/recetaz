@@ -480,31 +480,41 @@ export default function MedicamentosPage() {
                     </Table>
 
                     {/* Controles de Paginación */}
-                    <div className="flex items-center justify-end space-x-2 py-4 px-2 border-t mt-4">
-                        <div className="flex-1 text-sm text-muted-foreground">
-                            Mostrando {Math.min((paginaActual - 1) * itemsPorPagina + 1, totalItems)} - {Math.min(paginaActual * itemsPorPagina, totalItems)} de {totalItems} registros
+                    {totalItems > itemsPorPagina && (
+                        <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <div className="text-xs text-muted-foreground order-2 sm:order-1 w-full sm:w-auto text-center sm:text-left">
+                                Mostrando <span className="font-bold text-slate-900 dark:text-slate-100">{Math.min((paginaActual - 1) * itemsPorPagina + 1, totalItems)}</span> - <span className="font-bold text-slate-900 dark:text-slate-100">{Math.min(paginaActual * itemsPorPagina, totalItems)}</span> de <span className="font-bold text-slate-900 dark:text-slate-100">{totalItems}</span> medicamentos
+                            </div>
+
+                            <div className="flex items-center justify-center gap-3 order-1 sm:order-2 w-full sm:w-auto">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+                                    disabled={paginaActual === 1 || isLoading}
+                                    className="rounded-xl h-10 px-3 flex items-center gap-2 border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
+                                >
+                                    <ChevronLeft size={16} />
+                                    <span className="hidden sm:inline font-medium">Anterior</span>
+                                </Button>
+
+                                <div className="flex items-center justify-center h-10 px-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl font-bold text-xs text-slate-600 dark:text-slate-400">
+                                    Página {paginaActual} de {Math.ceil(totalItems / itemsPorPagina)}
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPaginaActual(prev => prev + 1)}
+                                    disabled={paginaActual * itemsPorPagina >= totalItems || isLoading}
+                                    className="rounded-xl h-10 px-3 flex items-center gap-2 border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
+                                >
+                                    <span className="hidden sm:inline font-medium">Siguiente</span>
+                                    <ChevronRight size={16} />
+                                </Button>
+                            </div>
                         </div>
-                        <div className="space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
-                                disabled={paginaActual === 1 || isLoading}
-                            >
-                                <ChevronLeft className="h-4 w-4 mr-1" />
-                                Anterior
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPaginaActual(prev => prev + 1)}
-                                disabled={paginaActual * itemsPorPagina >= totalItems || isLoading}
-                            >
-                                Siguiente
-                                <ChevronRight className="h-4 w-4 ml-1" />
-                            </Button>
-                        </div>
-                    </div>
+                    )}
                 </CardContent>
             </Card>
 
