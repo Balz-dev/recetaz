@@ -173,9 +173,8 @@ export function Sidebar() {
 
                                     {route.premium && !isCollapsed && (
                                         <div className="flex items-center shrink-0">
-                                            <div className="bg-amber-500/10 text-amber-500 text-[10px] px-1.5 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
-                                                <Lock size={10} />
-                                                <span>PRO</span>
+                                            <div className="bg-blue-500/10 text-blue-400 text-[10px] px-1.5 py-0.5 rounded border border-blue-500/20 flex items-center gap-1">
+                                                <span>FUTURO</span>
                                             </div>
                                         </div>
                                     )}
