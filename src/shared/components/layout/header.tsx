@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/ui/sheet';
 import { Sidebar } from './sidebar';
 import { useState, useEffect } from 'react';
+import { UserProfile } from './UserProfile';
 
 /**
  * Componente Header que aparece en la parte superior.
@@ -34,7 +35,8 @@ export function Header() {
                     <Sidebar />
                 </SheetContent>
             </Sheet>
-            <h1 className="ml-4 font-bold text-lg">Receta-Z</h1>
+            <h1 className="ml-4 font-bold text-lg flex-1">Receta-Z</h1>
+            <UserProfile className="mt-0 pt-0 border-t-0" />
         </header>
     );
 }

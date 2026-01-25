@@ -25,6 +25,7 @@ import {
 import { PremiumModal } from '@/shared/components/modals/PremiumModal';
 import { DemoIndicator } from '@/shared/components/ui/DemoIndicator';
 import { Tooltip } from '@/shared/components/ui/tooltip';
+import { UserProfile } from '@/shared/components/layout/UserProfile';
 
 /**
  * Definición de las rutas de navegación del sidebar.
@@ -224,9 +225,13 @@ export function Sidebar() {
                 </Tooltip>
             </div>
 
-            {/* Indicador de Modo Demo */}
             <div className={cn("transition-all duration-300", isCollapsed ? "opacity-0 h-0 overflow-hidden" : "opacity-100")}>
                 <DemoIndicator />
+            </div>
+
+            {/* Perfil de Usuario */}
+            <div className="p-4 pt-2">
+                <UserProfile isCollapsed={isCollapsed} />
             </div>
 
             {/* Modal Premium */}

@@ -20,7 +20,8 @@ import {
     Lock,
     Smartphone,
     Monitor,
-    Check
+    Check,
+    AlertCircle
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -47,6 +48,7 @@ import {
 import { DraZoylaAvatar } from './DraZoylaAvatar';
 import { Bocadillo } from './Bocadillo';
 import { useMetrics } from '@/shared/hooks/useMetrics';
+import { useAuth } from '@/shared/hooks/useAuth';
 
 interface OnboardingWizardProps {
     /**
@@ -137,6 +139,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         direccion: '',
         logo: undefined,
     });
+
+    // Estado para autenticación
+    const { signUp, loading: authLoading } = useAuth();
+    const [authData, setAuthData] = useState({
+        email: '',
+        password: '',
+    });
+    const [authError, setAuthError] = useState<string | null>(null);
 
     // Responsividad del bocadillo
     // Desktop: 'right' (apunta a la derecha hacia Dra. Zoyla que está en col derecha)
@@ -577,39 +587,101 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 6: // Cuenta (Registro Opcional)
                 return (
                     <div className="space-y-6 animate-in slide-in-from-right duration-500">
-                        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+                        <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                             <CardContent className="p-6 space-y-4">
+                                {authError && (
+                                    <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg flex gap-3 items-start text-xs text-red-800 dark:text-red-300 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                        <p>{authError}</p>
+                                    </div>
+                                )}
+
                                 <div className="space-y-3">
                                     <div className="space-y-1">
-                                        <Label>Correo Electrónico</Label>
-                                        <Input type="email" placeholder="doctor@ejemplo.com" />
+                                        <Label htmlFor="auth-email">Correo Electrónico</Label>
+                                        <Input
+                                            id="auth-email"
+                                            type="email"
+                                            placeholder="doctor@ejemplo.com"
+                                            value={authData.email}
+                                            onChange={e => setAuthData(prev => ({ ...prev, email: e.target.value }))}
+                                            autoComplete="email"
+                                        />
                                     </div>
                                     <div className="space-y-1">
-                                        <Label>Contraseña</Label>
-                                        <Input type="password" placeholder="••••••••" />
+                                        <Label htmlFor="auth-password">Contraseña</Label>
+                                        <Input
+                                            id="auth-password"
+                                            type="password"
+                                            placeholder="••••••••"
+                                            value={authData.password}
+                                            onChange={e => setAuthData(prev => ({ ...prev, password: e.target.value }))}
+                                            autoComplete="new-password"
+                                        />
                                     </div>
                                 </div>
 
-                                <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-lg flex gap-3 items-start text-xs text-blue-800 dark:text-blue-300">
-                                    <Lock size={14} className="mt-0.5 shrink-0" />
-                                    <p>
-                                        Tus pacientes y recetas permanecen <strong>100% locales</strong> en este dispositivo.
-                                        La cuenta solo se usa para autenticar el respaldo en la nube.
-                                    </p>
+                                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl flex gap-3 items-start text-[11px] leading-relaxed text-blue-800 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30">
+                                    <Shield size={16} className="mt-0.5 shrink-0 text-blue-500" />
+                                    <div>
+                                        <p className="font-bold mb-1">Tu privacidad es nuestra prioridad</p>
+                                        <p>
+                                            Tus pacientes y recetas permanecen <strong>100% locales</strong>.
+                                            La cuenta solo se usa para habilitar copias de seguridad y sincronización en la nube.
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <Button className="w-full font-bold" onClick={nextStep}>
-                                    Crear Cuenta Local
+                                <Button
+                                    className="w-full h-12 font-bold transition-all active:scale-[0.98]"
+                                    onClick={async () => {
+                                        if (!authData.email || !authData.password) {
+                                            setAuthError("Por favor, ingresa tu correo y contraseña.");
+                                            return;
+                                        }
+                                        if (authData.password.length < 6) {
+                                            setAuthError("La contraseña debe tener al menos 6 caracteres.");
+                                            return;
+                                        }
+
+                                        setAuthError(null);
+                                        const { error } = await signUp(authData.email, authData.password, {
+                                            nombre: formData.nombre,
+                                            especialidad: formData.especialidad
+                                        });
+
+                                        if (error) {
+                                            setAuthError(error.message);
+                                            track('onboarding_account_failed', { error: error.message });
+                                        } else {
+                                            track('onboarding_account_created', { email: authData.email });
+                                            toast({ title: "¡Cuenta creada!", description: "Has vinculado tu consultorio exitosamente." });
+                                            nextStep();
+                                        }
+                                    }}
+                                    disabled={authLoading}
+                                >
+                                    {authLoading ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>Creando cuenta...</span>
+                                        </div>
+                                    ) : 'Vincular Consultorio a la Nube'}
                                 </Button>
                             </CardContent>
                         </Card>
 
-                        <div className="text-center">
-                            <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={() => {
-                                track('onboarding_account_skipped', {}, 'marketing');
-                                nextStep();
-                            }}>
-                                Saltar este paso
+                        <div className="text-center pt-2">
+                            <Button
+                                variant="ghost"
+                                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
+                                onClick={() => {
+                                    track('onboarding_account_skipped', {}, 'marketing');
+                                    nextStep();
+                                }}
+                                disabled={authLoading}
+                            >
+                                Continuar sin cuenta (Solo Local)
                             </Button>
                         </div>
                     </div>
