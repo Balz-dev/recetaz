@@ -9,6 +9,7 @@ import { finanzasService } from '../services/finanzas.service';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { Save, Loader2, DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import { useMetrics } from '@/shared/hooks/useMetrics';
 
 type Periodo = 'semana' | 'mes' | 'año';
 
@@ -28,6 +29,11 @@ export function PanelGanancias() {
     const [costo, setCosto] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const { track } = useMetrics();
+
+    useEffect(() => {
+        track('earnings_dashboard_viewed', { period: periodo });
+    }, [periodo, track]);
 
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -115,7 +121,7 @@ export function PanelGanancias() {
                             </div>
                         )}
 
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                             <BarChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 25 }}>
                                 <defs>
                                     <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">

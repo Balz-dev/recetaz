@@ -42,6 +42,7 @@ import { medicoService } from "@/features/config-medico/services/medico.service"
 import { db } from "@/shared/db/db.config"
 import { Switch } from "@/shared/components/ui/switch"
 import { Label } from "@/shared/components/ui/label"
+import { useMetrics } from "@/shared/hooks/useMetrics"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -110,13 +111,14 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     const { toast } = useToast()
     const router = useRouter()
+    const { track, trackMarketing } = useMetrics()
 
     const form = useForm<RecetaFormData>({
         resolver: zodResolver(recetaFormSchema),
         defaultValues: {
             pacienteId: preSelectedPacienteId || undefined,
             pacienteNombre: "",
-            pacienteEdad: undefined,
+            pacienteEdad: 0,
             pacienteFechaNacimiento: undefined,
             pacientePeso: "",
             pacienteTalla: "",
@@ -373,6 +375,11 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             const bestMsg = suggestions[0];
             if (bestMsg.usoCount >= 10 || diagnostico.codigo) { // Si hay código oficial, asumimos estándar, o si es muy usado
                 applyTreatment(bestMsg);
+                // Track valor: uso de tratamiento sugerido (Ahorro de tiempo)
+                track('treatment_auto_applied', {
+                    diagnostico: bestMsg.nombreTratamiento,
+                    medCount: bestMsg.medicamentos.length
+                }, 'marketing');
                 toast({
                     title: "Tratamiento sugerido cargado",
                     description: `Se aplicó el protocolo: ${bestMsg.nombreTratamiento}`,
@@ -486,6 +493,12 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
         if (medicamento.indicacionesDefault) {
             form.setValue(`medicamentos.${index}.indicaciones`, medicamento.indicacionesDefault, { shouldValidate: true })
         }
+
+        // Track valor: uso de autocompletado de medicamentos
+        track('autocomplete_used', {
+            medicamento: medicamento.nombre,
+            hasDefaults: !!medicamento.dosisDefault
+        });
 
         setMedicamentoSuggestions([])
         setActiveMedicamentoIndex(null)
@@ -612,6 +625,13 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 description: `Receta guardada correctamente.`,
             })
 
+            // Track hito: Receta creada exitosamente
+            trackMarketing('prescription_created', {
+                medCount: values.medicamentos.length,
+                hasPatient: !!pacienteId,
+                isNewPatient: !values.pacienteId
+            });
+
             if (onSuccess) {
                 onSuccess(recetaId)
             } else {
@@ -666,6 +686,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                     type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'}
                                     placeholder={fieldDef.placeholder}
                                     {...field}
+                                    value={field.value ?? ""}
                                 />
                             )}
                         </FormControl>
@@ -815,6 +836,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                         type="number"
                                                         placeholder="0"
                                                         {...field}
+                                                        value={field.value ?? ""}
                                                         onChange={onAgeChange}
                                                     />
                                                 )}
@@ -830,7 +852,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                         <FormItem className="col-span-6 md:col-span-2">
                                             <FormLabel>Peso</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="kg" {...field} />
+                                                <Input placeholder="kg" {...field} value={field.value ?? ""} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -843,7 +865,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                         <FormItem className="col-span-6 md:col-span-3">
                                             <FormLabel>Talla</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="cm" {...field} />
+                                                <Input placeholder="cm" {...field} value={field.value ?? ""} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -864,6 +886,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                     placeholder="Alergias a medicamentos, alimentos, etc."
                                                     className="resize-none min-h-[80px]"
                                                     {...field}
+                                                    value={field.value ?? ""}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -881,6 +904,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                     placeholder="Enfermedades crónicas, cirugías previas..."
                                                     className="resize-none min-h-[80px]"
                                                     {...field}
+                                                    value={field.value ?? ""}
                                                 />
                                             </FormControl>
                                             <FormMessage />

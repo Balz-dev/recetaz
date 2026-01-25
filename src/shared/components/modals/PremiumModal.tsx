@@ -44,6 +44,7 @@ export function PremiumModal({
                                 src="/dra-zoyla/zoyla-dedo-enfrente.png"
                                 alt="Dra. Zoyla"
                                 fill
+                                sizes="128px"
                                 className="object-cover"
                             />
                         </div>
