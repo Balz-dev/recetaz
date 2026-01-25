@@ -91,6 +91,21 @@ export function useAuth() {
         });
     }, []);
 
+    /**
+     * Inicia sesión con Google.
+     * @returns Promesa con el resultado del inicio de sesión.
+     */
+    const signInWithGoogle = useCallback(async () => {
+        if (!supabase) return { error: new Error('Supabase no está configurado') };
+
+        return await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/dashboard`
+            }
+        });
+    }, []);
+
     return {
         user,
         session,
@@ -98,6 +113,7 @@ export function useAuth() {
         signOut,
         signUp,
         signIn,
+        signInWithGoogle,
         isAuthenticated: !!user
     };
 }

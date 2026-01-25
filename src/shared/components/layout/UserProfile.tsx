@@ -16,6 +16,8 @@ import { useAuth } from '@/shared/hooks/useAuth';
 import { cn } from '@/shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { medicoService } from '@/features/config-medico/services/medico.service';
 
 interface MenuItem {
     icon?: LucideIcon;
@@ -47,6 +49,9 @@ export function UserProfile({ isCollapsed, className }: UserProfileProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
+    // Obtener datos locales de Dexie como fallback
+    const localMedico = useLiveQuery(() => medicoService.get());
+
     // Cerrar el menú al hacer clic fuera
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -62,10 +67,10 @@ export function UserProfile({ isCollapsed, className }: UserProfileProps) {
         };
     }, [isOpen]);
 
-    if (!isAuthenticated) return null;
-
-    const displayName = user?.user_metadata?.nombre || user?.email?.split('@')[0] || 'Médico';
+    const displayName = user?.user_metadata?.nombre || localMedico?.nombre || user?.email?.split('@')[0] || 'Médico';
     const firstLetter = displayName.charAt(0).toUpperCase();
+    const avatarUrl = user?.user_metadata?.avatar_url || localMedico?.logo;
+    const isVerified = isAuthenticated || !!localMedico;
 
     const menuItems: MenuItem[] = [
         { icon: AlertCircle, label: 'Reportar un fallo', color: 'text-amber-500', bg: 'hover:bg-amber-500/10' },
@@ -78,23 +83,23 @@ export function UserProfile({ isCollapsed, className }: UserProfileProps) {
     ];
 
     return (
-        <div className={cn("mt-auto relative", className)} ref={menuRef}>
+        <div className={cn("relative w-full", className)} ref={menuRef}>
             {/* Menú Desplegable (Pop-up) */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         className={cn(
                             "absolute z-[100] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden py-2 w-64",
-                            isCollapsed ? "left-full bottom-0 ml-4" : "left-0 bottom-full mb-3"
+                            isCollapsed ? "left-full top-0 ml-4" : "left-0 top-full mt-2"
                         )}
                     >
                         <div className="px-4 py-2 border-b border-slate-800 mb-2">
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                Centro de Ayuda y Cuenta
+                                Mi Cuenta Profesional
                             </p>
                         </div>
 
@@ -125,49 +130,50 @@ export function UserProfile({ isCollapsed, className }: UserProfileProps) {
                 )}
             </AnimatePresence>
 
-            {/* Trigger Button */}
+            {/* Trigger Button - Estilo Redondeado para el Sidebar Superior */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "flex items-center w-full p-2 rounded-xl transition-all duration-200 outline-none",
-                    "hover:bg-slate-800 group",
+                    "flex items-center w-full p-2 rounded-2xl transition-all duration-200 outline-none",
+                    "hover:bg-slate-800/80 group",
                     isOpen ? "bg-slate-800" : "",
                     isCollapsed ? "justify-center" : "gap-3"
                 )}
             >
-                {/* Avatar */}
+                {/* Avatar Circular */}
                 <div className={cn(
-                    "flex items-center justify-center rounded-lg font-bold text-white shadow-lg shrink-0",
+                    "flex items-center justify-center rounded-full font-bold text-white shadow-lg shrink-0 overflow-hidden ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all",
                     "bg-gradient-to-br from-blue-500 to-cyan-500",
-                    "w-10 h-10 text-base"
+                    isCollapsed ? "w-12 h-12 text-base" : "w-11 h-11 text-base"
                 )}>
-                    {user?.user_metadata?.avatar_url ? (
+                    {avatarUrl ? (
                         <img
-                            src={user.user_metadata.avatar_url}
+                            src={avatarUrl}
                             alt={displayName}
-                            className="w-full h-full object-cover rounded-lg"
+                            className="w-full h-full object-cover"
                         />
                     ) : (
-                        firstLetter
+                        <span className="text-lg">{firstLetter}</span>
                     )}
                 </div>
 
                 {/* Info (Solo si no está colapsado) */}
                 {!isCollapsed && (
                     <div className="flex flex-col items-start overflow-hidden text-left flex-1">
-                        <span className="text-sm font-semibold text-slate-200 truncate w-full">
+                        <span className="text-sm font-bold text-white truncate w-full">
                             {displayName}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                            Médico Verificado
+                        <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                            {isVerified ? 'Verificado' : 'Médico'}
                         </span>
                     </div>
                 )}
 
-                {/* Flecha Indicator */}
+                {/* Indicador sutil */}
                 {!isCollapsed && (
-                    <div className="ml-auto text-slate-500 group-hover:text-slate-300 transition-colors">
-                        {isOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                    <div className="ml-auto text-slate-600 group-hover:text-slate-400 transition-colors">
+                        <ChevronDown size={14} />
                     </div>
                 )}
             </button>

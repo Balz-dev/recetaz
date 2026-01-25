@@ -35,8 +35,7 @@ export function Header() {
                     <Sidebar />
                 </SheetContent>
             </Sheet>
-            <h1 className="ml-4 font-bold text-lg flex-1">Receta-Z</h1>
-            <UserProfile className="mt-0 pt-0 border-t-0" />
+            <h1 className="ml-4 font-bold text-lg flex-1 text-slate-900 dark:text-white">Receta-Z</h1>
         </header>
     );
 }

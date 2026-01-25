@@ -47,7 +47,7 @@ describe('useAuth', () => {
 
         const { result } = renderHook(() => useAuth());
 
-        let response;
+        let response: any;
         await act(async () => {
             response = await result.current.signUp('test@test.com', 'password123');
         });
