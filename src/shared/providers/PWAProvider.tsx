@@ -8,6 +8,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useMetrics } from '@/shared/hooks/useMetrics';
 
 export type InstallGateState = 'FULL' | 'LIMITED' | null;
 
@@ -24,6 +25,7 @@ interface PWAContextType {
 const PWAContext = createContext<PWAContextType | undefined>(undefined);
 
 export function PWAProvider({ children }: { children: React.ReactNode }) {
+    const { track, trackMarketing } = useMetrics();
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isInstalled, setIsInstalled] = useState(false);
     const [gateState, setGateState] = useState<InstallGateState>(null);
@@ -37,23 +39,20 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         // Detectar si ya está instalada
         if (window.matchMedia('(display-mode: standalone)').matches) {
             setIsInstalled(true);
+            track('pwa_already_installed', { mode: 'standalone' }, 'technical');
         }
 
         const handleBeforeInstallPrompt = (e: any) => {
             e.preventDefault();
             setDeferredPrompt(e);
-
-            // Si no está instalada, no mostramos el gate FULL automáticamente
-            // Dejamos que el usuario decida cuándo instalar desde el wizard o menú
-            // if (!window.matchMedia('(display-mode: standalone)').matches) {
-            //     setGateState('FULL');
-            // }
+            trackMarketing('pwa_install_prompt_available');
         };
 
         const handleAppInstalled = () => {
             setIsInstalled(true);
             setDeferredPrompt(null);
             setGateState(null);
+            trackMarketing('pwa_installed_successfully');
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -81,8 +80,10 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         if (outcome === 'accepted') {
             setDeferredPrompt(null);
             setGateState(null);
+            trackMarketing('pwa_install_accepted');
         } else {
             setGateState('LIMITED');
+            trackMarketing('pwa_install_rejected');
         }
     }, [deferredPrompt]);
 

@@ -46,6 +46,7 @@ import {
 } from "@/shared/components/ui/dialog";
 import { DraZoylaAvatar } from './DraZoylaAvatar';
 import { Bocadillo } from './Bocadillo';
+import { useMetrics } from '@/shared/hooks/useMetrics';
 
 interface OnboardingWizardProps {
     /**
@@ -124,6 +125,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const { toast } = useToast();
     const router = useRouter();
     const { installApp, isInstalled, isIOS, hasPrompt } = usePWA();
+    const { track, trackMarketing } = useMetrics();
 
     // Estado del formulario
     const [formData, setFormData] = useState<MedicoConfigFormData>({
@@ -155,6 +157,18 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const [customDesign, setCustomDesign] = useState<string | null>(null);
     const [selectedGalleryTemplate, setSelectedGalleryTemplate] = useState<any>(null);
     const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+    const [stepStartTime, setStepStartTime] = useState<number>(Date.now());
+
+    // Track vista de paso cada vez que cambia el currentStep
+    useEffect(() => {
+        const stepName = STEPS[currentStep].title.toLowerCase().replace(/\s+/g, '_');
+        trackMarketing('onboarding_step_viewed', {
+            step: STEPS[currentStep].title,
+            stepIndex: currentStep,
+            stepName
+        });
+        setStepStartTime(Date.now());
+    }, [currentStep]);
 
     // Cargar datos existentes y especialidades
     useEffect(() => {
@@ -183,16 +197,39 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             }
         };
         init();
+
+        // Track inicio de onboarding
+        trackMarketing('onboarding_started');
     }, []);
 
     const nextStep = () => {
+        const nextIdx = currentStep + 1;
+        const duration = Math.round((Date.now() - stepStartTime) / 1000);
+
+        // Track hito de paso completado con duración
+        track('onboarding_step_completed', {
+            step: STEPS[currentStep].title,
+            stepIndex: currentStep,
+            nextStep: STEPS[nextIdx]?.title || 'Finalizar',
+            durationSeconds: duration
+        }, 'marketing');
+
         if (currentStep + 1 === 1 && isInstalled) {
             setCurrentStep(prev => Math.min(prev + 2, STEPS.length - 1));
             return;
         }
         setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
     };
-    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
+
+    const prevStep = () => {
+        const duration = Math.round((Date.now() - stepStartTime) / 1000);
+        track('onboarding_step_back', {
+            fromStep: STEPS[currentStep].title,
+            fromIndex: currentStep,
+            durationBeforeBack: duration
+        });
+        setCurrentStep(prev => Math.max(prev - 1, 0));
+    };
 
     // Navegación directa por click en header
     const goToStep = (stepIndex: number) => {
@@ -216,8 +253,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64 = reader.result as string;
-            if (type === 'logo') setFormData(prev => ({ ...prev, logo: base64 }));
-            else setCustomDesign(base64);
+            if (type === 'logo') {
+                setFormData(prev => ({ ...prev, logo: base64 }));
+                track('onboarding_logo_uploaded', { size: file.size }, 'user_action');
+            } else {
+                setCustomDesign(base64);
+                track('onboarding_custom_design_uploaded', { size: file.size }, 'user_action');
+            }
         };
         reader.readAsDataURL(file);
     };
@@ -254,6 +296,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             }
 
             toast({ title: "¡Configuración exitosa!", description: "Bienvenido a RecetaZ" });
+
+            // Track éxito total (Conversión)
+            trackMarketing('onboarding_completed', {
+                especialidad: formData.especialidad,
+                hasLogo: !!formData.logo,
+                templateSource: customDesign ? 'upload' : (selectedGalleryTemplate ? 'gallery' : 'none'),
+                goToEditor
+            });
 
             onComplete(
                 goToEditor
@@ -326,7 +376,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                     )}
 
                                     <div className="pt-2 text-center">
-                                        <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={nextStep}>
+                                        <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={() => {
+                                            track('onboarding_installation_skipped', {}, 'marketing');
+                                            nextStep();
+                                        }}>
                                             No por ahora, continuar en navegador
                                         </Button>
                                     </div>
@@ -552,7 +605,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </Card>
 
                         <div className="text-center">
-                            <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={nextStep}>
+                            <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={() => {
+                                track('onboarding_account_skipped', {}, 'marketing');
+                                nextStep();
+                            }}>
                                 Saltar este paso
                             </Button>
                         </div>
