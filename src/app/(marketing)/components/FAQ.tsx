@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Plus, Minus } from "lucide-react"
+import { useMetrics } from "@/shared/hooks/useMetrics"
 
 /**
  * Sección de Preguntas Frecuentes (FAQ).
@@ -35,6 +36,15 @@ export function FAQ() {
   ]
 
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const { trackMarketing } = useMetrics()
+
+  const toggleFaq = (index: number) => {
+    const isOpening = openIndex !== index
+    if (isOpening) {
+      trackMarketing('lp_faq_question_expanded', { question: faqs[index].question })
+    }
+    setOpenIndex(isOpening ? index : null)
+  }
 
   return (
     <section className="py-24 bg-white dark:bg-[#0F172A]" id="faq">
@@ -55,7 +65,7 @@ export function FAQ() {
               className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/50"
             >
               <button
-                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                onClick={() => toggleFaq(i)}
                 className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 aria-expanded={openIndex === i}
               >

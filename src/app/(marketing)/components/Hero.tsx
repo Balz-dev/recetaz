@@ -1,12 +1,16 @@
+"use client";
+
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, CheckCircle } from "lucide-react"
+import { useMetrics } from "@/shared/hooks/useMetrics"
 
 /**
  * Sección Hero de la landing page.
  * Enfocada en atacar el dolor de usar Word para recetas e introducir la solución de RecetaZ.
  */
 export function Hero() {
+  const { trackMarketing } = useMetrics()
   return (
     <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -27,6 +31,7 @@ export function Hero() {
               {/* Botón Secundario - Demo/Sandbox */}
               <Link
                 href="/demo"
+                onClick={() => trackMarketing('lp_demo_requested', { location: 'hero' })}
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-8 py-4 text-lg font-semibold text-slate-700 dark:text-slate-200 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all active:scale-95"
               >
                 Probar Demo Interactiva
@@ -35,6 +40,7 @@ export function Hero() {
               {/* Botón Principal - Dashboard/App Real */}
               <Link
                 href="/dashboard"
+                onClick={() => trackMarketing('lp_hero_cta_clicked')}
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-lg font-bold text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 active:scale-95"
               >
                 Comenzar prueba gratis

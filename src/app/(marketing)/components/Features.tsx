@@ -1,10 +1,14 @@
+"use client";
+
 import { Sparkles, Brain, Lock, FileEdit, TrendingUp, HardDrive } from "lucide-react"
+import { useMetrics } from "@/shared/hooks/useMetrics";
 
 /**
  * Sección de características principales de RecetaZ.
  * Enfocada en los beneficios específicos y dolores que resuelve para médicos.
  */
 export function Features() {
+  const { trackMarketing } = useMetrics();
   const features = [
     {
       icon: <FileEdit className="h-6 w-6 text-blue-600" />,
@@ -66,7 +70,8 @@ export function Features() {
           {features.map((feature, i) => (
             <div
               key={i}
-              className="bg-slate-50/50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-blue-500/20 dark:hover:border-blue-500/30 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group"
+              onClick={() => trackMarketing('lp_feature_card_clicked', { feature: feature.title })}
+              className="bg-slate-50/50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-blue-500/20 dark:hover:border-blue-500/30 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group cursor-pointer"
             >
               <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 w-14 h-14 flex items-center justify-center rounded-2xl group-hover:bg-blue-600 group-hover:scale-110 shadow-sm transition-all duration-300">
                 <div className="group-hover:text-white transition-colors">
