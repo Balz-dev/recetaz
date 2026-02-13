@@ -16,7 +16,7 @@ interface PWAContextType {
     isInstalled: boolean;
     deferredPrompt: any;
     gateState: InstallGateState;
-    installApp: () => Promise<void>;
+    installApp: () => Promise<'accepted' | 'dismissed' | null>;
     dismissGate: () => void;
     isIOS: boolean;
     hasPrompt: boolean;
@@ -37,7 +37,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         setIsIOS(isIOSDevice);
 
         // Detectar si ya está instalada
-        if (window.matchMedia('(display-mode: standalone)').matches) {
+        if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
             setIsInstalled(true);
             track('pwa_already_installed', { mode: 'standalone' }, 'technical');
         }
@@ -46,6 +46,11 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
             e.preventDefault();
             setDeferredPrompt(e);
             trackMarketing('pwa_install_prompt_available');
+
+            // Si no está instalada, activamos el gate de instalación a pantalla completa automáticamente
+            if (!window.matchMedia('(display-mode: standalone)').matches) {
+                setGateState('FULL');
+            }
         };
 
         const handleAppInstalled = () => {
@@ -69,15 +74,19 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
      * 
      * Si el navegador ha capturado un evento `beforeinstallprompt` (Chrome/Android),
      * lo utiliza para mostrar el aviso nativo.
-     * Si el usuario rechaza, se puede optar por mostrar un estado limitado (feedback).
+     * Retorna el 'outcome' del proceso de instalación.
      */
     const installApp = useCallback(async () => {
-        if (!deferredPrompt) return;
+        if (!deferredPrompt) {
+            if (isIOS) setGateState('FULL');
+            return null;
+        }
 
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
 
         if (outcome === 'accepted') {
+            setIsInstalled(true);
             setDeferredPrompt(null);
             setGateState(null);
             trackMarketing('pwa_install_accepted');
@@ -85,7 +94,8 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
             setGateState('LIMITED');
             trackMarketing('pwa_install_rejected');
         }
-    }, [deferredPrompt]);
+        return outcome;
+    }, [deferredPrompt, isIOS, trackMarketing]);
 
     const dismissGate = useCallback(() => {
         setGateState('LIMITED');
@@ -114,7 +124,7 @@ export function usePWA() {
             isInstalled: false,
             deferredPrompt: null,
             gateState: null,
-            installApp: async () => { },
+            installApp: async () => null,
             dismissGate: () => { },
             isIOS: false,
             hasPrompt: false

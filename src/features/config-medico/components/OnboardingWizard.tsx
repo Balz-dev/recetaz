@@ -60,7 +60,6 @@ interface OnboardingWizardProps {
 
 const STEPS = [
     { title: 'Bienvenida', description: 'Inicio', icon: <PlusSquare /> },
-    { title: 'Instalación', description: 'App', icon: <Monitor /> },
     { title: 'Identidad', description: 'Perfil', icon: <User /> },
     { title: 'Logo', description: 'Marca', icon: <ImageIcon /> },
     { title: 'Consultorio', description: 'Ubicación', icon: <MapPin /> },
@@ -78,38 +77,33 @@ const ZOYLA_CONFIG: Record<number, { pose: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 1
         text: "¡Hola! Soy la Dra. Zoyla, tu asistente virtual. Estoy aquí para ayudarte a configurar tu consultorio digital en RecetaZ. ¡Es súper fácil y rápido!",
         direction: 'right'
     },
-    1: { // Instalación
-        pose: 9, // Entusiasmo
-        text: "¿Te gustaría entrar más rápido? Puedo instalar un acceso directo en tu pantalla de inicio. ¡Así estaré siempre a un toque de distancia!",
-        direction: 'right'
-    },
-    2: { // Identidad
+    1: { // Identidad
         pose: 2, // Apunta Izquierda
         text: "Tus pacientes necesitan saber quién los atiende. Escribe tu nombre y especialidad exactamente como quieres que aparezcan impresos en el encabezado de tus recetas.",
         direction: 'right'
     },
-    3: { // Logo
+    2: { // Logo
         pose: 5, // Apunta Derecha Sutil (Invertido apuntará a la izquierda, hacia el form)
         flipped: true,
         text: "¿Tienes un logotipo? ¡Súbelo aquí! Si no, no te preocupes, podemos dejarlo para después. Lo importante es que tu receta hable bien de ti.",
         direction: 'right'
     },
-    4: { // Consultorio
+    3: { // Consultorio
         pose: 6, // Apunta Abajo (o izquierda)
         text: "La dirección y el teléfono son vitales para que tus pacientes te contacten. Estos datos se imprimirán e incluirán automáticamente en todos tus reportes y recetas.",
         direction: 'right'
     },
-    5: { // Diseño
+    4: { // Diseño
         pose: 9, // Entusiasmo
         text: "¡La parte divertida! Elige el diseño de tu receta. Selecciona una de nuestras plantillas profesionales o sube tu propio diseño membretado.",
         direction: 'right'
     },
-    6: { // Cuenta
+    5: { // Cuenta
         pose: 3, // Sutil
         text: "Esto es opcional, pero muy útil. Si creas una cuenta (es gratis), puedo guardar copias de seguridad cifradas en tu Google Drive. ¡Seguridad ante todo!",
         direction: 'right'
     },
-    7: { // Finalizar
+    6: { // Finalizar
         pose: 9, // OK
         text: "¡Increíble! Ya está todo listo. Tu consultorio digital ha quedado perfecto. ¿Empezamos a crear tu primera receta?",
         direction: 'right'
@@ -213,21 +207,12 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     }, []);
 
     const nextStep = () => {
-        const nextIdx = currentStep + 1;
         const duration = Math.round((Date.now() - stepStartTime) / 1000);
-
-        // Track hito de paso completado con duración
-        track('onboarding_step_completed', {
-            step: STEPS[currentStep].title,
-            stepIndex: currentStep,
-            nextStep: STEPS[nextIdx]?.title || 'Finalizar',
-            durationSeconds: duration
-        }, 'marketing');
-
-        if (currentStep + 1 === 1 && isInstalled) {
-            setCurrentStep(prev => Math.min(prev + 2, STEPS.length - 1));
-            return;
-        }
+        track('onboarding_step_next', {
+            fromStep: STEPS[currentStep].title,
+            fromIndex: currentStep,
+            durationOnStep: duration
+        });
         setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
     };
 
@@ -328,6 +313,17 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         }
     };
 
+    const handleGoogleSignIn = async () => {
+        setAuthError(null);
+        const { error } = await signInWithGoogle();
+        if (error) {
+            setAuthError(error.message);
+            track('onboarding_account_failed', { error: error.message, provider: 'google' });
+        } else {
+            track('onboarding_account_started', { provider: 'google' });
+        }
+    };
+
     const renderStepContent = () => {
         switch (currentStep) {
             case 0: // Bienvenida
@@ -339,71 +335,17 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                 <strong>Sus datos son privados:</strong> Toda la información que ingrese se guarda únicamente en su dispositivo. No la enviamos a ningún servidor.
                             </p>
                         </div>
-                        <Button size="lg" className="w-full h-14 text-lg mt-8" onClick={nextStep}>
+                        <Button
+                            size="lg"
+                            className="w-full h-14 text-lg mt-8"
+                            onClick={() => nextStep()}
+                        >
                             Comenzar configuración
                         </Button>
                     </div>
                 );
 
-            case 1: // Instalación PWA
-                return (
-                    <div className="space-y-6 animate-in slide-in-from-right duration-500">
-                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
-                            {isInstalled ? (
-                                <div className="text-center space-y-4">
-                                    <div className="flex items-center justify-center gap-2 text-green-600 font-bold">
-                                        <Check className="w-5 h-5" />
-                                        <span>¡Ya tiene el acceso rápido habilitado!</span>
-                                    </div>
-                                    <div className="flex gap-4 pt-4">
-                                        <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                                        <Button className="flex-1" onClick={nextStep}>Continuar</Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {isIOS ? (
-                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                                            <p className="font-bold mb-2 text-blue-700 dark:text-blue-300">Para iPad/iPhone:</p>
-                                            <ol className="list-decimal list-inside space-y-1">
-                                                <li>Toque el botón <strong>Compartir</strong> del navegador.</li>
-                                                <li>Seleccione <strong>"Agregar a Inicio"</strong>.</li>
-                                            </ol>
-                                        </div>
-                                    ) : hasPrompt ? (
-                                        <Button className="w-full h-14 text-lg font-bold shadow-lg shadow-blue-200 dark:shadow-none animate-pulse" onClick={installApp}>
-                                            Sí, agregar icono
-                                        </Button>
-                                    ) : (
-                                        <div className="text-center space-y-4 relative">
-                                            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 p-4 rounded-lg text-amber-800 dark:text-amber-200 text-sm">
-                                                <p className="font-bold mb-1 flex items-center justify-center gap-2">
-                                                    <Info size={16} />
-                                                    Instalación manual
-                                                </p>
-                                                <p>
-                                                    Busca la opción <strong>"Instalar aplicación"</strong> en el menú del navegador.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-4 pt-4">
-                                        <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                                        <Button variant="ghost" className="flex-1 text-slate-400 hover:text-slate-600" onClick={() => {
-                                            track('onboarding_installation_skipped', {}, 'marketing');
-                                            nextStep();
-                                        }}>
-                                            Omitir por ahora
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-
-            case 2: // Identidad
+            case 1: // Identidad
                 return (
                     <div className="space-y-6">
                         <div className="space-y-4">
@@ -435,14 +377,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>
+                            <Button className="flex-1" onClick={() => nextStep()}>
                                 {(!formData.nombre || !formData.cedula) ? 'Omitir por ahora' : 'Continuar'}
                             </Button>
                         </div>
                     </div>
                 );
 
-            case 3: // Logo
+            case 2: // Logo
                 return (
                     <div className="space-y-6">
                         <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl bg-slate-50 dark:bg-slate-900/50 hover:border-blue-400 transition-colors cursor-pointer" onClick={() => document.getElementById('logo-input')?.click()}>
@@ -464,14 +406,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>
+                            <Button className="flex-1" onClick={() => nextStep()}>
                                 {!formData.logo ? 'Omitir por ahora' : 'Siguiente'}
                             </Button>
                         </div>
                     </div>
                 );
 
-            case 4: // Consultorio
+            case 3: // Consultorio
                 return (
                     <div className="space-y-6">
                         <div className="space-y-4">
@@ -495,14 +437,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>
+                            <Button className="flex-1" onClick={() => nextStep()}>
                                 {!formData.telefono ? 'Omitir por ahora' : 'Siguiente'}
                             </Button>
                         </div>
                     </div>
                 );
 
-            case 5: // Diseño
+            case 4: // Diseño
                 return (
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
@@ -587,14 +529,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>
+                            <Button className="flex-1" onClick={() => nextStep()}>
                                 {!customDesign && !selectedGalleryTemplate ? 'Omitir por ahora' : 'Siguiente'}
                             </Button>
                         </div>
                     </div>
                 );
 
-            case 6: // Cuenta (Registro Opcional)
+            case 5: // Cuenta (Registro Opcional)
                 return (
                     <div className="space-y-6 animate-in slide-in-from-right duration-500">
                         <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -612,119 +554,45 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                     </div>
                                 )}
 
-                                <div className="space-y-3">
-                                    <div className="space-y-1">
-                                        <Label htmlFor="auth-email">Correo Electrónico</Label>
-                                        <Input
-                                            id="auth-email"
-                                            type="email"
-                                            placeholder="doctor@ejemplo.com"
-                                            value={authData.email}
-                                            onChange={e => setAuthData(prev => ({ ...prev, email: e.target.value }))}
-                                            autoComplete="email"
-                                        />
+                                <div className="text-center space-y-2">
+                                    <div className="inline-flex items-center justify-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-full text-blue-600 mb-2">
+                                        <Shield size={32} />
                                     </div>
-                                    <div className="space-y-1">
-                                        <Label htmlFor="auth-password">Contraseña</Label>
-                                        <Input
-                                            id="auth-password"
-                                            type="password"
-                                            placeholder="••••••••"
-                                            value={authData.password}
-                                            onChange={e => setAuthData(prev => ({ ...prev, password: e.target.value }))}
-                                            autoComplete="new-password"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl flex gap-3 items-start text-[11px] leading-relaxed text-blue-800 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30">
-                                    <Shield size={16} className="mt-0.5 shrink-0 text-blue-500" />
-                                    <div>
-                                        <p className="font-bold mb-1">Tu privacidad es nuestra prioridad</p>
-                                        <p>
-                                            Tus pacientes y recetas permanecen <strong>100% locales</strong>.
-                                            La cuenta solo se usa para habilitar copias de seguridad y sincronización en la nube.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <Button
-                                    className="w-full h-12 font-bold transition-all active:scale-[0.98]"
-                                    onClick={async () => {
-                                        if (!authData.email || !authData.password) {
-                                            setAuthError("Por favor, ingresa tu correo y contraseña.");
-                                            return;
-                                        }
-                                        if (authData.password.length < 6) {
-                                            setAuthError("La contraseña debe tener al menos 6 caracteres.");
-                                            return;
-                                        }
-
-                                        setAuthError(null);
-                                        const { error } = await signUp(authData.email, authData.password, {
-                                            nombre: formData.nombre,
-                                            especialidad: formData.especialidad
-                                        });
-
-                                        if (error) {
-                                            setAuthError(error.message);
-                                            track('onboarding_account_failed', { error: error.message });
-                                        } else {
-                                            track('onboarding_account_created', { email: authData.email });
-                                            toast({ title: "¡Cuenta creada!", description: "Has vinculado tu consultorio exitosamente." });
-                                            nextStep();
-                                        }
-                                    }}
-                                    disabled={authLoading}
-                                >
-                                    {authLoading ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            <span>Procesando...</span>
-                                        </div>
-                                    ) : 'Vincular Consultorio a la Nube'}
-                                </Button>
-
-                                <div className="relative my-4">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <span className="w-full border-t border-slate-200 dark:border-slate-800" />
-                                    </div>
-                                    <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="bg-white dark:bg-slate-950 px-2 text-slate-500">O continuar con</span>
-                                    </div>
+                                    <h3 className="text-lg font-bold">Respaldo Automático</h3>
+                                    <p className="text-sm text-slate-500 max-w-[250px] mx-auto leading-relaxed">
+                                        Sincronice sus recetas con Google Drive y nunca pierda sus datos.
+                                    </p>
                                 </div>
 
                                 <Button
                                     variant="outline"
-                                    className="w-full h-12 flex items-center justify-center gap-3 border-slate-200 dark:border-slate-800 transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
-                                    onClick={async () => {
-                                        setAuthError(null);
-                                        const { error } = await signInWithGoogle();
-                                        if (error) {
-                                            setAuthError(error.message);
-                                            track('onboarding_account_failed', { error: error.message, provider: 'google' });
-                                        }
-                                    }}
+                                    size="lg"
+                                    className="w-full h-12 gap-3 border-slate-200 hover:bg-slate-50 dark:border-slate-800 hover:dark:bg-slate-800"
+                                    onClick={handleGoogleSignIn}
                                     disabled={authLoading}
                                 >
-                                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                        <path
-                                            fill="currentColor"
-                                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                        />
-                                        <path
-                                            fill="currentColor"
-                                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                        />
-                                        <path
-                                            fill="currentColor"
-                                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                        />
-                                        <path
-                                            fill="currentColor"
-                                            d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 6.35l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z"
-                                        />
-                                    </svg>
+                                    {authLoading ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
+                                    ) : (
+                                        <svg className="h-5 w-5" viewBox="0 0 24 24">
+                                            <path
+                                                fill="currentColor"
+                                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                            />
+                                            <path
+                                                fill="currentColor"
+                                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                            />
+                                            <path
+                                                fill="currentColor"
+                                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                            />
+                                            <path
+                                                fill="currentColor"
+                                                d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 6.35l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z"
+                                            />
+                                        </svg>
+                                    )}
                                     <span className="font-bold">Google</span>
                                 </Button>
                             </CardContent>
@@ -747,7 +615,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     </div>
                 );
 
-            case 7: // Finalizar
+            case 6: // Finalizar
                 const summary = [
                     { label: 'Identidad Profesional', status: formData.nombre && formData.cedula ? 'Listo' : 'Pendiente' },
                     { label: 'Imagen/Logo', status: formData.logo ? 'Listo' : 'Omitido' },
