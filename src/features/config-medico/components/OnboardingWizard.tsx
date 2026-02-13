@@ -141,7 +141,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     });
 
     // Estado para autenticación
-    const { signUp, signInWithGoogle, loading: authLoading } = useAuth();
+    const { user, signUp, signInWithGoogle, loading: authLoading } = useAuth();
     const [authData, setAuthData] = useState({
         email: '',
         password: '',
@@ -355,7 +355,10 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                         <Check className="w-5 h-5" />
                                         <span>¡Ya tiene el acceso rápido habilitado!</span>
                                     </div>
-                                    <Button className="w-full" onClick={nextStep}>Continuar</Button>
+                                    <div className="flex gap-4 pt-4">
+                                        <Button variant="ghost" onClick={prevStep}>Atrás</Button>
+                                        <Button className="flex-1" onClick={nextStep}>Continuar</Button>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
@@ -385,12 +388,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                                         </div>
                                     )}
 
-                                    <div className="pt-2 text-center">
-                                        <Button variant="ghost" className="text-slate-400 hover:text-slate-600" onClick={() => {
+                                    <div className="flex gap-4 pt-4">
+                                        <Button variant="ghost" onClick={prevStep}>Atrás</Button>
+                                        <Button variant="ghost" className="flex-1 text-slate-400 hover:text-slate-600" onClick={() => {
                                             track('onboarding_installation_skipped', {}, 'marketing');
                                             nextStep();
                                         }}>
-                                            No por ahora, continuar en navegador
+                                            Omitir por ahora
                                         </Button>
                                     </div>
                                 </div>
@@ -431,7 +435,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep} disabled={!formData.nombre || !formData.cedula || !formData.especialidadKey}>Continuar</Button>
+                            <Button className="flex-1" onClick={nextStep}>
+                                {(!formData.nombre || !formData.cedula) ? 'Omitir por ahora' : 'Continuar'}
+                            </Button>
                         </div>
                     </div>
                 );
@@ -458,7 +464,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>Continuar</Button>
+                            <Button className="flex-1" onClick={nextStep}>
+                                {!formData.logo ? 'Omitir por ahora' : 'Siguiente'}
+                            </Button>
                         </div>
                     </div>
                 );
@@ -487,7 +495,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>Continuar</Button>
+                            <Button className="flex-1" onClick={nextStep}>
+                                {!formData.telefono ? 'Omitir por ahora' : 'Siguiente'}
+                            </Button>
                         </div>
                     </div>
                 );
@@ -577,8 +587,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep} disabled={!customDesign && !selectedGalleryTemplate}>
-                                Finalizar configuración
+                            <Button className="flex-1" onClick={nextStep}>
+                                {!customDesign && !selectedGalleryTemplate ? 'Omitir por ahora' : 'Siguiente'}
                             </Button>
                         </div>
                     </div>
@@ -720,38 +730,62 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                             </CardContent>
                         </Card>
 
-                        <div className="text-center pt-2">
+                        <div className="flex gap-4 pt-4">
+                            <Button variant="ghost" onClick={prevStep} disabled={authLoading}>Atrás</Button>
                             <Button
                                 variant="ghost"
-                                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
+                                className="flex-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
                                 onClick={() => {
                                     track('onboarding_account_skipped', {}, 'marketing');
                                     nextStep();
                                 }}
                                 disabled={authLoading}
                             >
-                                Continuar sin cuenta (Solo Local)
+                                Omitir y continuar
                             </Button>
                         </div>
                     </div>
                 );
 
             case 7: // Finalizar
+                const summary = [
+                    { label: 'Identidad Profesional', status: formData.nombre && formData.cedula ? 'Listo' : 'Pendiente' },
+                    { label: 'Imagen/Logo', status: formData.logo ? 'Listo' : 'Omitido' },
+                    { label: 'Datos de Contacto', status: formData.telefono ? 'Listo' : 'Pendiente' },
+                    { label: 'Diseño de Receta', status: customDesign || selectedGalleryTemplate ? 'Listo' : 'Pendiente' },
+                    { label: 'Cuenta en la Nube', status: user ? 'Vinculada' : 'Solo Local' },
+                ];
+
                 return (
-                    <div className="space-y-8 text-center py-6">
-                        <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl text-left space-y-3">
-                            <h4 className="font-bold text-blue-900 dark:text-blue-300">Resumen profesional:</h4>
-                            <div className="text-sm space-y-1 text-blue-800 dark:text-blue-200">
-                                <p><strong>Médico:</strong> {formData.nombre}</p>
-                                <p><strong>Cédula:</strong> {formData.cedula}</p>
-                                <p><strong>Especialidad:</strong> {formData.especialidad}</p>
-                                <p><strong>Formato:</strong> {customDesign ? 'Diseño proporcionado' : (selectedGalleryTemplate?.nombre || 'Predeterminado')}</p>
-                                <p><strong>Siguiente paso:</strong> {goToEditor ? 'Personalizar en el editor' : 'Ir al Dashboard'}</p>
+                    <div className="space-y-6 text-center py-6">
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl text-left border border-slate-100 dark:border-slate-800">
+                            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                                <CheckCircle2 className="text-green-500" size={20} />
+                                Resumen de tu configuración:
+                            </h4>
+                            <div className="space-y-3">
+                                {summary.map((item, idx) => (
+                                    <div key={idx} className="flex justify-between items-center text-sm border-b border-slate-100 dark:border-white/5 pb-2 last:border-0 last:pb-0">
+                                        <span className="text-slate-600 dark:text-slate-400">{item.label}</span>
+                                        <span className={`font-bold ${item.status === 'Listo' || item.status === 'Vinculada' ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                            {item.status}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                                <p className="text-xs text-blue-800 dark:text-blue-300 flex items-start gap-2">
+                                    <Info size={14} className="shrink-0 mt-0.5" />
+                                    <span>Puedes completar o modificar cualquier registro más adelante en la sección de <strong>Configuración</strong> de la aplicación.</span>
+                                </p>
                             </div>
                         </div>
-                        <Button size="lg" className="w-full h-14 text-lg font-bold" onClick={handleSaveAndComplete} disabled={isLoading}>
-                            {isLoading ? 'Guardando...' : goToEditor ? 'Guardar y personalizar diseño' : 'Comenzar a emitir recetas'}
-                        </Button>
+                        <div className="flex gap-4">
+                            <Button variant="ghost" onClick={prevStep}>Atrás</Button>
+                            <Button size="lg" className="flex-1 h-14 text-lg font-bold" onClick={handleSaveAndComplete} disabled={isLoading}>
+                                {isLoading ? 'Guardando...' : 'Finalizar y empezar'}
+                            </Button>
+                        </div>
                     </div>
                 );
             default:
