@@ -16,14 +16,14 @@ export function ProblemSolution() {
         {
             problem: "Repetir datos de medicamentos, diagnósticos y pacientes",
             pain: "Escribir la misma información una y otra vez",
-            solution: "Autocompletado inteligente",
+            solution: "Autocompletado de historial",
             benefit: "Más tiempo a tu consulta, menos al generar la receta"
         },
         {
             problem: "Recordar qué medicamento recetaste",
             pain: "¿Cuál antibiótico usé para gastroenteritis?",
-            solution: "El sistema aprende tus patrones",
-            benefit: "Sugiere tratamientos basados en diagnóstico"
+            solution: "Recuerda datos previos",
+            benefit: "Muestra medicamentos frecuentes"
         },
         {
             problem: "Usar diseños genéricos de otras apps",
@@ -35,7 +35,7 @@ export function ProblemSolution() {
             problem: "Otras apps guardan datos en la nube",
             pain: "Falta de control sobre información sensible",
             solution: "Tú tienes el control: local y encriptado",
-            benefit: "Cumplimiento COFEPRIS garantizado"
+            benefit: "Diseñado conforme a normativas"
         },
         {
             problem: "Sin respaldo de información crítica",

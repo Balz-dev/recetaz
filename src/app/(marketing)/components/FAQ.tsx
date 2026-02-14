@@ -18,8 +18,12 @@ export function FAQ() {
       answer: "Puedes usar nuestras plantillas profesionales y personalizarlas con tu logo y datos."
     },
     {
-      question: "¿Cómo funciona el autocompletado inteligente?",
-      answer: "RecetaZ aprende de tus prescripciones. Si recetas ciprofloxacino para gastroenteritis, la próxima vez que escribas \"gastro...\" te sugerirá el medicamento."
+      question: "¿Cómo funciona el autocompletado?",
+      answer: "RecetaZ recuerda información previamente registrada por ti. Si recetas ciprofloxacino para gastroenteritis, la próxima vez que escribas \"gastro...\" te mostrará el medicamento que usaste antes."
+    },
+    {
+      question: "¿RecetaZ es un sistema de receta electrónica oficial?",
+      answer: "No. RecetaZ no es un sistema de receta electrónica oficial ni genera recomendaciones médicas. Es una herramienta de productividad para imprimir sobre tus formatos físicos."
     },
     {
       question: "¿Mis datos están seguros?",

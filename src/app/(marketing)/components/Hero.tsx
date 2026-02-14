@@ -18,13 +18,13 @@ export function Hero() {
           {/* Columna de Texto */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
-              Deja de perder tiempo formateando recetas en <span className="text-blue-600 dark:text-blue-500">Word/Excel</span>
+              Gestiona tus recetas médicas en segundos, <span className="text-blue-600 dark:text-blue-500">con total control y seguridad</span>
             </h1>
             <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-4 max-w-2xl lg:mx-0 mx-auto leading-relaxed">
-              Diseña tu receta membretada <span className="font-semibold text-slate-700 dark:text-slate-300">una sola vez</span>. RecetaZ la llena automáticamente con un <span className="font-semibold text-blue-600 dark:text-blue-500">sistema inteligente</span>.
+              Diseña tu formato <span className="font-semibold text-slate-700 dark:text-slate-300">una sola vez</span> y reutiliza fácilmente la información que ya registraste. Ahorra tiempo en cada consulta sin comprometer la confidencialidad.
             </p>
             <p className="text-base sm:text-lg text-slate-500 dark:text-slate-400 mb-8 max-w-2xl lg:mx-0 mx-auto">
-              El sistema <span className="font-semibold">aprende de tus diagnósticos más frecuentes</span> y te sugiere pacientes, medicamentos y tratamientos con autocompletado. <span className="font-semibold text-blue-600 dark:text-blue-500">Un solo click</span> y listo.
+              El sistema <span className="font-semibold">recuerda tus diagnósticos más frecuentes</span> y te facilita el autocompletado de pacientes y medicamentos. <span className="font-semibold text-blue-600 dark:text-blue-500">Un solo click</span> y listo.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4 mb-4">

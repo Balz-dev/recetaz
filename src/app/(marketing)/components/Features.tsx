@@ -19,23 +19,23 @@ export function Features() {
     },
     {
       icon: <Brain className="h-6 w-6 text-blue-600" />,
-      title: "Autocompletado Inteligente",
+      title: "Autocompletado de Historial",
       pain: "¿Repetir datos de medicamentos, diagnósticos y pacientes cada vez?",
-      description: "El sistema aprende tus patrones. Escribe 'gastro...' y sugiere el tratamiento que usaste antes. Un click y listo.",
+      description: "Recuerda lo que escribiste anteriormente. Escribe 'gastro...' y muestra lo que usaste antes. Un click y listo.",
       benefit: "Más tiempo a tu consulta, menos al generar la receta"
     },
     {
       icon: <Sparkles className="h-6 w-6 text-blue-600" />,
-      title: "Asociación Diagnóstico-Medicamento",
+      title: "Historial de Diagnósticos",
       pain: "¿Qué recetaste la última vez?",
-      description: "RecetaZ asocia automáticamente diagnósticos con medicamentos. Selecciona 'Cólera' y aparecen los medicamentos que usaste.",
+      description: "RecetaZ permite consultar rápidamente tus diagnósticos y medicamentos previos. Selecciona 'Cólera' y ve lo que usaste.",
       benefit: "Cero errores de memoria"
     },
     {
       icon: <Lock className="h-6 w-6 text-blue-600" />,
-      title: "Privacidad Total (COFEPRIS)",
+      title: "Seguridad y Normativa",
       pain: "¿Preocupado por datos en la nube?",
-      description: "Todo se guarda localmente en tu dispositivo con encriptación AES-256. Tú eres el único con acceso. Cumplimiento garantizado.",
+      description: "Todo se guarda localmente en tu dispositivo con encriptación AES-256. Tú eres el único con acceso. Diseñado conforme a normas.",
       benefit: "Tranquilidad legal"
     },
     {

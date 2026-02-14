@@ -17,7 +17,7 @@ export function HowItWorks() {
       icon: <MousePointer className="h-8 w-8 text-blue-600" />,
       number: "2",
       title: "Llena el formulario en cada consulta",
-      description: "Datos del paciente con autocompletado, diagnóstico con sugerencias inteligentes, medicamentos asociados. El sistema aprende tus patrones.",
+      description: "Datos del paciente con autocompletado, diagnóstico con sugerencias de tu historial, medicamentos asociados. El sistema recuerda tus registros.",
       time: "30 segundos por paciente"
     },
     {

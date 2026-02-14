@@ -13,8 +13,8 @@ export function TrustSection() {
         },
         {
             icon: <Shield className="h-6 w-6 text-blue-600" />,
-            title: "Cumplimiento COFEPRIS",
-            description: "Diseñado siguiendo las normas mexicanas de protección de datos médicos sensibles."
+            title: "Seguridad y Normativa",
+            description: "Diseñado para alinearse a las mejores prácticas de manejo de datos personales."
         },
         {
             icon: <MapPin className="h-6 w-6 text-blue-600" />,
@@ -44,7 +44,7 @@ export function TrustSection() {
                     <div className="inline-block mb-4">
                         <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-full">
                             <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                                🔒 Privacidad y Seguridad Garantizada
+                                🔒 Tus datos bajo tu control
                             </p>
                         </div>
                     </div>

@@ -16,7 +16,7 @@ export function FooterCTA() {
         <section className="py-24 bg-blue-600 dark:bg-blue-700 relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 relative z-10 text-center text-white">
                 <h2 className="text-3xl sm:text-6xl font-extrabold mb-6 tracking-tight">
-                    Únete a los médicos que ya recuperaron horas de su semana
+                    Menos tiempo en administración. Más tiempo para tus pacientes.
                 </h2>
                 <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">
                     Deja de formatear recetas. Enfócate en tus pacientes.

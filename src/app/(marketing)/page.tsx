@@ -17,7 +17,7 @@ import { FooterCTA } from "./components/FooterCTA"
  */
 export const metadata: Metadata = {
   title: "Software para Recetas Médicas en México | RecetaZ",
-  description: "Genera recetas médicas profesionales sin usar Word. Sistema para consultorios en México: historial de pacientes, medicamentos y funcionamiento offline.",
+  description: "Gestiona tus recetas médicas en segundos con total control. Sistema para consultorios en México: historial de pacientes, medicamentos y funcionamiento offline.",
   keywords: [
     "software recetas médicas México",
     "recetas digitales para doctores",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "RecetaZ | El Software de Recetas para Médicos Mexicanos",
-    description: "Olvídate de Word. Crea recetas médicas profesionales, gestiona pacientes y medicamentos en segundos. Funciona sin internet.",
+    description: "Olvídate de Word. Crea recetas médicas profesionales, gestiona pacientes y medicamentos en segundos. Funciona sin internet y con total privacidad.",
     type: "website",
     locale: "es_MX",
     url: "https://recetaz.vercel.app",
@@ -103,7 +103,7 @@ export default function LandingPage() {
         "name": "RecetaZ",
         "applicationCategory": "MedicalApplication",
         "operatingSystem": "Web, Windows, macOS, Android, iOS",
-        "description": "Micro-SaaS para médicos en México que ayuda a generar recetas médicas rápidas y ordenadas, reemplazando el uso de Microsoft Word.",
+        "description": "Herramienta profesional para médicos en México que ayuda a generar recetas médicas rápidas y ordenadas, reutilizando información histórica y reemplazando el uso de Microsoft Word.",
         "offers": {
           "@type": "AggregateOffer",
           "priceCurrency": "MXN",
