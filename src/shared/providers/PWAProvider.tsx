@@ -37,26 +37,51 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         setIsIOS(isIOSDevice);
 
         // Detectar si ya está instalada
-        if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
+        const inStandaloneMode = typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches;
+        if (inStandaloneMode) {
             setIsInstalled(true);
             track('pwa_already_installed', { mode: 'standalone' }, 'technical');
         }
+
+        // Lógica Initial Check (para iOS o si el evento ya pasó)
+        const checkInitialState = () => {
+            const fullDismissed = localStorage.getItem('pwa_full_dismissed') === 'true';
+            const limitedDismissed = localStorage.getItem('pwa_limited_dismissed') === 'true';
+
+            if (inStandaloneMode || limitedDismissed) return;
+
+            // En iOS forzamos el chequeo ya que no hay evento
+            if (isIOSDevice) {
+                setGateState(fullDismissed ? 'LIMITED' : 'FULL');
+            }
+        };
+
+        checkInitialState();
 
         const handleBeforeInstallPrompt = (e: any) => {
             e.preventDefault();
             setDeferredPrompt(e);
             trackMarketing('pwa_install_prompt_available');
 
-            // Si no está instalada, activamos el gate de instalación a pantalla completa automáticamente
-            if (!window.matchMedia('(display-mode: standalone)').matches) {
-                setGateState('FULL');
-            }
+            // LEER DE NUEVO localStorage para asegurar frescura
+            const fullDismissed = localStorage.getItem('pwa_full_dismissed') === 'true';
+            const limitedDismissed = localStorage.getItem('pwa_limited_dismissed') === 'true';
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+            // Si ya está instalada o ya se cerró el banner limitado, no hacer nada
+            if (isStandalone || limitedDismissed) return;
+
+            // Decidir qué mostrar según lo que el usuario haya cerrado antes
+            setGateState(fullDismissed ? 'LIMITED' : 'FULL');
         };
 
         const handleAppInstalled = () => {
             setIsInstalled(true);
             setDeferredPrompt(null);
             setGateState(null);
+            // Limpiar persistencia al instalar
+            localStorage.removeItem('pwa_full_dismissed');
+            localStorage.removeItem('pwa_limited_dismissed');
             trackMarketing('pwa_installed_successfully');
         };
 
@@ -71,10 +96,6 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
 
     /**
      * Inicia el flujo de instalación de la PWA.
-     * 
-     * Si el navegador ha capturado un evento `beforeinstallprompt` (Chrome/Android),
-     * lo utiliza para mostrar el aviso nativo.
-     * Retorna el 'outcome' del proceso de instalación.
      */
     const installApp = useCallback(async () => {
         if (!deferredPrompt) {
@@ -89,8 +110,12 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
             setIsInstalled(true);
             setDeferredPrompt(null);
             setGateState(null);
+            localStorage.removeItem('pwa_full_dismissed');
+            localStorage.removeItem('pwa_limited_dismissed');
             trackMarketing('pwa_install_accepted');
         } else {
+            // Si rechaza el prompt del navegador, lo tratamos como dismissal del FULL gate
+            localStorage.setItem('pwa_full_dismissed', 'true');
             setGateState('LIMITED');
             trackMarketing('pwa_install_rejected');
         }
@@ -98,8 +123,14 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     }, [deferredPrompt, isIOS, trackMarketing]);
 
     const dismissGate = useCallback(() => {
-        setGateState('LIMITED');
-    }, []);
+        if (gateState === 'FULL') {
+            localStorage.setItem('pwa_full_dismissed', 'true');
+            setGateState('LIMITED');
+        } else if (gateState === 'LIMITED') {
+            localStorage.setItem('pwa_limited_dismissed', 'true');
+            setGateState(null);
+        }
+    }, [gateState]);
 
     return (
         <PWAContext.Provider value={{
