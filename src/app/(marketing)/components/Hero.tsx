@@ -18,7 +18,7 @@ export function Hero() {
           {/* Columna de Texto */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
-              Gestiona tus recetas médicas en segundos, <span className="text-blue-600 dark:text-blue-500">con total control y seguridad</span>
+              Deja de perder tiempo formateando recetas en <br /> <span className="text-blue-600 dark:text-blue-500">Word/Excel.</span>
             </h1>
             <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-4 max-w-2xl lg:mx-0 mx-auto leading-relaxed">
               Diseña tu formato <span className="font-semibold text-slate-700 dark:text-slate-300">una sola vez</span> y reutiliza fácilmente la información que ya registraste. Ahorra tiempo en cada consulta sin comprometer la confidencialidad.

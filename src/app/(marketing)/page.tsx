@@ -17,7 +17,7 @@ import { FooterCTA } from "./components/FooterCTA"
  */
 export const metadata: Metadata = {
   title: "Software para Recetas Médicas en México | RecetaZ",
-  description: "Gestiona tus recetas médicas en segundos con total control. Sistema para consultorios en México: historial de pacientes, medicamentos y funcionamiento offline.",
+  description: "Deja de perder tiempo con Word o Excel. Crea recetas médicas profesionales en segundos. Sistema offline para médicos independientes en México.",
   keywords: [
     "software recetas médicas México",
     "recetas digitales para doctores",
