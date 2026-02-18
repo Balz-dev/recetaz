@@ -58,7 +58,7 @@ export function Features() {
     <section className="py-20 bg-white dark:bg-slate-800" id="features">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tighter text-balance">
             Características que <span className="text-blue-600 dark:text-blue-500">optimizan tu consulta</span>
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
