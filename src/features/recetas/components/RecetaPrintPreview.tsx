@@ -180,14 +180,8 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
     }
 
     return (
-        <div className="flex flex-col h-[70vh] gap-4">
-            <div className="flex items-center justify-between border-b pb-4">
-                <div>
-                    <h3 className="text-lg font-semibold">Vista Previa de Impresión</h3>
-                    <p className="text-sm text-slate-500">
-                        {receta.diagnostico} - {paciente.nombre}
-                    </p>
-                </div>
+        <div className="flex flex-col h-[70vh] p-6 pt-0">
+            <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     {plantillaActiva && (
                         <div className="flex items-center space-x-2 mr-2 bg-slate-50 px-3 py-2 rounded-md border">
@@ -225,10 +219,13 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
                 )}
             </div>
 
-            <div className="flex flex-row-reverse justify-end gap-3 pt-2 border-t mt-auto">
-                <Button onClick={handlePrintPDF} disabled={downloadingPDF || regeneratingPDF} className="bg-blue-600 hover:bg-blue-700 rounded-xl">
+            <div className="flex flex-row-reverse items-center justify-start gap-3 pt-2 border-t mt-auto">
+                <Button
+                    onClick={handlePrintPDF} // Assuming handlePrintPDF is the correct function, as handlePrint is not defined in the original code.
+                    className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white"
+                >
                     <Printer className="mr-2 h-4 w-4" />
-                    Imprimir
+                    Imprimir Receta
                 </Button>
                 <Button variant="secondary" onClick={handleDownloadPDF} disabled={downloadingPDF || regeneratingPDF} className="rounded-xl">
                     <Download className="mr-2 h-4 w-4" />

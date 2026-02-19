@@ -1225,8 +1225,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                         </Label>
                     </div>
 
-                    <div className="flex flex-row-reverse justify-end gap-4">
-                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl">
+                    <div className="flex flex-row-reverse items-center justify-start gap-4">
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -31,6 +31,7 @@ import { useToast } from "@/shared/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Loader2, Save } from "lucide-react"
+import { cn } from "@/shared/lib/utils"
 
 const pacienteFormSchema = z.object({
     nombre: z.string().min(2, {
@@ -214,195 +215,187 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
     };
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {!onCancel && (
-                    <div className="flex items-center gap-4 mb-6">
-                        <Link href="/pacientes">
-                            <Button variant="ghost" size="icon" type="button">
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                        </Link>
-                        <h2 className="text-xl font-semibold">
-                            {isEditing ? "Editar Paciente" : "Nuevo Paciente"}
-                        </h2>
+        <div className={cn(!onCancel && "p-6 pt-0")}>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col", onCancel ? "h-[75vh]" : "space-y-6")}>
+                    <div className={cn("flex-1", onCancel && "overflow-y-auto p-6 pt-0 space-y-6")}>
+
+                        {/* Datos Personales */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="nombre"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nombre Completo *</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nombre del paciente" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="telefono"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Teléfono / WhatsApp</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: 5512345678" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid grid-cols-12 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="fechaNacimiento"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-12 md:col-span-8">
+                                            <FormLabel>Fecha Nacimiento</FormLabel>
+                                            <FormControl>
+                                                <DateInput
+                                                    value={field.value}
+                                                    onDateChange={(date) => {
+                                                        field.onChange(date);
+                                                        onDateChange(date);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="edad"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-12 md:col-span-4">
+                                            <FormLabel>Edad</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    {...field}
+                                                    value={field.value ?? ""}
+                                                    onChange={onAgeChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+
+                            <FormField
+                                control={form.control}
+                                name="peso"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Peso (kg)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: 75" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="talla"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Talla (cm/m)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: 1.75" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+
+
+                        {/* Campos Dinámicos - Datos Médicos */}
+                        {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_medicos') && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
+                                <div className="md:col-span-2 font-medium text-slate-700">Información Médica Adicional</div>
+                                {specialtyConfig.patientFields
+                                    .filter((f: any) => f.section === 'datos_medicos')
+                                    .map(renderDynamicField)}
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="alergias"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-red-600 font-medium">Alergias</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Lista de alergias conocidas..."
+                                                className="resize-none border-red-100 focus:border-red-400"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="antecedentes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Antecedentes Médicos</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Enfermedades crónicas, cirugías previas..."
+                                                className="resize-none"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
-                )}
 
-                {/* Datos Personales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="nombre"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Nombre Completo *</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Nombre del paciente" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="telefono"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Teléfono / WhatsApp</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ej: 5512345678" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <div className="grid grid-cols-12 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="fechaNacimiento"
-                            render={({ field }) => (
-                                <FormItem className="col-span-12 md:col-span-8">
-                                    <FormLabel>Fecha Nacimiento</FormLabel>
-                                    <FormControl>
-                                        <DateInput
-                                            value={field.value}
-                                            onDateChange={(date) => {
-                                                field.onChange(date);
-                                                onDateChange(date);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                    <div className={cn("flex flex-row-reverse items-center justify-start gap-4", onCancel && "p-6 border-t bg-background sticky bottom-0 z-10")}>
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Guardar Paciente
+                                </>
                             )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="edad"
-                            render={({ field }) => (
-                                <FormItem className="col-span-12 md:col-span-4">
-                                    <FormLabel>Edad</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            {...field}
-                                            value={field.value ?? ""}
-                                            onChange={onAgeChange}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-
-                    <FormField
-                        control={form.control}
-                        name="peso"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Peso (kg)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ej: 75" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="talla"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Talla (cm/m)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ej: 1.75" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-
-
-                {/* Campos Dinámicos - Datos Médicos */}
-                {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_medicos') && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
-                        <div className="md:col-span-2 font-medium text-slate-700">Información Médica Adicional</div>
-                        {specialtyConfig.patientFields
-                            .filter((f: any) => f.section === 'datos_medicos')
-                            .map(renderDynamicField)}
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="alergias"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-red-600 font-medium">Alergias</FormLabel>
-                                <FormControl>
-                                    <Textarea
-                                        placeholder="Lista de alergias conocidas..."
-                                        className="resize-none border-red-100 focus:border-red-400"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="antecedentes"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Antecedentes Médicos</FormLabel>
-                                <FormControl>
-                                    <Textarea
-                                        placeholder="Enfermedades crónicas, cirugías previas..."
-                                        className="resize-none"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <div className="flex flex-row-reverse justify-end gap-4">
-                    <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all">
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Guardando...
-                            </>
+                        </Button>
+                        {onCancel ? (
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
                         ) : (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Guardar Paciente
-                            </>
+                            <Link href="/pacientes">
+                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
+                            </Link>
                         )}
-                    </Button>
-                    {onCancel ? (
-                        <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
-                    ) : (
-                        <Link href="/pacientes">
-                            <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
-                        </Link>
-                    )}
-                </div>
-            </form>
-        </Form >
+                    </div>
+                </form>
+            </Form>
+        </div>
     )
 }

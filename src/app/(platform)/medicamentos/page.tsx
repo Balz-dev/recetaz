@@ -808,12 +808,12 @@ export default function MedicamentosPage() {
                                     </FormItem>
                                 )}
                             />
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                    Cancelar
+                            <DialogFooter className="flex flex-row-reverse sm:flex-row-reverse justify-start sm:justify-start gap-2">
+                                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
+                                    Guardar Medicamento
                                 </Button>
-                                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-xl">
-                                    {medicamentoEditando ? 'Actualizar' : 'Crear'}
+                                <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-slate-500 hover:bg-slate-100">
+                                    Cancelar
                                 </Button>
                             </DialogFooter>
                         </form>
