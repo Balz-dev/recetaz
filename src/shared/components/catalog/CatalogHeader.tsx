@@ -16,10 +16,10 @@ interface CatalogHeaderProps {
     title: string
     /** Descripción de la página */
     description: string
-    /** Texto del botón principal */
-    buttonText: string
-    /** Callback al hacer clic en el botón */
-    onButtonClick: () => void
+    /** Texto del botón principal (opcional) */
+    buttonText?: string
+    /** Callback al hacer clic en el botón (opcional) */
+    onButtonClick?: () => void
     /** Icono del botón (opcional) */
     ButtonIcon?: LucideIcon
 }
@@ -47,10 +47,12 @@ export function CatalogHeader({
                     {description}
                 </p>
             </div>
-            <Button onClick={onButtonClick} className="gap-2">
-                {ButtonIcon && <ButtonIcon className="h-4 w-4" />}
-                {buttonText}
-            </Button>
+            {buttonText && onButtonClick && (
+                <Button onClick={onButtonClick} className="gap-2 rounded-xl bg-blue-600 hover:bg-blue-700">
+                    {ButtonIcon && <ButtonIcon className="h-4 w-4" />}
+                    {buttonText}
+                </Button>
+            )}
         </div>
     )
 }

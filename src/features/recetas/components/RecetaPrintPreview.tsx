@@ -85,7 +85,7 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
     const handleImprimirFondoChange = async (imprimirFondoValue: boolean) => {
         // Actualizamos estado local inmediatamente
         setImprimirFondo(imprimirFondoValue);
-        
+
         // Limpiamos el URL actual para forzar regeneración en el efecto
         if (pdfUrl) {
             URL.revokeObjectURL(pdfUrl);
@@ -225,17 +225,17 @@ export function RecetaPrintPreview({ recetaId, onClose }: RecetaPrintPreviewProp
                 )}
             </div>
 
-            <div className="flex justify-end gap-3 pt-2 border-t mt-auto">
-                <Button variant="outline" onClick={onClose}>
-                    Cerrar y Finalizar
+            <div className="flex flex-row-reverse justify-end gap-3 pt-2 border-t mt-auto">
+                <Button onClick={handlePrintPDF} disabled={downloadingPDF || regeneratingPDF} className="bg-blue-600 hover:bg-blue-700 rounded-xl">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Imprimir
                 </Button>
-                <Button variant="secondary" onClick={handleDownloadPDF} disabled={downloadingPDF || regeneratingPDF}>
+                <Button variant="secondary" onClick={handleDownloadPDF} disabled={downloadingPDF || regeneratingPDF} className="rounded-xl">
                     <Download className="mr-2 h-4 w-4" />
                     Descargar
                 </Button>
-                <Button onClick={handlePrintPDF} disabled={downloadingPDF || regeneratingPDF}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Imprimir
+                <Button variant="ghost" onClick={onClose} className="text-slate-500 hover:bg-slate-100">
+                    Cerrar y Finalizar
                 </Button>
             </div>
         </div>

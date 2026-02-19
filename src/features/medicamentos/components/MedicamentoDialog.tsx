@@ -177,11 +177,11 @@ export function MedicamentoDialog({
                                 )}
                             />
                         </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        <DialogFooter className="flex flex-row-reverse justify-end gap-2">
+                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-xl">Guardar Medicamento</Button>
+                            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-slate-500 hover:bg-slate-100">
                                 Cancelar
                             </Button>
-                            <Button type="submit">Guardar</Button>
                         </DialogFooter>
                     </form>
                 </Form>

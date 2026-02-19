@@ -46,11 +46,12 @@ const medicoFormSchema = z.object({
 
 interface MedicoConfigFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     hideSubmitButton?: boolean;
     onLoadingChange?: (loading: boolean) => void;
 }
 
-export function MedicoConfigForm({ onSuccess, hideSubmitButton = false, onLoadingChange }: MedicoConfigFormProps) {
+export function MedicoConfigForm({ onSuccess, onCancel, hideSubmitButton = false, onLoadingChange }: MedicoConfigFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [logoBase64, setLogoBase64] = useState<string | undefined>(undefined)
@@ -337,19 +338,26 @@ export function MedicoConfigForm({ onSuccess, hideSubmitButton = false, onLoadin
                 />
 
                 {!hideSubmitButton && (
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Guardando...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Guardar Configuración
-                            </>
+                    <div className="flex flex-row-reverse justify-end gap-4 pt-4 border-t">
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl">
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Guardar Configuración
+                                </>
+                            )}
+                        </Button>
+                        {onCancel && (
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">
+                                Cancelar
+                            </Button>
                         )}
-                    </Button>
+                    </div>
                 )}
             </form>
         </Form>

@@ -380,15 +380,8 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                     />
                 </div>
 
-                <div className="flex justify-end gap-4">
-                    {onCancel ? (
-                        <Button variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
-                    ) : (
-                        <Link href="/pacientes">
-                            <Button variant="outline" type="button">Cancelar</Button>
-                        </Link>
-                    )}
-                    <Button type="submit" disabled={isLoading}>
+                <div className="flex flex-row-reverse justify-end gap-4">
+                    <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all">
                         {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -401,6 +394,13 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                             </>
                         )}
                     </Button>
+                    {onCancel ? (
+                        <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
+                    ) : (
+                        <Link href="/pacientes">
+                            <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
+                        </Link>
+                    )}
                 </div>
             </form>
         </Form >

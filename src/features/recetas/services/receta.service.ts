@@ -121,15 +121,22 @@ export const recetaService = {
     /**
      * Busca recetas por número de folio o nombre del paciente.
      * @param query Texto a buscar
+     * @param pacienteId ID opcional del paciente para filtrar la búsqueda
      * @returns Lista de recetas coincidentes
      */
-    async search(query: string): Promise<Receta[]> {
+    async search(query: string, pacienteId?: string): Promise<Receta[]> {
         const lowerQuery = query.toLowerCase();
         return await db.recetas
-            .filter(r =>
-                r.numeroReceta.includes(query) ||
-                r.pacienteNombre.toLowerCase().includes(lowerQuery)
-            )
+            .filter(r => {
+                const matchesQuery = r.numeroReceta.includes(query) ||
+                    r.pacienteNombre.toLowerCase().includes(lowerQuery);
+
+                if (pacienteId) {
+                    return matchesQuery && r.pacienteId === pacienteId;
+                }
+
+                return matchesQuery;
+            })
             .reverse()
             .sortBy('fechaEmision');
     }

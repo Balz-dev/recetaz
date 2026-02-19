@@ -182,11 +182,11 @@ export function TratamientoForm({ diagnosticoId, onSave, onCancel }: Tratamiento
                 />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-                <Button variant="ghost" onClick={onCancel}>Cancelar</Button>
-                <Button onClick={handleSave} disabled={!nombreTratamiento || medicamentos.length === 0}>
+            <div className="flex flex-row-reverse justify-end gap-2 pt-2">
+                <Button onClick={handleSave} disabled={!nombreTratamiento || medicamentos.length === 0} className="bg-blue-600 hover:bg-blue-700 rounded-xl">
                     Guardar Tratamiento
                 </Button>
+                <Button variant="ghost" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
             </div>
         </div>
     )

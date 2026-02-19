@@ -47,9 +47,11 @@ type ViewMode = 'grid' | 'compact' | 'list';
  * Componente para listar y gestionar el historial de recetas médicas.
  * Implementa filtrado, paginación y múltiples modos de visualización.
  * 
+ * @param props - Propiedades del componente
+ * @param props.pacienteId - ID opcional del paciente para filtrar el historial
  * @returns Componente JSX con el listado de recetas.
  */
-export function RecetaList() {
+export function RecetaList({ pacienteId }: { pacienteId?: string }) {
     const [recetas, setRecetas] = useState<Receta[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
@@ -57,6 +59,7 @@ export function RecetaList() {
     const [viewMode, setViewMode] = useState<ViewMode>('grid')
     const [currentPage, setCurrentPage] = useState(1)
     const [pageSize, setPageSize] = useState(9)
+
 
     // Actualizar pageSize automáticamente según el modo de vista
     useEffect(() => {
@@ -87,7 +90,7 @@ export function RecetaList() {
             if (searchTerm.trim() === "") {
                 await loadData()
             } else {
-                const results = await recetaService.search(searchTerm)
+                const results = await recetaService.search(searchTerm, pacienteId)
                 setRecetas(results)
                 setCurrentPage(1)
             }
@@ -97,7 +100,7 @@ export function RecetaList() {
         }, 300)
         return () => clearTimeout(timeoutId)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm])
+    }, [searchTerm, pacienteId])
 
     /**
      * Carga todas las recetas desde el servicio.
@@ -105,7 +108,9 @@ export function RecetaList() {
     const loadData = async () => {
         setLoading(true)
         try {
-            const data = await recetaService.getAll()
+            const data = pacienteId
+                ? await recetaService.getByPacienteId(pacienteId)
+                : await recetaService.getAll()
             setRecetas(data)
             setCurrentPage(1)
         } catch (error) {
@@ -150,10 +155,10 @@ export function RecetaList() {
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                     <div className="relative w-full md:w-96 group">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
                         <Input
                             placeholder="Buscar por folio, paciente o diagnóstico..."
-                            className="pl-10 h-10 rounded-xl shadow-sm border-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                            className="pl-10 h-10 rounded-xl shadow-sm border-slate-200 focus:ring-2 focus:ring-blue-500/20"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -192,7 +197,7 @@ export function RecetaList() {
                         </div>
 
                         <Button
-                            className="flex-1 md:flex-none gap-2 bg-indigo-600 hover:bg-indigo-700 h-10 rounded-xl px-4"
+                            className="flex-1 md:flex-none gap-2 bg-blue-600 hover:bg-blue-700 h-10 rounded-xl px-4"
                             onClick={() => setIsDialogOpen(true)}
                         >
                             <PlusCircle size={18} />
@@ -213,12 +218,13 @@ export function RecetaList() {
                 open={isDialogOpen}
                 onOpenChange={handleOpenChange}
                 onSuccess={handleSuccess}
+                preSelectedPacienteId={pacienteId}
             />
 
             {/* Contenedor de Recetas */}
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <div className="h-10 w-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-sm font-medium animate-pulse">Consultando historial...</p>
                 </div>
             ) : recetas.length === 0 ? (
@@ -245,14 +251,14 @@ export function RecetaList() {
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {paginatedRecetas.map((receta) => (
                                 <Link key={receta.id} href={`/recetas/${receta.id}`}>
-                                    <Card className="group relative overflow-hidden hover:border-indigo-500/50 hover:shadow-md transition-all h-full rounded-2xl border-slate-200 dark:border-slate-800">
+                                    <Card className="group relative overflow-hidden hover:border-blue-500/50 hover:shadow-md transition-all h-full rounded-2xl border-slate-200 dark:border-slate-800">
                                         <CardHeader className="flex flex-row items-center justify-between pb-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                                                <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
                                                     <Hash className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <CardTitle className="text-base font-bold group-hover:text-indigo-600 transition-colors">
+                                                    <CardTitle className="text-base font-bold group-hover:text-blue-600 transition-colors">
                                                         Folio: {receta.numeroReceta}
                                                     </CardTitle>
                                                     <p className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -261,7 +267,7 @@ export function RecetaList() {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <Badge variant="outline" className="text-[10px] bg-slate-50 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                            <Badge variant="outline" className="text-[10px] bg-slate-50 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
                                                 ID: {receta.id.substring(0, 4)}
                                             </Badge>
                                         </CardHeader>
@@ -284,8 +290,8 @@ export function RecetaList() {
                                                     <span className="font-semibold">{receta.medicamentos.length} Medicamentos</span>
                                                 </div>
                                                 <div className="flex items-center gap-1 ml-auto group-hover:translate-x-1 transition-transform">
-                                                    <span className="text-[10px] uppercase font-bold text-indigo-500">Ver Receta</span>
-                                                    <ArrowRight className="h-3 w-3 text-indigo-500" />
+                                                    <span className="text-[10px] uppercase font-bold text-blue-500">Ver Receta</span>
+                                                    <ArrowRight className="h-3 w-3 text-blue-500" />
                                                 </div>
                                             </div>
                                         </CardContent>
@@ -300,9 +306,9 @@ export function RecetaList() {
                         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                             {paginatedRecetas.map((receta) => (
                                 <Link key={receta.id} href={`/recetas/${receta.id}`}>
-                                    <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-indigo-300 transition-colors shadow-sm group">
+                                    <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-blue-300 transition-colors shadow-sm group">
                                         <div className="flex items-center gap-4 text-left">
-                                            <div className="h-10 w-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                            <div className="h-10 w-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                                 <FileText size={20} />
                                             </div>
                                             <div className="min-w-0 flex-1">
@@ -340,10 +346,10 @@ export function RecetaList() {
                                         {paginatedRecetas.map((receta) => (
                                             <tr key={receta.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group" onClick={() => (router.push(`/recetas/${receta.id}`))}>
                                                 <td className="px-6 py-4">
-                                                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-none">#{receta.numeroReceta}</Badge>
+                                                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">#{receta.numeroReceta}</Badge>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600">{receta.pacienteNombre}</span>
+                                                    <span className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600">{receta.pacienteNombre}</span>
                                                 </td>
                                                 <td className="px-6 py-4 max-w-[200px] truncate italic text-slate-500">
                                                     {receta.diagnostico}
@@ -409,8 +415,8 @@ export function RecetaList() {
                                                 variant={currentPage === pageNum ? 'secondary' : 'ghost'}
                                                 size="sm"
                                                 className={`h-8 min-w-[32px] px-2 rounded-xl font-bold text-xs transition-all ${currentPage === pageNum
-                                                    ? 'shadow-sm bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400'
-                                                    : 'text-slate-500 hover:text-indigo-600'
+                                                    ? 'shadow-sm bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400'
+                                                    : 'text-slate-500 hover:text-blue-600'
                                                     }`}
                                                 onClick={() => setCurrentPage(pageNum)}
                                             >

@@ -59,7 +59,7 @@ export function ConfiguracionContent({ onConfigSaved }: ConfiguracionContentProp
                     form="medico-config-form"
                     disabled={isSaving}
                     size="lg"
-                    className="min-w-[240px] shadow-lg shadow-blue-500/20"
+                    className="min-w-[240px] bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-500/20"
                 >
                     {isSaving ? (
                         <>

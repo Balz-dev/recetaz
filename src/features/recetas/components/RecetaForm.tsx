@@ -1225,8 +1225,8 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                         </Label>
                     </div>
 
-                    <div className="flex gap-4">
-                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 order-1 md:order-none">
+                    <div className="flex flex-row-reverse justify-end gap-4">
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl">
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1235,16 +1235,16 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                    Guardar/Imprimir Receta
+                                    Guardar Receta
                                 </>
                             )}
                         </Button>
 
                         {onCancel ? (
-                            <Button variant="outline" type="button" onClick={onCancel} className="order-2 md:order-none">Cancelar</Button>
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
                         ) : (
                             <Link href="/recetas">
-                                <Button variant="outline" type="button" className="order-2 md:order-none">Cancelar</Button>
+                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
                             </Link>
                         )}
                     </div>
