@@ -5,6 +5,7 @@ import { ComparisonSection } from "./components/ComparisonSection"
 import { HowItWorks } from "./components/HowItWorks"
 import { Features } from "./components/Features"
 import { TrustSection } from "./components/TrustSection"
+import { Testimonials } from "./components/Testimonials"
 import { Pricing } from "./components/Pricing"
 import { Philosophy } from "./components/Philosophy"
 import { Confidence } from "./components/Confidence"
@@ -175,6 +176,7 @@ export default function LandingPage() {
       <Features />
       <HowItWorks />
       <TrustSection />
+      <Testimonials />
       <Pricing />
       <Confidence />
       <FAQ />
