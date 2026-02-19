@@ -101,8 +101,8 @@ export default function MarketingLayout({
                     <div>
                       <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Legal</h3>
                       <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                        <li><Link href="#" className="hover:text-blue-600 transition-colors">Privacidad</Link></li>
-                        <li><Link href="#" className="hover:text-blue-600 transition-colors">Términos</Link></li>
+                        <li><Link href="/privacidad" className="hover:text-blue-600 transition-colors">Privacidad</Link></li>
+                        <li><Link href="/terminos" className="hover:text-blue-600 transition-colors">Términos</Link></li>
                       </ul>
                     </div>
                   </div>
