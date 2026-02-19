@@ -23,7 +23,6 @@ import {
     Menu
 } from 'lucide-react';
 import { PremiumModal } from '@/shared/components/modals/PremiumModal';
-import { DemoIndicator } from '@/shared/components/ui/DemoIndicator';
 import { Tooltip } from '@/shared/components/ui/tooltip';
 import { UserProfile } from '@/shared/components/layout/UserProfile';
 
@@ -217,9 +216,6 @@ export function Sidebar() {
                 </div>
             </div>
 
-            <div className={cn("px-4 transition-all duration-300", isCollapsed ? "opacity-0 h-0 overflow-hidden" : "opacity-100")}>
-                <DemoIndicator />
-            </div>
 
             {/* Logo al final con separación del bottom */}
             <div className="mt-8 mb-12 p-4 flex justify-center items-center">
