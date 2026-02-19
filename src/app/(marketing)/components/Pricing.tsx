@@ -15,7 +15,7 @@ export function Pricing() {
     {
       name: "Plan Básico",
       price: "$149",
-      yearlyPrice: "$1,490",
+      yearlyPrice: "$1,341",
       period: "/ mes",
       yearlyPeriod: "/ año",
       description: "Ideal para médicos que quieren dejar de usar Word en sus recetas.",
@@ -34,7 +34,7 @@ export function Pricing() {
     {
       name: "Plan PRO",
       price: "$299",
-      yearlyPrice: "$2,990",
+      yearlyPrice: "$2,691",
       period: "/ mes",
       yearlyPeriod: "/ año",
       description: "Para médicos que buscan máxima seguridad y funciones avanzadas.",
@@ -96,7 +96,7 @@ export function Pricing() {
                   </span>
                 </div>
                 <div className="mt-2 text-sm text-blue-600 font-semibold">
-                  {plan.yearlyPrice} MXN{plan.yearlyPeriod} (2 meses gratis)
+                  {plan.yearlyPrice} MXN{plan.yearlyPeriod} (3 meses gratis)
                 </div>
               </div>
 
