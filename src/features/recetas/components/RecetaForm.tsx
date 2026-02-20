@@ -1234,7 +1234,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                     </Card>
                 </div>
 
-                <div className={cn("mt-8 pb-10", onCancel ? "p-6 pt-4 bg-white border-t border-slate-100 mt-0 pb-0" : "flex flex-col md:flex-row justify-end items-center gap-6")}>
+                <div className={cn("mt-8 pb-10", onCancel ? "p-6 pt-4 bg-white border-t border-slate-100 mt-0" : "flex flex-col md:flex-row justify-end items-center gap-6")}>
                     <div className={cn("flex items-center space-x-2", onCancel ? "hidden" : "")}>
                         <Switch
                             id="save-diagnosis"
