@@ -188,6 +188,11 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                         // Fallback: configuración mínima para permitir funcionamiento
                         setSpecialtyConfig({ specialtyName: 'General', prescriptionFields: [], patientFields: [] });
                     }
+
+                    // Detectar pediatría
+                    if (config.especialidadKey === 'pediatria' || config.especialidad?.toLowerCase().includes('pediatra')) {
+                        setIsPediatric(true);
+                    }
                 } else {
                     try {
                         const generalConfig = await db.especialidades.get('general');
