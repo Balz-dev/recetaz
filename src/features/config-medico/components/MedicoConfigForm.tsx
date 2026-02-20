@@ -47,10 +47,12 @@ const medicoConfigSchema = z.object({
 interface MedicoConfigFormProps {
     initialData?: MedicoConfig | null
     onCancel?: () => void
+    onSuccess?: () => void
+    onLoadingChange?: (loading: boolean) => void
     hideSubmitButton?: boolean
 }
 
-export function MedicoConfigForm({ initialData, onCancel, hideSubmitButton = false }: MedicoConfigFormProps) {
+export function MedicoConfigForm({ initialData, onCancel, onSuccess, onLoadingChange, hideSubmitButton = false }: MedicoConfigFormProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(initialData?.logo || null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -108,12 +110,14 @@ export function MedicoConfigForm({ initialData, onCancel, hideSubmitButton = fal
 
     const onSubmit = async (values: z.infer<typeof medicoConfigSchema>) => {
         setIsLoading(true)
+        onLoadingChange?.(true)
         try {
             await medicoService.save(values)
             toast({
                 title: "Configuración guardada",
                 description: "Tus datos se han actualizado correctamente.",
             })
+            onSuccess?.()
         } catch (error) {
             toast({
                 title: "Error",
@@ -122,6 +126,7 @@ export function MedicoConfigForm({ initialData, onCancel, hideSubmitButton = fal
             })
         } finally {
             setIsLoading(false)
+            onLoadingChange?.(false)
         }
     }
 

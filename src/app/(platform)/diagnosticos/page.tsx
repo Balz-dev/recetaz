@@ -438,8 +438,8 @@ export default function DiagnosticosPage() {
             <DiagnosticoDialog
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
-                onSubmit={handleSubmit}
                 diagnostico={selectedDiagnostico}
+                onSubmit={handleSubmit}
             />
 
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

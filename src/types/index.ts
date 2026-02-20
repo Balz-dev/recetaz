@@ -26,6 +26,8 @@ export interface MedicoConfig {
     institucion_gral?: string;
     correo?: string;
     logo?: string; // Base64 string de imagen del logo institucional
+    /** Preferencia del médico para guardar diagnósticos y medicamentos al registrar recetas */
+    recordarDiagnostico?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -258,6 +260,7 @@ export interface DiagnosticoCatalogo {
     especialidad?: string[]; // Especialidades relacionadas
     palabrasClave?: string[]; // Tokens normalizados para búsqueda
     vecesUsado?: number;  // Contador de veces que se ha usado en recetas
+    medicamentosSugeridos?: Partial<Medicamento>[]; // Medicamentos que el médico suele recetar para este diagnóstico
 }
 
 /**

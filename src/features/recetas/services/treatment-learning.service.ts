@@ -89,9 +89,13 @@ export const treatmentLearningService = {
                     nombre: m.nombre,
                     nombreGenerico: m.nombreGenerico,
                     presentacion: m.presentacion,
+                    formaFarmaceutica: m.formaFarmaceutica,
+                    concentracion: m.concentracion,
                     dosis: m.dosis,
                     frecuencia: m.frecuencia,
                     duracion: m.duracion,
+                    viaAdministracion: m.viaAdministracion,
+                    cantidadSurtir: m.cantidadSurtir,
                     indicaciones: m.indicaciones
                 })),
                 instrucciones,

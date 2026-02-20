@@ -19,10 +19,8 @@ import {
     obtenerMedicamentos,
     eliminarMedicamento,
     obtenerEstadisticasMedicamentos,
-    agregarMedicamento,
-    actualizarMedicamento
 } from '@/shared/services/medicamentos.service'
-import { MedicamentoCatalogo, MedicamentoCatalogoFormData } from '@/types'
+import { MedicamentoCatalogo } from '@/types'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import {
@@ -41,14 +39,6 @@ import {
     SelectValue,
 } from '@/shared/components/ui/select'
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/shared/components/ui/dialog'
-import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -58,47 +48,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/shared/components/ui/form'
-import { Input } from '@/shared/components/ui/input'
 import { useToast } from '@/shared/components/ui/use-toast'
 import { Badge } from '@/shared/components/ui/badge'
-import { Plus, Package, ChevronLeft, ChevronRight, LayoutGrid, List, Layers, ArrowRight, Search, Pill, Activity, Calendar, Stethoscope, Hash, Clock, Pencil, Trash2 } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Skeleton } from '../../../shared/components/ui/skeleton'
+import { Plus, Package, ChevronLeft, ChevronRight, LayoutGrid, List, Layers, Pill, Activity, Pencil, Trash2 } from 'lucide-react'
 import { CatalogHeader } from '@/shared/components/catalog/CatalogHeader'
 import { StatsCards } from '@/shared/components/catalog/StatsCards'
 import { CatalogFilters } from '@/shared/components/catalog/CatalogFilters'
 import { TableActions } from '@/shared/components/catalog/TableActions'
-
-/**
- * Schema de validación para formulario de medicamentos
- */
-const medicamentoFormSchema = z.object({
-    nombre: z.string().min(1, 'El nombre es requerido'),
-    nombreGenerico: z.string().optional(),
-    concentracion: z.string().optional(),
-    formaFarmaceutica: z.string().optional(),
-    presentacion: z.string().optional(),
-    categoria: z.string().optional(),
-    laboratorio: z.string().optional(),
-    cantidadSurtirDefault: z.string().optional(),
-    dosisDefault: z.string().optional(),
-    viaAdministracionDefault: z.string().optional(),
-    frecuenciaDefault: z.string().optional(),
-    duracionDefault: z.string().optional(),
-    indicacionesDefault: z.string().optional(),
-    esPersonalizado: z.boolean(),
-    sincronizado: z.boolean().optional(),
-})
+import { MedicamentoDialog } from "@/features/medicamentos/components/MedicamentoDialog"
 
 /**
  * Componente principal de gestión de medicamentos
@@ -135,27 +92,6 @@ export default function MedicamentosPage() {
         () => obtenerEstadisticasMedicamentos(),
         []
     )
-
-    const form = useForm<MedicamentoCatalogoFormData>({
-        resolver: zodResolver(medicamentoFormSchema),
-        defaultValues: {
-            nombre: '',
-            nombreGenerico: '',
-            concentracion: '',
-            formaFarmaceutica: '',
-            presentacion: '',
-            categoria: '',
-            laboratorio: '',
-            cantidadSurtirDefault: '',
-            dosisDefault: '',
-            viaAdministracionDefault: '',
-            frecuenciaDefault: '',
-            duracionDefault: '',
-            indicacionesDefault: '',
-            esPersonalizado: true,
-            sincronizado: false,
-        },
-    })
 
     /**
      * Carga medicamentos con filtros aplicados
@@ -203,23 +139,6 @@ export default function MedicamentosPage() {
      */
     const handleNuevoMedicamento = () => {
         setMedicamentoEditando(null)
-        form.reset({
-            nombre: '',
-            nombreGenerico: '',
-            concentracion: '',
-            formaFarmaceutica: '',
-            presentacion: '',
-            categoria: '',
-            laboratorio: '',
-            cantidadSurtirDefault: '',
-            dosisDefault: '',
-            viaAdministracionDefault: '',
-            frecuenciaDefault: '',
-            duracionDefault: '',
-            indicacionesDefault: '',
-            esPersonalizado: true,
-            sincronizado: false,
-        })
         setIsDialogOpen(true)
     }
 
@@ -228,56 +147,7 @@ export default function MedicamentosPage() {
      */
     const handleEditarMedicamento = (medicamento: MedicamentoCatalogo) => {
         setMedicamentoEditando(medicamento)
-        form.reset({
-            nombre: medicamento.nombre,
-            nombreGenerico: medicamento.nombreGenerico || '',
-            concentracion: medicamento.concentracion || '',
-            formaFarmaceutica: medicamento.formaFarmaceutica || '',
-            presentacion: medicamento.presentacion || '',
-            categoria: medicamento.categoria || '',
-            laboratorio: medicamento.laboratorio || '',
-            cantidadSurtirDefault: medicamento.cantidadSurtirDefault || '',
-            dosisDefault: medicamento.dosisDefault || '',
-            viaAdministracionDefault: medicamento.viaAdministracionDefault || '',
-            frecuenciaDefault: medicamento.frecuenciaDefault || '',
-            duracionDefault: medicamento.duracionDefault || '',
-            indicacionesDefault: medicamento.indicacionesDefault || '',
-            esPersonalizado: medicamento.esPersonalizado,
-            sincronizado: medicamento.sincronizado,
-        })
         setIsDialogOpen(true)
-    }
-
-    /**
-     * Guarda el medicamento (crear o actualizar)
-     */
-    const onSubmit = async (values: MedicamentoCatalogoFormData) => {
-        try {
-            if (medicamentoEditando) {
-                // Actualizar
-                await actualizarMedicamento(medicamentoEditando.id!, values)
-                toast({
-                    title: 'Medicamento actualizado',
-                    description: `${values.nombre} ha sido actualizado correctamente.`,
-                })
-            } else {
-                // Crear
-                await agregarMedicamento(values)
-                toast({
-                    title: 'Medicamento creado',
-                    description: `${values.nombre} ha sido agregado al catálogo.`,
-                })
-            }
-
-            setIsDialogOpen(false)
-            await cargarMedicamentos()
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: error instanceof Error ? error.message : 'No se pudo guardar el medicamento',
-                variant: 'destructive',
-            })
-        }
     }
 
     /**
@@ -623,203 +493,17 @@ export default function MedicamentosPage() {
                 </div>
             )}
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {medicamentoEditando ? 'Editar Medicamento' : 'Nuevo Medicamento'}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {medicamentoEditando
-                                ? 'Modifica los datos del medicamento.'
-                                : 'Agrega un nuevo medicamento al catálogo.'}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <FormField
-                                    control={form.control}
-                                    name="nombre"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nombre Comercial *</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Paracetamol 500mg" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="nombreGenerico"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nombre Genérico</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Paracetamol" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="concentracion"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Concentración</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="500 mg" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="formaFarmaceutica"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Forma Farmacéutica</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Tabletas" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="presentacion"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Presentación</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Tabletas 500mg" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="categoria"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Categoría</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Analgésico" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="laboratorio"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Laboratorio</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Genérico" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="cantidadSurtirDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Cantidad a Surtir</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="1 caja (20 tabletas)" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="dosisDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Dosis Predeterminada</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="1 tableta" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="viaAdministracionDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Vía de Administración</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Oral" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="frecuenciaDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Frecuencia</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Cada 8 horas" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="duracionDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Duración</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Por 5 días" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <FormField
-                                control={form.control}
-                                name="indicacionesDefault"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Indicaciones Predeterminadas</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Tomar con alimentos" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <DialogFooter className="flex flex-row-reverse sm:flex-row-reverse justify-start sm:justify-start gap-2">
-                                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
-                                    Guardar Medicamento
-                                </Button>
-                                <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-slate-500 hover:bg-slate-100">
-                                    Cancelar
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </Form>
-                </DialogContent>
-            </Dialog>
+            <MedicamentoDialog
+                open={isDialogOpen}
+                onOpenChange={(open) => {
+                    setIsDialogOpen(open);
+                    if (!open) {
+                        cargarMedicamentos();
+                    }
+                }}
+                initialData={medicamentoEditando}
+                isEditing={!!medicamentoEditando}
+            />
 
             {/* Dialog de Confirmación de Eliminación */}
             <AlertDialog open={!!medicamentoEliminar} onOpenChange={() => setMedicamentoEliminar(null)}>
@@ -841,4 +525,3 @@ export default function MedicamentosPage() {
         </div>
     )
 }
-

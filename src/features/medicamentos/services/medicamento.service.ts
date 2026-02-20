@@ -145,7 +145,9 @@ export const medicamentoService = {
     },
 
     /**
-     * Incrementa el contador de uso de un medicamento
+     * Incrementa el contador de uso de un medicamento por su ID.
+     *
+     * @param id - ID del medicamento en IndexedDB
      */
     incrementUsage: async (id: number): Promise<void> => {
         const med = await db.medicamentos.get(id);
@@ -155,6 +157,33 @@ export const medicamentoService = {
                 fechaUltimoUso: new Date()
             });
         }
+    },
+
+    /**
+     * Incrementa el contador de uso de un medicamento buscándolo por nombre normalizado.
+     * Si no existe en el catálogo, lo crea como personalizado con vecesUsado = 1.
+     *
+     * @param nombre - Nombre comercial del medicamento tal como fue escrito en la receta
+     */
+    incrementarUsoPorNombre: async (nombre: string): Promise<void> => {
+        if (!nombre?.trim()) return;
+
+        const nombreNorm = nombre.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+        const existente = await db.medicamentos
+            .where('nombreBusqueda')
+            .equals(nombreNorm)
+            .first();
+
+        if (existente && existente.id !== undefined) {
+            // Existe en catálogo → solo actualizar contadores
+            await db.medicamentos.update(existente.id, {
+                vecesUsado: (existente.vecesUsado || 0) + 1,
+                fechaUltimoUso: new Date()
+            });
+        }
+        // Si no existe, `agregarMedicamento()` del servicio legacy ya lo habrá creado
+        // en el paso anterior del onSubmit, por lo que no es necesario crearlo aquí.
     }
 };
 

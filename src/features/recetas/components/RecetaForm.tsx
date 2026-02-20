@@ -43,6 +43,7 @@ import { db } from "@/shared/db/db.config"
 import { Switch } from "@/shared/components/ui/switch"
 import { Label } from "@/shared/components/ui/label"
 import { useMetrics } from "@/shared/hooks/useMetrics"
+import { cn } from "@/shared/lib/utils"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -155,13 +156,19 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     useEffect(() => {
         loadPacientes()
-        // Cargar configuración de especialidad desde BD
+        // Cargar configuración de especialidad y preferencia del toggle desde BD
         const loadConfig = async () => {
             try {
                 // Esperar a que Dexie esté listo
                 await db.open().catch(() => { }); // Ignorar si ya está abierto
 
                 const config = await medicoService.get();
+
+                // Restaurar preferencia del toggle: default = true si nunca se guardó
+                if (config && config.recordarDiagnostico !== undefined) {
+                    setSaveDiagnosis(config.recordarDiagnostico);
+                }
+
                 if (config && config.especialidadKey) {
                     try {
                         const spConfig = await db.especialidades.get(config.especialidadKey);
@@ -595,22 +602,36 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 pacienteData
             )
 
-            // 2. Aprender tratamiento (Gestión de diagnóstico centralizada en servicio)
+            // 2. Aprender tratamiento y actualizar catálogos (si el toggle está activo)
             const diagInput = values.diagnostico.trim();
             const codeMatch = diagInput.match(/\(([^)]+)\)$/);
             // Pasar el código si existe, o el nombre completo si es nuevo
             const diagIdentifier = codeMatch ? codeMatch[1] : diagInput;
+            // Nombre sin el sufijo del código para crear diagnósticos personalizados
+            const diagNombre = codeMatch ? diagInput.replace(/\s*\([^)]+\)$/, '') : diagInput;
 
             try {
-                // Solo aprender si el toggle está activado
+                // Solo aprender y actualizar catálogos si el toggle está activado
                 if (saveDiagnosis) {
-                    // Esperar a que el aprendizaje se complete para asegurar consistencia
+                    // 2a. Actualizar vecesUsado en la tabla de diagnósticos
+                    await diagnosticoService.incrementarUsoPorIdentificador(
+                        diagIdentifier,
+                        diagNombre,
+                        specialtyConfig?.specialtyName
+                    );
+
+                    // 2b. Actualizar vecesUsado en la tabla de medicamentos
+                    await Promise.all(
+                        values.medicamentos.map(m =>
+                            medicamentoService.incrementarUsoPorNombre(m.nombre)
+                        )
+                    );
+
+                    // 2c. Guardar/actualizar tratamiento habitual (asociación diagnóstico → medicamentos)
                     await treatmentLearningService.learn(
                         diagIdentifier,
                         values.medicamentos.map(m => ({
-                            ...m,
-                            nombre: m.nombre,
-                            nombreGenerico: m.nombreGenerico
+                            ...m
                         }) as any),
                         values.instrucciones || "",
                         specialtyConfig?.specialtyName
@@ -699,7 +720,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className={cn(onCancel ? "flex flex-col flex-1 min-h-0" : "space-y-8")}>
                 {!onCancel && (
                     <div className="flex items-center gap-4 mb-6">
                         <Link href="/recetas">
@@ -711,7 +732,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                     </div>
                 )}
 
-                <div className="grid gap-6">
+                <div className={cn("grid gap-6", onCancel && "flex-1 overflow-y-auto p-6 content-start")}>
                     {/* Selección/Búsqueda de Paciente y Diagnóstico */}
                     <Card>
                         <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
@@ -1213,20 +1234,55 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                     </Card>
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-end items-center gap-6 mt-8 pb-10">
-                    <div className="flex items-center space-x-2">
+                <div className={cn("mt-8 pb-10", onCancel ? "p-6 pt-4 bg-white border-t border-slate-100 mt-0 pb-0" : "flex flex-col md:flex-row justify-end items-center gap-6")}>
+                    <div className={cn("flex items-center space-x-2", onCancel ? "hidden" : "")}>
                         <Switch
                             id="save-diagnosis"
                             checked={saveDiagnosis}
-                            onCheckedChange={setSaveDiagnosis}
+                            onCheckedChange={async (checked) => {
+                                setSaveDiagnosis(checked);
+                                // Persistir preferencia en la configuración del médico
+                                try {
+                                    const config = await medicoService.get();
+                                    if (config) {
+                                        // Omitir campos de solo lectura para cumplir con MedicoConfigFormData
+                                        const { id, createdAt, updatedAt, ...formData } = config;
+                                        await medicoService.save({
+                                            ...formData,
+                                            recordarDiagnostico: checked
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error('Error al guardar preferencia del toggle:', err);
+                                }
+                            }}
                         />
                         <Label htmlFor="save-diagnosis" className="text-sm font-medium text-slate-600 cursor-pointer">
                             Recordar diagnóstico con medicamentos (Autocompletado futuro)
                         </Label>
                     </div>
 
-                    <div className="flex flex-row-reverse items-center justify-start gap-4">
-                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
+                    <div className={cn("flex items-center gap-4", onCancel ? "flex-col-reverse sm:flex-row sm:justify-end w-full" : "flex-row-reverse justify-start")}>
+                        {onCancel && (
+                            <div className="flex items-center gap-2 mr-auto">
+                                <Switch
+                                    id="save-diagnosis-dialog"
+                                    checked={saveDiagnosis}
+                                    onCheckedChange={setSaveDiagnosis}
+                                />
+                                <Label htmlFor="save-diagnosis-dialog" className="text-xs font-bold text-slate-500 cursor-pointer">
+                                    Recordar tratamiento
+                                </Label>
+                            </div>
+                        )}
+                        {onCancel ? (
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
+                        ) : (
+                            <Link href="/recetas">
+                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
+                            </Link>
+                        )}
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xl shadow-blue-200 transition-all active:scale-95 text-white px-10 font-bold h-11">
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1239,14 +1295,6 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                 </>
                             )}
                         </Button>
-
-                        {onCancel ? (
-                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
-                        ) : (
-                            <Link href="/recetas">
-                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
-                            </Link>
-                        )}
                     </div>
                 </div>
             </form>

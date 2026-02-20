@@ -217,8 +217,8 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
     return (
         <div className={cn(!onCancel && "p-6 pt-0")}>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col", onCancel ? "h-[75vh]" : "space-y-6")}>
-                    <div className={cn("flex-1", onCancel && "overflow-y-auto p-6 pt-0 space-y-6")}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className={cn(onCancel ? "flex flex-col flex-1 min-h-0" : "space-y-6")}>
+                    <div className={cn(onCancel ? "flex-1 overflow-y-auto p-6 space-y-6" : "space-y-6")}>
 
                         {/* Datos Personales */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -227,9 +227,9 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                 name="nombre"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nombre Completo *</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Nombre Completo *</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Nombre del paciente" {...field} />
+                                            <Input placeholder="Nombre del paciente" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -241,9 +241,9 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                 name="telefono"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Teléfono / WhatsApp</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Teléfono / WhatsApp</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: 5512345678" {...field} />
+                                            <Input placeholder="Ej: 5512345678" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -256,7 +256,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                     name="fechaNacimiento"
                                     render={({ field }) => (
                                         <FormItem className="col-span-12 md:col-span-8">
-                                            <FormLabel>Fecha Nacimiento</FormLabel>
+                                            <FormLabel className="text-xs font-bold text-slate-500">Fecha Nacimiento</FormLabel>
                                             <FormControl>
                                                 <DateInput
                                                     value={field.value}
@@ -264,6 +264,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                                         field.onChange(date);
                                                         onDateChange(date);
                                                     }}
+                                                    className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50"
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -275,7 +276,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                     name="edad"
                                     render={({ field }) => (
                                         <FormItem className="col-span-12 md:col-span-4">
-                                            <FormLabel>Edad</FormLabel>
+                                            <FormLabel className="text-xs font-bold text-slate-500">Edad</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="number"
@@ -283,6 +284,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                                     {...field}
                                                     value={field.value ?? ""}
                                                     onChange={onAgeChange}
+                                                    className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50"
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -297,9 +299,9 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                 name="peso"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Peso (kg)</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Peso (kg)</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: 75" {...field} />
+                                            <Input placeholder="Ej: 75" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -311,9 +313,9 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                 name="talla"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Talla (cm/m)</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Talla (cm/m)</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: 1.75" {...field} />
+                                            <Input placeholder="Ej: 1.75" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -339,11 +341,11 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                 name="alergias"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-red-600 font-medium">Alergias</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-red-600">Alergias</FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Lista de alergias conocidas..."
-                                                className="resize-none border-red-100 focus:border-red-400"
+                                                className="resize-none border-red-100 focus:border-red-400 rounded-xl bg-red-50/30"
                                                 {...field}
                                             />
                                         </FormControl>
@@ -357,11 +359,11 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                                 name="antecedentes"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Antecedentes Médicos</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Antecedentes Médicos</FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Enfermedades crónicas, cirugías previas..."
-                                                className="resize-none"
+                                                className="resize-none rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50"
                                                 {...field}
                                             />
                                         </FormControl>
@@ -372,8 +374,15 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                         </div>
                     </div>
 
-                    <div className={cn("flex flex-row-reverse items-center justify-start gap-4", onCancel && "p-6 border-t bg-background sticky bottom-0 z-10")}>
-                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
+                    <div className={cn("flex items-center gap-4", onCancel ? "p-6 pt-4 bg-white border-t border-slate-100 flex-col-reverse sm:flex-row sm:justify-end sm:gap-3" : "flex-row-reverse justify-start")}>
+                        {onCancel ? (
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
+                        ) : (
+                            <Link href="/pacientes">
+                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
+                            </Link>
+                        )}
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xl shadow-blue-200 transition-all active:scale-95 text-white px-10 font-bold h-11">
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -382,17 +391,10 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                    Guardar Paciente
+                                    {isEditing ? "Guardar Cambios" : "Guardar Paciente"}
                                 </>
                             )}
                         </Button>
-                        {onCancel ? (
-                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
-                        ) : (
-                            <Link href="/pacientes">
-                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
-                            </Link>
-                        )}
                     </div>
                 </form>
             </Form>

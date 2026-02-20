@@ -24,14 +24,19 @@ import { medicamentoService } from "@/features/medicamentos/services/medicamento
 import { MedicamentoCatalogo as Medicamento } from "@/types"
 import { useToast } from "@/shared/components/ui/use-toast"
 import { useEffect } from "react"
+import { Card, CardContent } from "@/shared/components/ui/card"
 
 const formSchema = z.object({
     nombre: z.string().min(2, {
         message: "El nombre es requerido.",
     }),
+    nombreGenerico: z.string().optional(),
     presentacion: z.string().min(2, {
         message: "La presentación es requerida.",
     }),
+    formaFarmaceutica: z.string().optional(),
+    concentracion: z.string().optional(),
+    viaAdministracionDefault: z.string().optional(),
     dosisDefault: z.string().min(1, {
         message: "La dosis es requerida.",
     }),
@@ -63,7 +68,11 @@ export function MedicamentoDialog({
         resolver: zodResolver(formSchema),
         defaultValues: {
             nombre: "",
+            nombreGenerico: "",
             presentacion: "",
+            formaFarmaceutica: "",
+            concentracion: "",
+            viaAdministracionDefault: "",
             dosisDefault: "",
             frecuenciaDefault: "",
             duracionDefault: "",
@@ -75,7 +84,11 @@ export function MedicamentoDialog({
         if (initialData) {
             form.reset({
                 nombre: initialData.nombre,
+                nombreGenerico: initialData.nombreGenerico || "",
                 presentacion: initialData.presentacion || "",
+                formaFarmaceutica: initialData.formaFarmaceutica || "",
+                concentracion: initialData.concentracion || "",
+                viaAdministracionDefault: initialData.viaAdministracionDefault || "",
                 dosisDefault: initialData.dosisDefault || "",
                 frecuenciaDefault: initialData.frecuenciaDefault || "",
                 duracionDefault: initialData.duracionDefault || "",
@@ -84,7 +97,11 @@ export function MedicamentoDialog({
         } else {
             form.reset({
                 nombre: "",
+                nombreGenerico: "",
                 presentacion: "",
+                formaFarmaceutica: "",
+                concentracion: "",
+                viaAdministracionDefault: "",
                 dosisDefault: "",
                 frecuenciaDefault: "",
                 duracionDefault: "",
@@ -126,106 +143,196 @@ export function MedicamentoDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl flex flex-col max-h-[90vh] p-0 overflow-hidden">
-                <DialogHeader>
-                    <DialogTitle>
+            <DialogContent className="max-w-3xl flex flex-col max-h-[90vh] p-0 overflow-hidden rounded-3xl border-none shadow-2xl bg-slate-50">
+                <DialogHeader className="p-6 pb-2 bg-white">
+                    <DialogTitle className="text-2xl font-black text-slate-900">
                         {isEditing ? "Editar Medicamento" : "Nuevo Medicamento"}
                     </DialogTitle>
                 </DialogHeader>
+
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 min-h-0">
-                        <div className="flex-1 overflow-y-auto p-6 pt-0 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="nombre"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nombre del Medicamento</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Ej: Paracetamol" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="presentacion"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Presentación</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Ej: Tabletas 500mg" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="dosisDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Dosis Sugerida</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Ej: 1 tableta" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="frecuenciaDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Frecuencia Sugerida</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Ej: cada 8 horas" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="duracionDefault"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Duración Sugerida</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Ej: por 5 días" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="palabrasClave"
-                                    render={({ field }) => (
-                                        <FormItem className="col-span-2">
-                                            <FormLabel>Palabras Clave (Etiquetas)</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Ej: fiebre, dolor cabeza, niños" {...field} />
-                                            </FormControl>
-                                            <p className="text-[0.8rem] text-muted-foreground">
-                                                Separa las palabras con comas. Ayudan a encontrar el medicamento más rápido.
-                                            </p>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+                            {/* Información Principal */}
+                            <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
+                                <CardContent className="p-5 space-y-5 bg-white">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <FormField
+                                            control={form.control}
+                                            name="nombre"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Nombre Comercial</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="Ej: Tylenol"
+                                                            {...field}
+                                                            className="rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 bg-slate-50/50"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="nombreGenerico"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Sustancia Activa</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="Ej: Paracetamol"
+                                                            {...field}
+                                                            className="rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 bg-slate-50/50"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="formaFarmaceutica"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Forma</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Ej: Tabs" {...field} className="rounded-xl border-slate-200 h-9 text-xs" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="concentracion"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Concentración</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Ej: 500mg" {...field} className="rounded-xl border-slate-200 h-9 text-xs" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="presentacion"
+                                            render={({ field }) => (
+                                                <FormItem className="col-span-2 md:col-span-2">
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Presentación</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Ej: Caja con 20 tabletas" {...field} className="rounded-xl border-slate-200 h-9 text-xs" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Tratamiento por Defecto */}
+                            <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
+                                <CardContent className="p-5 space-y-5 bg-white">
+                                    <h4 className="text-sm font-bold text-slate-800">Tratamiento por Defecto</h4>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="dosisDefault"
+                                            render={({ field }) => (
+                                                <FormItem className="col-span-2 md:col-span-1">
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Dosis</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="1 tableta" {...field} className="rounded-xl border-slate-200 h-9 text-xs font-semibold" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="frecuenciaDefault"
+                                            render={({ field }) => (
+                                                <FormItem className="col-span-2 md:col-span-1">
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Frecuencia</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="c/8h" {...field} className="rounded-xl border-slate-200 h-9 text-xs" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="duracionDefault"
+                                            render={({ field }) => (
+                                                <FormItem className="col-span-2 md:col-span-1">
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Duración</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="5 días" {...field} className="rounded-xl border-slate-200 h-9 text-xs" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="viaAdministracionDefault"
+                                            render={({ field }) => (
+                                                <FormItem className="col-span-2 md:col-span-1">
+                                                    <FormLabel className="text-xs font-bold text-slate-500">Vía</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Oral" {...field} className="rounded-xl border-slate-200 h-9 text-xs" />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
+                                    <FormField
+                                        control={form.control}
+                                        name="palabrasClave"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs font-bold text-slate-500">Palabras Clave (Etiquetas)</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Tags para búsqueda: fiebre, dolor, pediátrico..."
+                                                        {...field}
+                                                        className="rounded-xl border-slate-200 border-dashed bg-slate-50/50"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </CardContent>
+                            </Card>
                         </div>
 
-                        <DialogFooter className="flex flex-row-reverse sm:flex-row-reverse justify-start sm:justify-start gap-2">
-                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
-                                Guardar Medicamento
-                            </Button>
-                            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-slate-500 hover:bg-slate-100">
+                        <DialogFooter className="p-6 pt-4 bg-white border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:space-x-0">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => onOpenChange(false)}
+                                className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold"
+                            >
                                 Cancelar
+                            </Button>
+                            <Button
+                                type="submit"
+                                className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xl shadow-blue-200 transition-all active:scale-95 text-white px-10 font-bold h-11"
+                            >
+                                {isEditing ? "Guardar Cambios" : "Crear Medicamento"}
                             </Button>
                         </DialogFooter>
                     </form>

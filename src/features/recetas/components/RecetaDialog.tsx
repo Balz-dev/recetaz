@@ -53,20 +53,20 @@ export function RecetaDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto w-full">
-                <DialogHeader>
+            <DialogContent className="max-w-5xl flex flex-col max-h-[95vh] p-0 overflow-hidden rounded-3xl border-none shadow-2xl bg-slate-50 w-full">
+                <DialogHeader className="p-6 pb-2 bg-white">
                     {view === 'form' ? (
                         <>
-                            <DialogTitle>Nueva Receta Médica</DialogTitle>
+                            <DialogTitle className="text-2xl font-black text-slate-900">Nueva Receta Médica</DialogTitle>
                             <DialogDescription>
                                 Complete los datos para generar una nueva receta.
                             </DialogDescription>
                         </>
                     ) : (
-                        <DialogTitle>Receta Generada</DialogTitle>
+                        <DialogTitle className="text-2xl font-black text-slate-900">Receta Generada</DialogTitle>
                     )}
                 </DialogHeader>
-                <div className="mt-2 text-left">
+                <div className="flex flex-col flex-1 min-h-0">
                     {view === 'form' ? (
                         <RecetaForm
                             preSelectedPacienteId={preSelectedPacienteId}
