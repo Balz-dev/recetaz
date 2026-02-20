@@ -43,7 +43,7 @@ import { ToolbarPropiedades } from "./ToolbarPropiedades"
 import { PlantillaGallery } from "./PlantillaGallery"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 /**
  * Obtiene el texto de ejemplo para un campo específico.
@@ -1281,14 +1281,14 @@ export function PlantillaEditor({ plantillaId }: PlantillaEditorProps) {
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Link href="/recetas/plantillas">
-                            <Button variant="outline">Cancelar</Button>
-                        </Link>
-                        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 shadow-md transition-all active:scale-95">
+                    <div className="flex flex-row-reverse items-center gap-2">
+                        <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
                             {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                             Guardar Plantilla
                         </Button>
+                        <Link href="/recetas/plantillas">
+                            <Button variant="ghost" className="text-slate-500 hover:bg-slate-100">Cancelar</Button>
+                        </Link>
                         <Button variant="outline" onClick={handleExportJson}>
                             <Download className="mr-2 h-4 w-4" />
                             Exportar Plantilla

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Plus, Minus } from "lucide-react"
+import { useMetrics } from "@/shared/hooks/useMetrics"
 
 /**
  * Sección de Preguntas Frecuentes (FAQ).
@@ -17,8 +18,12 @@ export function FAQ() {
       answer: "Puedes usar nuestras plantillas profesionales y personalizarlas con tu logo y datos."
     },
     {
-      question: "¿Cómo funciona el autocompletado inteligente?",
-      answer: "RecetaZ aprende de tus prescripciones. Si recetas ciprofloxacino para gastroenteritis, la próxima vez que escribas \"gastro...\" te sugerirá el medicamento."
+      question: "¿Cómo funciona el autocompletado?",
+      answer: "RecetaZ recuerda información previamente registrada por ti. Si recetas ciprofloxacino para gastroenteritis, la próxima vez que escribas \"gastro...\" te mostrará el medicamento que usaste antes."
+    },
+    {
+      question: "¿RecetaZ es un sistema de receta electrónica oficial?",
+      answer: "No. RecetaZ no es un sistema de receta electrónica oficial ni genera recomendaciones médicas. Es una herramienta de productividad para imprimir sobre tus formatos físicos."
     },
     {
       question: "¿Mis datos están seguros?",
@@ -35,6 +40,15 @@ export function FAQ() {
   ]
 
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const { trackMarketing } = useMetrics()
+
+  const toggleFaq = (index: number) => {
+    const isOpening = openIndex !== index
+    if (isOpening) {
+      trackMarketing('lp_faq_question_expanded', { question: faqs[index].question })
+    }
+    setOpenIndex(isOpening ? index : null)
+  }
 
   return (
     <section className="py-24 bg-white dark:bg-[#0F172A]" id="faq">
@@ -55,7 +69,7 @@ export function FAQ() {
               className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/50"
             >
               <button
-                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                onClick={() => toggleFaq(i)}
                 className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 aria-expanded={openIndex === i}
               >

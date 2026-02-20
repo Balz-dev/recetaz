@@ -23,7 +23,7 @@ export const pacienteService = {
      * @returns Lista de todos los pacientes registrados.
      */
     async getAll(): Promise<Paciente[]> {
-        return await db.pacientes.orderBy('nombre').toArray();
+        return await db.pacientes.orderBy('createdAt').reverse().toArray();
     },
 
     /**
@@ -42,11 +42,15 @@ export const pacienteService = {
      */
     async search(query: string): Promise<Paciente[]> {
         const lowerQuery = query.toLowerCase();
-        return await db.pacientes
+        const results = await db.pacientes
             .filter(p =>
-                p.nombre.toLowerCase().includes(lowerQuery)
+                p.nombre.toLowerCase().includes(lowerQuery) ||
+                (p.telefono ? p.telefono.includes(lowerQuery) : false)
             )
             .toArray();
+
+        // Ordenar resultados de búsqueda descendentemente por fecha de creación
+        return results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     },
 
     /**

@@ -134,9 +134,9 @@ export const diagnosticoService = {
     },
 
     /**
-     * Incrementa el contador de uso de un diagnóstico
-     * 
-     * @param id - ID del diagnóstico
+     * Incrementa el contador de uso de un diagnóstico por su ID numérico.
+     *
+     * @param id - ID del diagnóstico en IndexedDB
      */
     async incrementarUso(id: number): Promise<void> {
         const diagnostico = await db.diagnosticos.get(id);
@@ -148,16 +148,69 @@ export const diagnosticoService = {
     },
 
     /**
+     * Incrementa el contador de uso de un diagnóstico buscándolo por código CIE o nombre.
+     * Si no existe en el catálogo, crea un nuevo registro personalizado.
+     *
+     * @param identificador - Código CIE-11 o nombre del diagnóstico
+     * @param nombreCompleto - Nombre completo (usado si se crea uno nuevo)
+     * @param especialidad - Especialidad del médico para el nuevo registro (opcional)
+     */
+    async incrementarUsoPorIdentificador(
+        identificador: string,
+        nombreCompleto?: string,
+        especialidad?: string
+    ): Promise<void> {
+        // Intentar por código exacto primero
+        let diagnostico = await db.diagnosticos
+            .where('codigo')
+            .equals(identificador)
+            .first();
+
+        // Si no se encontró por código, buscar por nombre
+        if (!diagnostico) {
+            diagnostico = await db.diagnosticos
+                .where('nombre')
+                .equals(nombreCompleto || identificador)
+                .first();
+        }
+
+        if (diagnostico && diagnostico.id !== undefined) {
+            // Existe → solo incrementar uso
+            await db.diagnosticos.update(diagnostico.id, {
+                vecesUsado: (diagnostico.vecesUsado || 0) + 1
+            });
+        } else {
+            // No existe → crear con vecesUsado inicial = 1
+            const timestamp = Date.now().toString().slice(-6);
+            const codigoNuevo = identificador.length <= 10 ? identificador : `CUST-${timestamp}`;
+            const nombre = nombreCompleto || identificador;
+            const nombreNorm = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            await db.diagnosticos.add({
+                codigo: codigoNuevo,
+                nombre,
+                sinonimos: [],
+                especialidad: especialidad ? [especialidad] : [],
+                vecesUsado: 1,
+                palabrasClave: [codigoNuevo.toLowerCase(), ...nombreNorm.split(' ').filter(Boolean)]
+            });
+        }
+    },
+
+    /**
      * Crea un nuevo diagnóstico personalizado
      */
     async create(data: Omit<DiagnosticoCatalogo, 'id'>): Promise<number> {
         // Generar palabras clave automáticamente
         const nombreNorm = data.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const sinonimosNorm = (data.sinonimos || []).map(s => s.toLowerCase());
+        const sinonimosNorm = (data.sinonimos || []).map(s => s.trim().toLowerCase());
+        const medsNorm = (data.medicamentosSugeridos || []).map(m => m.nombre?.toLowerCase()).filter(Boolean) as string[];
+
         const palabrasClave = [
             data.codigo.toLowerCase(),
             ...nombreNorm.split(' '),
-            ...sinonimosNorm
+            ...sinonimosNorm,
+            ...medsNorm
         ].filter(Boolean);
 
         return await db.diagnosticos.add({
@@ -180,11 +233,14 @@ export const diagnosticoService = {
 
             const nombreNorm = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const sinonimosNorm = sinonimos.map(s => s.toLowerCase());
+            const medsSugeridos = data.medicamentosSugeridos || (await db.diagnosticos.get(id))?.medicamentosSugeridos || [];
+            const medsNorm = medsSugeridos.map(m => m.nombre?.toLowerCase()).filter(Boolean) as string[];
 
             palabrasClave = [
                 (data.codigo || '').toLowerCase(),
                 ...nombreNorm.split(' '),
-                ...sinonimosNorm
+                ...sinonimosNorm,
+                ...medsNorm
             ].filter(Boolean);
         }
 

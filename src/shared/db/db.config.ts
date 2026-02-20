@@ -206,10 +206,10 @@ class RecetasDatabase extends Dexie {
             especialidades: 'id, label'
         });
 
-        // Versión 12: Agregar fechaNacimiento a pacientes
-        this.version(12).stores({
+        // Versión 13: Índice createdAt en pacientes para ordenamiento por defecto
+        this.version(13).stores({
             medico: 'id',
-            pacientes: 'id, nombre, fechaNacimiento',
+            pacientes: 'id, nombre, fechaNacimiento, createdAt',
             recetas: 'id, numeroReceta, pacienteId, fechaEmision, createdAt',
             finanzas: 'id, tipo, fecha, categoria',
             configuracionFinanciera: 'id',

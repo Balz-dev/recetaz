@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Check, ArrowRight } from "lucide-react";
+import { useMetrics } from "@/shared/hooks/useMetrics";
 
 /**
  * Sección de precios de RecetaZ.
@@ -7,11 +10,12 @@ import { Check, ArrowRight } from "lucide-react";
  * @returns Componente JSX con los planes de precios.
  */
 export function Pricing() {
+  const { trackMarketing } = useMetrics();
   const plans = [
     {
       name: "Plan Básico",
       price: "$149",
-      yearlyPrice: "$1,490",
+      yearlyPrice: "$1,341",
       period: "/ mes",
       yearlyPeriod: "/ año",
       description: "Ideal para médicos que quieren dejar de usar Word en sus recetas.",
@@ -30,7 +34,7 @@ export function Pricing() {
     {
       name: "Plan PRO",
       price: "$299",
-      yearlyPrice: "$2,990",
+      yearlyPrice: "$2,691",
       period: "/ mes",
       yearlyPeriod: "/ año",
       description: "Para médicos que buscan máxima seguridad y funciones avanzadas.",
@@ -92,7 +96,7 @@ export function Pricing() {
                   </span>
                 </div>
                 <div className="mt-2 text-sm text-blue-600 font-semibold">
-                  {plan.yearlyPrice} MXN{plan.yearlyPeriod} (2 meses gratis)
+                  {plan.yearlyPrice} MXN{plan.yearlyPeriod} (3 meses gratis)
                 </div>
               </div>
 
@@ -110,6 +114,7 @@ export function Pricing() {
 
               <Link
                 href={plan.href}
+                onClick={() => trackMarketing('lp_pricing_interacted', { plan: plan.name })}
                 className={`w-full inline-flex items-center justify-center rounded-xl px-8 py-4 text-lg font-bold transition-all active:scale-95 ${plan.highlighted
                   ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20"
                   : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700"

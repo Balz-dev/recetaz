@@ -54,7 +54,7 @@ export default function TestRecetaPage() {
             })
 
             setStatus(`Receta creada: ${recetaId}. Redirigiendo...`)
-            setTimeout(() => router.push(`/recetas/${recetaId}`), 500)
+            setTimeout(() => window.location.href = `/recetas/${recetaId}`, 500)
         } catch (error: any) {
             console.error(error)
             const errorMsg = error instanceof Error ? error.message : JSON.stringify(error)

@@ -3,6 +3,8 @@ const withPWA = require('next-pwa')({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  // Fallback para navegación offline - Removido para evitar error non-precached-url
+  navigateFallback: null,
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
@@ -22,7 +24,7 @@ const withPWA = require('next-pwa')({
         cacheName: 'google-fonts-stylesheets',
         expiration: {
           maxEntries: 4,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 año
         },
       },
     },
@@ -33,7 +35,7 @@ const withPWA = require('next-pwa')({
         cacheName: 'static-font-assets',
         expiration: {
           maxEntries: 4,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 año
         },
       },
     },
@@ -44,7 +46,7 @@ const withPWA = require('next-pwa')({
         cacheName: 'static-image-assets',
         expiration: {
           maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
       },
     },
@@ -55,7 +57,7 @@ const withPWA = require('next-pwa')({
         cacheName: 'next-image',
         expiration: {
           maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
       },
     },
@@ -66,7 +68,7 @@ const withPWA = require('next-pwa')({
         cacheName: 'static-audio-assets',
         expiration: {
           maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 año
         },
       },
     },
@@ -76,8 +78,8 @@ const withPWA = require('next-pwa')({
       options: {
         cacheName: 'static-js-assets',
         expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxEntries: 48,
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 año (hash garantiza actualización)
         },
       },
     },
@@ -87,8 +89,19 @@ const withPWA = require('next-pwa')({
       options: {
         cacheName: 'static-style-assets',
         expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxEntries: 48,
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 año (hash garantiza actualización)
+        },
+      },
+    },
+    {
+      urlPattern: /.*_rsc=.*/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'next-rsc',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
       },
     },
@@ -98,19 +111,19 @@ const withPWA = require('next-pwa')({
       options: {
         cacheName: 'next-data',
         expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxEntries: 48,
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
       },
     },
     {
       urlPattern: /\.(?:json|xml|csv)$/i,
-      handler: 'NetworkFirst',
+      handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'static-data-assets',
         expiration: {
           maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
       },
     },
@@ -124,19 +137,30 @@ const withPWA = require('next-pwa')({
         cacheName: 'cross-origin',
         expiration: {
           maxEntries: 32,
-          maxAgeSeconds: 60 * 60, // 1 hour
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
         networkTimeoutSeconds: 10,
       },
     },
     {
-      urlPattern: ({ url }) => url.pathname.startsWith('/'),
-      handler: 'StaleWhileRevalidate',
+      urlPattern: ({ url }) => url.pathname === '/dashboard' || url.pathname === '/',
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'app-shell',
+        expiration: {
+          maxEntries: 5,
+          maxAgeSeconds: 90 * 24 * 60 * 60,
+        },
+      },
+    },
+    {
+      urlPattern: ({ request }) => request.mode === 'navigate',
+      handler: 'CacheFirst',
       options: {
         cacheName: 'pages',
         expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxEntries: 100,
+          maxAgeSeconds: 90 * 24 * 60 * 60, // 90 días
         },
       },
     }

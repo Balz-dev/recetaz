@@ -5,7 +5,9 @@ import { MedicoConfigForm } from "@/features/config-medico/components/MedicoConf
 import { PlantillaList } from "@/features/recetas/components/PlantillaList";
 import { Button } from "@/shared/components/ui/button";
 import { Save, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { MedicoConfig } from "@/types";
+import { medicoService } from "@/features/config-medico/services/medico.service";
 
 interface ConfiguracionContentProps {
     onConfigSaved?: () => void;
@@ -13,6 +15,24 @@ interface ConfiguracionContentProps {
 
 export function ConfiguracionContent({ onConfigSaved }: ConfiguracionContentProps) {
     const [isSaving, setIsSaving] = useState(false);
+    const [config, setConfig] = useState<MedicoConfig | null>(null);
+    const [isLoadingData, setIsLoadingData] = useState(true);
+
+    useEffect(() => {
+        const loadConfig = async () => {
+            try {
+                const data = await medicoService.get();
+                if (data) {
+                    setConfig(data);
+                }
+            } catch (error) {
+                console.error("Error cargando configuración:", error);
+            } finally {
+                setIsLoadingData(false);
+            }
+        };
+        loadConfig();
+    }, []);
 
     return (
         <div className="space-y-8 pb-12">
@@ -27,11 +47,18 @@ export function ConfiguracionContent({ onConfigSaved }: ConfiguracionContentProp
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <MedicoConfigForm
-                                onSuccess={onConfigSaved}
-                                hideSubmitButton
-                                onLoadingChange={setIsSaving}
-                            />
+                            {isLoadingData ? (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
+                                </div>
+                            ) : (
+                                <MedicoConfigForm
+                                    initialData={config}
+                                    onSuccess={onConfigSaved}
+                                    hideSubmitButton
+                                    onLoadingChange={setIsSaving}
+                                />
+                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -59,7 +86,7 @@ export function ConfiguracionContent({ onConfigSaved }: ConfiguracionContentProp
                     form="medico-config-form"
                     disabled={isSaving}
                     size="lg"
-                    className="min-w-[240px] shadow-lg shadow-blue-500/20"
+                    className="min-w-[240px] bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 text-white"
                 >
                     {isSaving ? (
                         <>

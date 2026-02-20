@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { Check } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 

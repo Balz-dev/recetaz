@@ -15,7 +15,13 @@ import {
     X,
     Info,
     Layout,
-    Palette
+    Palette,
+    Shield,
+    Lock,
+    Smartphone,
+    Monitor,
+    Check,
+    AlertCircle
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -33,7 +39,16 @@ import { PlantillaGallery } from '@/features/recetas/components/PlantillaGallery
 import { SpecialtySelect } from '@/shared/components/catalog/SpecialtySelect';
 import Image from 'next/image';
 import { usePWA } from '@/shared/providers/PWAProvider';
-import { Download, Smartphone, Check } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { DraZoylaAvatar } from './DraZoylaAvatar';
+import { Bocadillo } from './Bocadillo';
+import { useMetrics } from '@/shared/hooks/useMetrics';
+import { useAuth } from '@/shared/hooks/useAuth';
 
 interface OnboardingWizardProps {
     /**
@@ -44,39 +59,59 @@ interface OnboardingWizardProps {
 }
 
 const STEPS = [
-    { title: 'Bienvenida', icon: <PlusSquare /> },
-    { title: 'Identidad', icon: <User /> },
-    { title: 'Logo', icon: <ImageIcon /> },
-    { title: 'Consultorio', icon: <MapPin /> },
-    { title: 'Diseño', icon: <Palette /> },
-    { title: 'Instalación', icon: <Smartphone /> }, // Nuevo paso
-    { title: 'Finalizar', icon: <CheckCircle2 /> },
+    { title: 'Bienvenida', description: 'Inicio', icon: <PlusSquare /> },
+    { title: 'Identidad', description: 'Perfil', icon: <User /> },
+    { title: 'Logo', description: 'Marca', icon: <ImageIcon /> },
+    { title: 'Consultorio', description: 'Ubicación', icon: <MapPin /> },
+    { title: 'Diseño Receta', description: 'Receta', icon: <Palette /> },
+    { title: 'Cuenta', description: 'Seguridad', icon: <Shield /> },
+    { title: 'Finalizar', description: 'Listo', icon: <CheckCircle2 /> },
 ];
 
 /**
- * Componente principal del Asistente de Configuración Inicial (Onboarding).
- * 
- * Guía al médico a través de los pasos necesarios para configurar su perfil profesional,
- * datos del consultorio, y diseño de la receta médica.
- * 
- * @param props - Propiedades del componente
- * @param props.onComplete - Función a ejecutar al completar todo el proceso
- * @returns Componente JSX con el wizard paso a paso
+ * Configuración de Dra. Zoyla para cada paso.
  */
+const ZOYLA_CONFIG: Record<number, { pose: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10, text: React.ReactNode, direction: 'left' | 'right' | 'top' | 'bottom', flipped?: boolean }> = {
+    0: { // Bienvenida
+        pose: 1, // Saludo
+        text: "¡Hola! Soy la Dra. Zoyla, tu asistente virtual. Estoy aquí para ayudarte a configurar tu consultorio digital en RecetaZ. ¡Es súper fácil y rápido!",
+        direction: 'right'
+    },
+    1: { // Identidad
+        pose: 2, // Apunta Izquierda
+        text: "Tus pacientes necesitan saber quién los atiende. Escribe tu nombre y especialidad exactamente como quieres que aparezcan impresos en el encabezado de tus recetas.",
+        direction: 'right'
+    },
+    2: { // Logo
+        pose: 5, // Apunta Derecha Sutil (Invertido apuntará a la izquierda, hacia el form)
+        flipped: true,
+        text: "¿Tienes un logotipo? ¡Súbelo aquí! Si no, no te preocupes, podemos dejarlo para después. Lo importante es que tu receta hable bien de ti.",
+        direction: 'right'
+    },
+    3: { // Consultorio
+        pose: 6, // Apunta Abajo (o izquierda)
+        text: "La dirección y el teléfono son vitales para que tus pacientes te contacten. Estos datos se imprimirán e incluirán automáticamente en todos tus reportes y recetas.",
+        direction: 'right'
+    },
+    4: { // Diseño
+        pose: 9, // Entusiasmo
+        text: "¡La parte divertida! Elige el diseño de tu receta. Selecciona una de nuestras plantillas profesionales o sube tu propio diseño membretado.",
+        direction: 'right'
+    },
+    5: { // Cuenta
+        pose: 3, // Sutil
+        text: "Esto es opcional, pero muy útil. Si creas una cuenta (es gratis), puedo guardar copias de seguridad cifradas en tu Google Drive. ¡Seguridad ante todo!",
+        direction: 'right'
+    },
+    6: { // Finalizar
+        pose: 9, // OK
+        text: "¡Increíble! Ya está todo listo. Tu consultorio digital ha quedado perfecto. ¿Empezamos a crear tu primera receta?",
+        direction: 'right'
+    }
+};
+
 /**
- * Asistente de Onboarding (Wizard)
- * 
- * Guía al médico paso a paso a través de la configuración inicial de su perfil
- * y consultorio.
- * 
- * Pasos:
- * 1. Bienvenida e Identidad (Nombre, Cédula, Especialidad).
- * 2. Logo (Opcional).
- * 3. Configuración de Consultorio (Dirección, Contacto).
- * 4. Diseño de Receta (Selección de plantilla inicial).
- * 
- * @param props - Propiedades del componente.
- * @param props.onComplete - Callback ejecutado al finalizar. Recibe ruta de redirección opcional.
+ * Componente principal del Asistente de Configuración Inicial (Onboarding).
  */
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const [currentStep, setCurrentStep] = useState(0);
@@ -86,6 +121,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const { toast } = useToast();
     const router = useRouter();
     const { installApp, isInstalled, isIOS, hasPrompt } = usePWA();
+    const { track, trackMarketing } = useMetrics();
 
     // Estado del formulario
     const [formData, setFormData] = useState<MedicoConfigFormData>({
@@ -98,9 +134,45 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         logo: undefined,
     });
 
+    // Estado para autenticación
+    const { user, signUp, signInWithGoogle, loading: authLoading } = useAuth();
+    const [authData, setAuthData] = useState({
+        email: '',
+        password: '',
+    });
+    const [authError, setAuthError] = useState<string | null>(null);
+
+    // Responsividad del bocadillo
+    // Desktop: 'right' (apunta a la derecha hacia Dra. Zoyla que está en col derecha)
+    // Mobile: 'top' (apunta arriba hacia Dra. Zoyla que está arriba)
+    const [bocadilloDirection, setBocadilloDirection] = useState<'right' | 'top'>('top');
+
+    useEffect(() => {
+        const handleResize = () => {
+            setBocadilloDirection(window.innerWidth >= 768 ? 'right' : 'top');
+        };
+
+        handleResize(); // Initial
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Estado para diseño de receta
     const [customDesign, setCustomDesign] = useState<string | null>(null);
     const [selectedGalleryTemplate, setSelectedGalleryTemplate] = useState<any>(null);
+    const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+    const [stepStartTime, setStepStartTime] = useState<number>(Date.now());
+
+    // Track vista de paso cada vez que cambia el currentStep
+    useEffect(() => {
+        const stepName = STEPS[currentStep].title.toLowerCase().replace(/\s+/g, '_');
+        trackMarketing('onboarding_step_viewed', {
+            step: STEPS[currentStep].title,
+            stepIndex: currentStep,
+            stepName
+        });
+        setStepStartTime(Date.now());
+    }, [currentStep]);
 
     // Cargar datos existentes y especialidades
     useEffect(() => {
@@ -129,26 +201,41 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             }
         };
         init();
+
+        // Track inicio de onboarding
+        trackMarketing('onboarding_started');
     }, []);
 
     const nextStep = () => {
-        // Lógica de salto para paso de instalación PWA
-        // Si el siguiente es la instalación (índice 5) y ya está instalada, saltamos al final (6)
-        if (currentStep + 1 === 5 && isInstalled) {
-            setCurrentStep(prev => Math.min(prev + 2, STEPS.length - 1));
-            return;
-        }
+        const duration = Math.round((Date.now() - stepStartTime) / 1000);
+        track('onboarding_step_next', {
+            fromStep: STEPS[currentStep].title,
+            fromIndex: currentStep,
+            durationOnStep: duration
+        });
         setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
     };
-    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
-    /**
-     * Maneja la carga de archivos (logo o diseño de receta).
-     * Valida el tamaño del archivo (máx 1MB) y lo convierte a Base64.
-     * 
-     * @param e - Evento del input file
-     * @param type - Tipo de archivo a cargar: 'logo' o 'design'
-     */
+    const prevStep = () => {
+        const duration = Math.round((Date.now() - stepStartTime) / 1000);
+        track('onboarding_step_back', {
+            fromStep: STEPS[currentStep].title,
+            fromIndex: currentStep,
+            durationBeforeBack: duration
+        });
+        setCurrentStep(prev => Math.max(prev - 1, 0));
+    };
+
+    // Navegación directa por click en header
+    const goToStep = (stepIndex: number) => {
+        // Permitimos navegar a cualquier paso ya visitado o al siguiente inmediato
+        // O simplificamos permitiendo navegar libremente ya que es un wizard de config inicial
+        // Para mejor UX, permitamos volver atrás libremente, y adelante solo si los datos requeridos están.
+
+        // Simplemente actualizamos estado
+        setCurrentStep(stepIndex);
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'design') => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -161,29 +248,17 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64 = reader.result as string;
-            if (type === 'logo') setFormData(prev => ({ ...prev, logo: base64 }));
-            else setCustomDesign(base64);
+            if (type === 'logo') {
+                setFormData(prev => ({ ...prev, logo: base64 }));
+                track('onboarding_logo_uploaded', { size: file.size }, 'user_action');
+            } else {
+                setCustomDesign(base64);
+                track('onboarding_custom_design_uploaded', { size: file.size }, 'user_action');
+            }
         };
         reader.readAsDataURL(file);
     };
 
-    /**
-     * Guarda toda la configuración y finaliza el proceso.
-     * 1. Guarda los datos del médico
-     * 2. Crea/Configura la plantilla de receta
-     * 3. Redirige al usuario según su elección
-     */
-    /**
-     * Guarda la configuración completa del médico y finaliza el onboarding.
-     * 
-     * Acciones:
-     * 1. Guarda/Actualiza los datos del médico (perfil, consultorio).
-     * 2. Gestiona la creación de la plantilla de receta inicial:
-     *    - Si se eligió galería: Clona la plantilla seleccionada incluyendo todos sus campos.
-     *    - Si es diseño manual: Crea una plantilla básica en blanco o por defecto.
-     * 3. Determina la ruta de redirección según la preferencia del usuario (ir al editor o al dashboard).
-     * 4. Ejecuta el callback `onComplete` con la ruta destino.
-     */
     const handleSaveAndComplete = async () => {
         setIsLoading(true);
         try {
@@ -207,10 +282,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     ]
                 });
             } else if (selectedGalleryTemplate) {
-                // Si seleccionó de galería, crearla/activarla
-                // FIX: Las plantillas de galería vienen con una propiedad 'content' que tiene la config real
                 const templateData = selectedGalleryTemplate.content || selectedGalleryTemplate;
-
                 createdPlantillaId = await plantillaService.create({
                     ...templateData,
                     activa: true,
@@ -220,7 +292,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
             toast({ title: "¡Configuración exitosa!", description: "Bienvenido a RecetaZ" });
 
-            // Finalizar proceso de onboarding pasando la ruta de redirección
+            // Track éxito total (Conversión)
+            trackMarketing('onboarding_completed', {
+                especialidad: formData.especialidad,
+                hasLogo: !!formData.logo,
+                templateSource: customDesign ? 'upload' : (selectedGalleryTemplate ? 'gallery' : 'none'),
+                goToEditor
+            });
+
             onComplete(
                 goToEditor
                     ? (createdPlantillaId ? `/recetas/plantillas/${createdPlantillaId}` : '/recetas/plantillas/nueva')
@@ -234,33 +313,34 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         }
     };
 
-    /**
-     * Renderiza el contenido del paso actual del wizard.
-     */
+    const handleGoogleSignIn = async () => {
+        setAuthError(null);
+        const { error } = await signInWithGoogle();
+        if (error) {
+            setAuthError(error.message);
+            track('onboarding_account_failed', { error: error.message, provider: 'google' });
+        } else {
+            track('onboarding_account_started', { provider: 'google' });
+        }
+    };
+
     const renderStepContent = () => {
         switch (currentStep) {
             case 0: // Bienvenida
                 return (
                     <div className="space-y-6 text-center py-4">
-                        <div className="flex justify-center">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-6 rounded-full text-blue-600 animate-bounce">
-                                <Stethoscope size={64} />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <h2 className="text-3xl font-bold">¡Bienvenido a RecetaZ!</h2>
-                            <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                                Estamos emocionados de ayudarte a digitalizar tu consultorio de forma segura.
-                            </p>
-                        </div>
-                        <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200 text-sm flex gap-3 items-start text-left">
+                        <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200 text-sm flex gap-3 items-start text-left mt-4">
                             <Info size={20} className="shrink-0 mt-0.5" />
                             <p>
                                 <strong>Sus datos son privados:</strong> Toda la información que ingrese se guarda únicamente en su dispositivo. No la enviamos a ningún servidor.
                             </p>
                         </div>
-                        <Button size="lg" className="w-full h-14 text-lg" onClick={nextStep}>
-                            Comenzar configuración profesional
+                        <Button
+                            size="lg"
+                            className="w-full h-14 text-lg mt-8"
+                            onClick={() => nextStep()}
+                        >
+                            Comenzar configuración
                         </Button>
                     </div>
                 );
@@ -268,10 +348,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 1: // Identidad
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Perfil Profesional</h2>
-                            <p className="text-slate-500 text-sm">Estos datos aparecerán en el encabezado de sus recetas.</p>
-                        </div>
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Nombre completo (con título)</label>
@@ -301,7 +377,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep} disabled={!formData.nombre || !formData.cedula || !formData.especialidadKey}>Continuar</Button>
+                            <Button className="flex-1" onClick={() => nextStep()}>
+                                {(!formData.nombre || !formData.cedula) ? 'Omitir por ahora' : 'Continuar'}
+                            </Button>
                         </div>
                     </div>
                 );
@@ -309,10 +387,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 2: // Logo
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Identidad Institucional</h2>
-                            <p className="text-slate-500 text-sm">Suba el logo que desea que aparezca en el formato de sus recetas (Opcional).</p>
-                        </div>
                         <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl bg-slate-50 dark:bg-slate-900/50 hover:border-blue-400 transition-colors cursor-pointer" onClick={() => document.getElementById('logo-input')?.click()}>
                             <input id="logo-input" type="file" accept="image/*" className="hidden" onChange={e => handleFileChange(e, 'logo')} />
                             {formData.logo ? (
@@ -332,7 +406,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>Continuar</Button>
+                            <Button className="flex-1" onClick={() => nextStep()}>
+                                {!formData.logo ? 'Omitir por ahora' : 'Siguiente'}
+                            </Button>
                         </div>
                     </div>
                 );
@@ -340,10 +416,6 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             case 3: // Consultorio
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Ubicación y Contacto</h2>
-                            <p className="text-slate-500 text-sm">Dirección del consultorio y datos de contacto.</p>
-                        </div>
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Teléfono de contacto</label>
@@ -365,52 +437,72 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                         </div>
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep}>Continuar</Button>
+                            <Button className="flex-1" onClick={() => nextStep()}>
+                                {!formData.telefono ? 'Omitir por ahora' : 'Siguiente'}
+                            </Button>
                         </div>
                     </div>
                 );
 
             case 4: // Diseño
                 return (
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Diseño de Receta</h2>
-                            <p className="text-slate-500 text-sm">Elija una plantilla de nuestra galería o suba su propio diseño de hoja membretada.</p>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className={`cursor-pointer transition-all ${!customDesign && selectedGalleryTemplate ? 'ring-2 ring-blue-500' : ''}`} onClick={() => setCustomDesign(null)}>
-                                <CardContent className="p-4 flex flex-col items-center text-center gap-2 pt-6">
-                                    <Layout className="text-blue-500" size={32} />
-                                    <h3 className="font-bold">Usar Galería</h3>
-                                    <p className="text-xs text-slate-500">Elija entre diseños predeterminados profesionales.</p>
-                                </CardContent>
-                            </Card>
-                            <Card className={`cursor-pointer transition-all ${customDesign ? 'ring-2 ring-blue-500 shadow-lg' : ''}`} onClick={() => document.getElementById('design-input')?.click()}>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button
+                                variant="outline"
+                                className={`h-auto py-3 border-2 flex flex-col sm:flex-row items-center justify-center gap-2 ${!customDesign && selectedGalleryTemplate ? 'border-blue-500 bg-blue-50/50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-slate-50'}`}
+                                onClick={() => {
+                                    setCustomDesign(null);
+                                    setIsGalleryModalOpen(true);
+                                }}
+                            >
+                                <Layout size={20} className={!customDesign && selectedGalleryTemplate ? "text-blue-500" : "text-slate-400"} />
+                                <span className="font-bold text-xs sm:text-sm">Galería</span>
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                className={`h-auto py-3 border-2 flex flex-col sm:flex-row items-center justify-center gap-2 ${customDesign ? 'border-green-500 bg-green-50/50 text-green-700' : 'border-slate-200 text-slate-600 hover:border-green-300 hover:bg-slate-50'}`}
+                                onClick={() => document.getElementById('design-input')?.click()}
+                            >
                                 <input id="design-input" type="file" accept="image/*" className="hidden" onChange={e => handleFileChange(e, 'design')} />
-                                <CardContent className="p-4 flex flex-col items-center text-center gap-2 pt-6">
-                                    <Upload className="text-green-500" size={32} />
-                                    <h3 className="font-bold">Subir Mi Diseño</h3>
-                                    <p className="text-xs text-slate-500">Cargue una imagen de su propia hoja membretada.</p>
-                                </CardContent>
-                            </Card>
+                                <Upload size={20} className={customDesign ? "text-green-500" : "text-slate-400"} />
+                                <span className="font-bold text-xs sm:text-sm">Subir Propia</span>
+                            </Button>
                         </div>
 
                         {customDesign && (
-                            <div className="relative w-full aspect-[8.5/11] border rounded-lg bg-slate-50 overflow-hidden">
+                            <div className="relative w-full aspect-[8.5/11] border rounded-lg bg-slate-50 overflow-hidden shadow-sm">
                                 <Image src={customDesign} alt="Background design" fill className="object-contain" />
                                 <div className="absolute top-2 right-2 flex gap-2">
-                                    <Button size="sm" variant="destructive" onClick={() => setCustomDesign(null)}>Eliminar</Button>
+                                    <Button size="sm" variant="destructive" className="h-8 text-xs" onClick={() => setCustomDesign(null)}>Eliminar</Button>
                                 </div>
                             </div>
                         )}
 
-                        {!customDesign && (
-                            <div className="max-h-[300px] overflow-y-auto border rounded-xl p-4 bg-slate-50 dark:bg-slate-900/50">
-                                <PlantillaGallery onSelectTemplate={(t) => setSelectedGalleryTemplate(t)} />
+                        {!customDesign && selectedGalleryTemplate && (
+                            <div className="border rounded-xl p-4 bg-blue-50/30 dark:bg-blue-900/5 flex flex-col items-center gap-2 border-blue-100 dark:border-blue-900/20">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <CheckCircle2 size={16} className="text-blue-500" />
+                                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Diseño seleccionado</span>
+                                </div>
+                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{selectedGalleryTemplate.name || selectedGalleryTemplate.filename}</div>
+                                <Button variant="ghost" size="sm" onClick={() => setIsGalleryModalOpen(true)} className="h-8 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100/50 mt-1">
+                                    Cambiar diseño
+                                </Button>
                             </div>
                         )}
 
-                        {/* Toggle de Edición Completa */}
+                        {!customDesign && !selectedGalleryTemplate && (
+                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-slate-50/50 dark:bg-slate-900/20">
+                                <Palette size={32} className="text-slate-300 dark:text-slate-700" />
+                                <p className="text-sm text-slate-500 font-medium">No has seleccionado ningún diseño</p>
+                                <Button variant="secondary" size="sm" onClick={() => setIsGalleryModalOpen(true)}>
+                                    Abrir galería
+                                </Button>
+                            </div>
+                        )}
+
                         <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl space-y-3 border border-blue-100 dark:border-blue-900/30">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
@@ -437,119 +529,131 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
                         <div className="flex gap-4 pt-4">
                             <Button variant="ghost" onClick={prevStep}>Atrás</Button>
-                            <Button className="flex-1" onClick={nextStep} disabled={!customDesign && !selectedGalleryTemplate}>
-                                Finalizar configuración
+                            <Button className="flex-1" onClick={() => nextStep()}>
+                                {!customDesign && !selectedGalleryTemplate ? 'Omitir por ahora' : 'Siguiente'}
                             </Button>
                         </div>
                     </div>
                 );
 
-            case 5: // Instalación PWA
-                /**
-                 * Renderiza el paso de invitación a instalar la PWA.
-                 * Se muestra solo si la app no está instalada o estamos en un entorno compatible.
-                 */
+            case 5: // Cuenta (Registro Opcional)
                 return (
                     <div className="space-y-6 animate-in slide-in-from-right duration-500">
-                        <div className="text-center space-y-2">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
-                                <Smartphone className="w-8 h-8" />
-                            </div>
-                            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                Mejora tu experiencia
-                            </h2>
-                            <p className="text-slate-500 max-w-md mx-auto">
-                                Instala la aplicación para tener un <strong>acceso directo en tu dispositivo</strong> y usar RecetaZ sin necesidad de abrir el navegador.
-                            </p>
-                        </div>
-
-                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
-                            {isInstalled ? (
-                                <div className="text-center space-y-4">
-                                    <div className="flex items-center justify-center gap-2 text-green-600 font-bold">
-                                        <Check className="w-5 h-5" />
-                                        <span>¡Ya tienes la aplicación instalada!</span>
-                                    </div>
-                                    <Button className="w-full" onClick={nextStep}>Continuar</Button>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {isIOS ? (
-                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                                            <p className="font-bold mb-2 text-blue-700 dark:text-blue-300">Para instalar en iPhone/iPad:</p>
-                                            <ol className="list-decimal list-inside space-y-1">
-                                                <li>Toca el botón <strong>Compartir</strong> del navegador.</li>
-                                                <li>Busca y selecciona <strong>"Agregar a Inicio"</strong>.</li>
-                                            </ol>
+                        <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                            <CardContent className="p-6 space-y-4">
+                                {authError && (
+                                    <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg flex gap-3 items-start text-xs text-red-800 dark:text-red-300 animate-in fade-in slide-in-from-top-1">
+                                        <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                        <div className="space-y-1">
+                                            <p className="font-bold">Hubo un problema:</p>
+                                            <p>{authError.includes('provider is not enabled')
+                                                ? 'El acceso con Google no está habilitado en tu proyecto de Supabase. Actívalo en el panel de Supabase (Authentication > Providers).'
+                                                : authError}
+                                            </p>
                                         </div>
-                                    ) : hasPrompt ? (
-                                        <Button className="w-full h-12 text-lg font-bold shadow-lg shadow-blue-200 dark:shadow-none animate-pulse" onClick={installApp}>
-                                            <Download className="mr-2 h-5 w-5" /> Instalar Aplicación
-                                        </Button>
+                                    </div>
+                                )}
+
+                                <div className="text-center space-y-2">
+                                    <div className="inline-flex items-center justify-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-full text-blue-600 mb-2">
+                                        <Shield size={32} />
+                                    </div>
+                                    <h3 className="text-lg font-bold">Respaldo Automático</h3>
+                                    <p className="text-sm text-slate-500 max-w-[250px] mx-auto leading-relaxed">
+                                        Sincronice sus recetas con Google Drive y nunca pierda sus datos.
+                                    </p>
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="w-full h-12 gap-3 border-slate-200 hover:bg-slate-50 dark:border-slate-800 hover:dark:bg-slate-800"
+                                    onClick={handleGoogleSignIn}
+                                    disabled={authLoading}
+                                >
+                                    {authLoading ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
                                     ) : (
-                                        <div className="text-center space-y-4 relative">
-                                            <div className="absolute -top-12 right-0 hidden md:block animate-bounce delay-700">
-                                                {/* Flecha indicativa hacia la barra de direcciones */}
-                                                <svg width="60" height="60" viewBox="0 0 100 100" className="text-blue-500 -rotate-12">
-                                                    <path d="M50 80 Q 70 40 90 20" stroke="currentColor" strokeWidth="4" fill="none" markerEnd="url(#arrowhead)" />
-                                                    <defs>
-                                                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-                                                            <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
-                                                        </marker>
-                                                    </defs>
-                                                </svg>
-                                            </div>
-
-                                            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 p-4 rounded-lg text-amber-800 dark:text-amber-200 text-sm">
-                                                <p className="font-bold mb-1 flex items-center justify-center gap-2">
-                                                    <Info size={16} />
-                                                    Instalación manual
-                                                </p>
-                                                <p>
-                                                    Busca el botón <strong>"Instalar"</strong> <span className="hidden md:inline">en la barra de direcciones de tu navegador (arriba a la derecha)</span> o en el menú de opciones.
-                                                </p>
-                                            </div>
-                                        </div>
+                                        <svg className="h-5 w-5" viewBox="0 0 24 24">
+                                            <path
+                                                fill="currentColor"
+                                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                            />
+                                            <path
+                                                fill="currentColor"
+                                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                            />
+                                            <path
+                                                fill="currentColor"
+                                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                            />
+                                            <path
+                                                fill="currentColor"
+                                                d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 6.35l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z"
+                                            />
+                                        </svg>
                                     )}
+                                    <span className="font-bold">Google</span>
+                                </Button>
+                            </CardContent>
+                        </Card>
 
-                                    <div className="pt-2">
-                                        <Button variant="ghost" className="w-full text-slate-400 hover:text-slate-600" onClick={nextStep}>
-                                            Decidir más tarde, continuar ahora
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                        <div className="flex gap-4 pt-4">
+                            <Button variant="ghost" onClick={prevStep} disabled={authLoading}>Atrás</Button>
+                            <Button
+                                variant="ghost"
+                                className="flex-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100/50"
+                                onClick={() => {
+                                    track('onboarding_account_skipped', {}, 'marketing');
+                                    nextStep();
+                                }}
+                                disabled={authLoading}
+                            >
+                                Omitir y continuar
+                            </Button>
                         </div>
                     </div>
                 );
 
             case 6: // Finalizar
+                const summary = [
+                    { label: 'Identidad Profesional', status: formData.nombre && formData.cedula ? 'Listo' : 'Pendiente' },
+                    { label: 'Imagen/Logo', status: formData.logo ? 'Listo' : 'Omitido' },
+                    { label: 'Datos de Contacto', status: formData.telefono ? 'Listo' : 'Pendiente' },
+                    { label: 'Diseño de Receta', status: customDesign || selectedGalleryTemplate ? 'Listo' : 'Pendiente' },
+                    { label: 'Cuenta en la Nube', status: user ? 'Vinculada' : 'Solo Local' },
+                ];
+
                 return (
-                    <div className="space-y-8 text-center py-6">
-                        <div className="flex justify-center">
-                            <div className="bg-green-100 dark:bg-green-900/30 p-6 rounded-full text-green-600 animate-in zoom-in-50 duration-500">
-                                <CheckCircle2 size={64} />
+                    <div className="space-y-6 text-center py-6">
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl text-left border border-slate-100 dark:border-slate-800">
+                            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                                <CheckCircle2 className="text-green-500" size={20} />
+                                Resumen de tu configuración:
+                            </h4>
+                            <div className="space-y-3">
+                                {summary.map((item, idx) => (
+                                    <div key={idx} className="flex justify-between items-center text-sm border-b border-slate-100 dark:border-white/5 pb-2 last:border-0 last:pb-0">
+                                        <span className="text-slate-600 dark:text-slate-400">{item.label}</span>
+                                        <span className={`font-bold ${item.status === 'Listo' || item.status === 'Vinculada' ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                            {item.status}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                                <p className="text-xs text-blue-800 dark:text-blue-300 flex items-start gap-2">
+                                    <Info size={14} className="shrink-0 mt-0.5" />
+                                    <span>Puedes completar o modificar cualquier registro más adelante en la sección de <strong>Configuración</strong> de la aplicación.</span>
+                                </p>
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">¡Todo listo!</h2>
-                            <p className="text-slate-500 dark:text-slate-400">
-                                Hemos configurado su entorno profesional. Podrá cambiar estos datos en cualquier momento desde el panel de ajustes.
-                            </p>
+                        <div className="flex gap-4">
+                            <Button variant="ghost" onClick={prevStep}>Atrás</Button>
+                            <Button size="lg" className="flex-1 h-14 text-lg font-bold" onClick={handleSaveAndComplete} disabled={isLoading}>
+                                {isLoading ? 'Guardando...' : 'Finalizar y empezar'}
+                            </Button>
                         </div>
-                        <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl text-left space-y-3">
-                            <h4 className="font-bold text-blue-900 dark:text-blue-300">Resumen profesional:</h4>
-                            <div className="text-sm space-y-1 text-blue-800 dark:text-blue-200">
-                                <p><strong>Médico:</strong> {formData.nombre}</p>
-                                <p><strong>Cédula:</strong> {formData.cedula}</p>
-                                <p><strong>Especialidad:</strong> {formData.especialidad}</p>
-                                <p><strong>Formato:</strong> {customDesign ? 'Diseño proporcionado' : (selectedGalleryTemplate?.nombre || 'Predeterminado')}</p>
-                                <p><strong>Siguiente paso:</strong> {goToEditor ? 'Personalizar en el editor' : 'Ir al Dashboard'}</p>
-                            </div>
-                        </div>
-                        <Button size="lg" className="w-full h-14 text-lg font-bold" onClick={handleSaveAndComplete} disabled={isLoading}>
-                            {isLoading ? 'Guardando...' : goToEditor ? 'Guardar y personalizar diseño' : 'Comenzar a emitir recetas'}
-                        </Button>
                     </div>
                 );
             default:
@@ -557,24 +661,55 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         }
     };
 
+    const zoylaState = ZOYLA_CONFIG[currentStep] || ZOYLA_CONFIG[0];
+
     return (
-        <div className="max-w-2xl mx-auto min-h-[500px] flex flex-col">
-            {/* Header / Stepper Progress */}
-            <div className="mb-8 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                    {STEPS.map((step, idx) => (
-                        <div
-                            key={idx}
-                            className={`flex flex-col items-center transition-all ${idx <= currentStep ? 'text-blue-600 opacity-100' : 'text-slate-300 opacity-50'}`}
-                        >
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 border-2 transition-all ${idx === currentStep ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : idx < currentStep ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-200 text-slate-300'}`}>
-                                {idx < currentStep ? <CheckCircle2 size={18} /> : React.cloneElement(step.icon as any, { size: 18 })}
+        <div className="w-full max-w-full h-auto flex flex-col p-0 overflow-hidden">
+            {/* Header / Stepper Progress - Mejorado y Clickable */}
+            <div className="mb-4 pt-2">
+                <div className="hidden md:flex items-center justify-between mb-4 px-2">
+                    {STEPS.map((step, idx) => {
+                        const isCompleted = idx < currentStep;
+                        const isCurrent = idx === currentStep;
+                        const isClickable = true; // Habilitamos navegación libre por diseño de wizard moderno
+
+                        return (
+                            <div
+                                key={idx}
+                                className={`flex flex-col items-center gap-2 relative group cursor-pointer transition-all`}
+                                onClick={() => isClickable && goToStep(idx)}
+                            >
+                                {/* Línea de conexión */}
+                                {idx < STEPS.length - 1 && (
+                                    <div className={`absolute top-5 left-1/2 w-full h-[2px] transition-colors -z-10 ${idx < currentStep ? 'bg-blue-600' : 'bg-slate-200'
+                                        }`} />
+                                )}
+
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${isCurrent ? 'bg-blue-600 text-white border-blue-600 scale-110 shadow-lg' :
+                                    isCompleted ? 'bg-white text-blue-600 border-blue-600' :
+                                        'bg-white text-slate-300 border-slate-200'
+                                    }`}>
+                                    {isCompleted ? <Check size={20} /> : React.cloneElement(step.icon as any, { size: 20 })}
+                                </div>
+                                <div className="text-center">
+                                    <span className={`text-xs font-bold block ${isCurrent ? 'text-blue-700' : 'text-slate-500'}`}>
+                                        {step.title}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 hidden lg:block">
+                                        {step.description}
+                                    </span>
+                                </div>
                             </div>
-                            <span className="text-[10px] font-bold hidden sm:block uppercase tracking-wider">{step.title}</span>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
-                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+
+                {/* Header Móvil Simple */}
+                <div className="md:hidden flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-slate-500">Paso {currentStep + 1} de {STEPS.length}</span>
+                    <span className="text-sm font-bold text-blue-600">{STEPS[currentStep].title}</span>
+                </div>
+                <div className="flex md:hidden h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <motion.div
                         className="h-full bg-blue-600"
                         initial={{ width: 0 }}
@@ -584,21 +719,89 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </div>
             </div>
 
-            {/* Content Area with Animation */}
-            <div className="flex-1 overflow-hidden relative p-1">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentStep}
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -20, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="h-full"
-                    >
-                        {renderStepContent()}
-                    </motion.div>
-                </AnimatePresence>
+            {/* Main Layout con Dra. Zoyla */}
+            {/* INVERTIDO: Columna Izquierda = Formulario, Columna Derecha = Avatar */}
+            <div className="flex flex-col-reverse md:flex-row gap-6 items-start mt-2 w-full max-w-full overflow-hidden">
+                {/* Columna Izquierda: Bocadillo + Formulario */}
+                <div className="w-full md:w-2/3 flex flex-col gap-4 min-w-0">
+                    {/* Bocadillo en flujo normal */}
+                    <div className="w-full md:max-w-[90%]">
+                        <Bocadillo
+                            direction={bocadilloDirection}
+                            className="text-sm md:text-base shadow-sm border-blue-100"
+                        >
+                            <p className="font-medium leading-relaxed">
+                                {zoylaState.text}
+                            </p>
+                        </Bocadillo>
+                    </div>
+
+                    <div className="bg-white dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm min-w-0 w-full flex flex-col">
+                        <div className="mb-6 border-b border-slate-100 dark:border-white/5 pb-4">
+                            <h2 className="text-2xl font-bold flex items-center gap-2">
+                                {STEPS[currentStep].icon}
+                                {STEPS[currentStep].title}
+                            </h2>
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentStep}
+                                initial={{ x: 20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                exit={{ x: -20, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="w-full min-w-0 flex-1"
+                            >
+                                {renderStepContent()}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </div>
+
+                {/* Columna Derecha: Dra. Zoyla */}
+                <div className="w-full md:w-1/3 flex flex-col items-center sticky top-4 min-w-0 overflow-hidden">
+                    <div className="relative">
+                        {/* Personaje */}
+                        <div className="transform scale-[0.6] md:scale-[0.85] origin-top md:origin-top-center -mt-8 md:mt-0">
+                            <DraZoylaAvatar
+                                pose={zoylaState.pose}
+                                className={zoylaState.flipped ? "scale-x-[-1]" : ""}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* Modal de Galería de Plantillas */}
+            <Dialog open={isGalleryModalOpen} onOpenChange={setIsGalleryModalOpen}>
+                <DialogContent className="max-w-[95vw] w-full lg:max-w-4xl p-0 overflow-hidden bg-white dark:bg-slate-950 border-none shadow-2xl z-[300]">
+                    <DialogHeader className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            <Layout className="text-blue-500" size={24} />
+                            Selecciona tu diseño profesional
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="p-6 overflow-x-hidden">
+                        <div className="mb-4 text-sm text-slate-500">
+                            Elige el estilo que mejor represente tu práctica médica. Podrás personalizarlo más adelante.
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-900/30 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                            <PlantillaGallery
+                                onSelectTemplate={(t) => {
+                                    setSelectedGalleryTemplate(t);
+                                    setCustomDesign(null);
+                                    // No cerramos inmediatamente para que vea la selección, o cerramos tras un pequeño delay
+                                    setTimeout(() => setIsGalleryModalOpen(false), 400);
+                                }}
+                                selectedTemplate={selectedGalleryTemplate}
+                            />
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

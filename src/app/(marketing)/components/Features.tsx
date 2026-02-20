@@ -1,10 +1,14 @@
+"use client";
+
 import { Sparkles, Brain, Lock, FileEdit, TrendingUp, HardDrive } from "lucide-react"
+import { useMetrics } from "@/shared/hooks/useMetrics";
 
 /**
  * Sección de características principales de RecetaZ.
  * Enfocada en los beneficios específicos y dolores que resuelve para médicos.
  */
 export function Features() {
+  const { trackMarketing } = useMetrics();
   const features = [
     {
       icon: <FileEdit className="h-6 w-6 text-blue-600" />,
@@ -15,23 +19,23 @@ export function Features() {
     },
     {
       icon: <Brain className="h-6 w-6 text-blue-600" />,
-      title: "Autocompletado Inteligente",
+      title: "Autocompletado de Historial",
       pain: "¿Repetir datos de medicamentos, diagnósticos y pacientes cada vez?",
-      description: "El sistema aprende tus patrones. Escribe 'gastro...' y sugiere el tratamiento que usaste antes. Un click y listo.",
+      description: "Recuerda lo que escribiste anteriormente. Escribe 'gastro...' y muestra lo que usaste antes. Un click y listo.",
       benefit: "Más tiempo a tu consulta, menos al generar la receta"
     },
     {
       icon: <Sparkles className="h-6 w-6 text-blue-600" />,
-      title: "Asociación Diagnóstico-Medicamento",
+      title: "Historial de Diagnósticos",
       pain: "¿Qué recetaste la última vez?",
-      description: "RecetaZ asocia automáticamente diagnósticos con medicamentos. Selecciona 'Cólera' y aparecen los medicamentos que usaste.",
+      description: "RecetaZ permite consultar rápidamente tus diagnósticos y medicamentos previos. Selecciona 'Cólera' y ve lo que usaste.",
       benefit: "Cero errores de memoria"
     },
     {
       icon: <Lock className="h-6 w-6 text-blue-600" />,
-      title: "Privacidad Total (COFEPRIS)",
+      title: "Seguridad y Normativa",
       pain: "¿Preocupado por datos en la nube?",
-      description: "Todo se guarda localmente en tu dispositivo con encriptación AES-256. Tú eres el único con acceso. Cumplimiento garantizado.",
+      description: "Todo se guarda localmente en tu dispositivo con encriptación AES-256. Tú eres el único con acceso. Diseñado conforme a normas.",
       benefit: "Tranquilidad legal"
     },
     {
@@ -54,7 +58,7 @@ export function Features() {
     <section className="py-20 bg-white dark:bg-slate-800" id="features">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tighter text-balance">
             Características que <span className="text-blue-600 dark:text-blue-500">optimizan tu consulta</span>
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
@@ -66,7 +70,8 @@ export function Features() {
           {features.map((feature, i) => (
             <div
               key={i}
-              className="bg-slate-50/50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-blue-500/20 dark:hover:border-blue-500/30 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group"
+              onClick={() => trackMarketing('lp_feature_card_clicked', { feature: feature.title })}
+              className="bg-slate-50/50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-blue-500/20 dark:hover:border-blue-500/30 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group cursor-pointer"
             >
               <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 w-14 h-14 flex items-center justify-center rounded-2xl group-hover:bg-blue-600 group-hover:scale-110 shadow-sm transition-all duration-300">
                 <div className="group-hover:text-white transition-colors">

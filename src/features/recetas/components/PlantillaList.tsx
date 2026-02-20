@@ -6,9 +6,10 @@ import { plantillaService } from "@/features/recetas/services/plantilla.service"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
 import { Plus, Edit, Trash2, CheckCircle, FileText } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/shared/components/ui/use-toast"
+import Link from "next/link";
+
+import { useRouter } from "next/navigation";
+import { useToast } from "@/shared/components/ui/use-toast";
 import {
     AlertDialog,
     AlertDialogAction,

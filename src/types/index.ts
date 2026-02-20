@@ -3,6 +3,7 @@ export interface Paciente {
     nombre: string;
     edad?: number;
     fechaNacimiento?: Date;
+    telefono?: string;
     alergias?: string;
     antecedentes?: string;
     peso?: string; // Permitir "70 kg" o solo "70"
@@ -25,6 +26,8 @@ export interface MedicoConfig {
     institucion_gral?: string;
     correo?: string;
     logo?: string; // Base64 string de imagen del logo institucional
+    /** Preferencia del médico para guardar diagnósticos y medicamentos al registrar recetas */
+    recordarDiagnostico?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -85,6 +88,7 @@ export type PacienteFormData = {
     nombre: string;
     edad?: number;
     fechaNacimiento?: Date;
+    telefono?: string;
     alergias?: string;
     antecedentes?: string;
     peso?: string;
@@ -256,6 +260,7 @@ export interface DiagnosticoCatalogo {
     especialidad?: string[]; // Especialidades relacionadas
     palabrasClave?: string[]; // Tokens normalizados para búsqueda
     vecesUsado?: number;  // Contador de veces que se ha usado en recetas
+    medicamentosSugeridos?: Partial<Medicamento>[]; // Medicamentos que el médico suele recetar para este diagnóstico
 }
 
 /**

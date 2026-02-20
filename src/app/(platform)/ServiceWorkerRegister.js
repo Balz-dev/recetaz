@@ -8,10 +8,11 @@ export default function ServiceWorkerRegister() {
 
         if (
             typeof window !== 'undefined' &&
-            'serviceWorker' in navigator
+            'serviceWorker' in navigator &&
+            process.env.NODE_ENV !== 'development'
         ) {
             console.log('✓ Service Worker API available');
-            console.log('✓ Registering SW immediately...');
+            console.log('✓ Registering SW...');
 
             navigator.serviceWorker
                 .register('/sw.js')

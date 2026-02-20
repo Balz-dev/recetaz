@@ -7,189 +7,121 @@ import { Button } from "@/shared/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
+    FormDescription,
 } from "@/shared/components/ui/form"
 import { Input } from "@/shared/components/ui/input"
 import { Textarea } from "@/shared/components/ui/textarea"
-import { useState, useRef, useEffect } from "react"
-import { useToast } from "@/shared/components/ui/use-toast"
-import { SpecialtySelect } from "@/shared/components/catalog/SpecialtySelect"
 import { medicoService } from "@/features/config-medico/services/medico.service"
-import { Loader2, Save, Upload, X } from "lucide-react"
+import { MedicoConfig } from "@/types"
+import { useEffect, useState, useRef } from "react"
+import { useToast } from "@/shared/components/ui/use-toast"
+import { Loader2, Save, X, Upload } from "lucide-react"
 import Image from "next/image"
-import { MedicoConfig, EspecialidadCatalogo } from "@/types"
-import { db } from "@/shared/db/db.config"
+import { SpecialtySelect } from "@/shared/components/catalog/SpecialtySelect"
+import { cn } from "@/shared/lib/utils"
 
-type MedicoConfigFormDataWithoutLogo = Omit<MedicoConfig, 'id' | 'createdAt' | 'updatedAt' | 'logo'>;
-
-// Esquema de validación con Zod
-const medicoFormSchema = z.object({
+const medicoConfigSchema = z.object({
     nombre: z.string().min(2, {
-        message: "El nombre debe tener al menos 2 caracteres.",
+        message: "El nombre es requerido.",
     }),
     especialidad: z.string().min(2, {
         message: "La especialidad es requerida.",
     }),
-    especialidadKey: z.string().optional(),
+    especialidadKey: z.string().min(1, {
+        message: "Seleccione una especialidad válida.",
+    }),
     cedula: z.string().min(5, {
         message: "La cédula es requerida.",
     }),
-    telefono: z.string().min(8, {
-        message: "El teléfono debe tener al menos 8 caracteres.",
+    telefono: z.string().min(5, {
+        message: "El teléfono es requerido.",
     }),
     direccion: z.string().optional(),
+    logo: z.string().optional(),
 })
 
 interface MedicoConfigFormProps {
-    onSuccess?: () => void;
-    hideSubmitButton?: boolean;
-    onLoadingChange?: (loading: boolean) => void;
+    initialData?: MedicoConfig | null
+    onCancel?: () => void
+    onSuccess?: () => void
+    onLoadingChange?: (loading: boolean) => void
+    hideSubmitButton?: boolean
 }
 
-export function MedicoConfigForm({ onSuccess, hideSubmitButton = false, onLoadingChange }: MedicoConfigFormProps) {
+export function MedicoConfigForm({ initialData, onCancel, onSuccess, onLoadingChange, hideSubmitButton = false }: MedicoConfigFormProps) {
     const [isLoading, setIsLoading] = useState(false)
-    const [logoPreview, setLogoPreview] = useState<string | null>(null)
-    const [logoBase64, setLogoBase64] = useState<string | undefined>(undefined)
-    const [especialidades, setEspecialidades] = useState<EspecialidadCatalogo[]>([])
+    const [logoPreview, setLogoPreview] = useState<string | null>(initialData?.logo || null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { toast } = useToast()
 
-    // Inicializar formulario
-    const form = useForm<MedicoConfigFormDataWithoutLogo>({
-        resolver: zodResolver(medicoFormSchema),
+    const form = useForm<z.infer<typeof medicoConfigSchema>>({
+        resolver: zodResolver(medicoConfigSchema),
         defaultValues: {
-            nombre: "",
-            especialidad: "",
-            especialidadKey: "general",
-            cedula: "",
-            telefono: "",
-            direccion: "",
+            nombre: initialData?.nombre || "",
+            especialidad: initialData?.especialidad || "",
+            especialidadKey: initialData?.especialidadKey || "",
+            cedula: initialData?.cedula || "",
+            telefono: initialData?.telefono || "",
+            direccion: initialData?.direccion || "",
+            logo: initialData?.logo || "",
         },
     })
 
-    // Cargar especialidades desde IndexedDB
     useEffect(() => {
-        const loadEspecialidades = async () => {
-            try {
-                console.log('MedicoConfigForm: Intentando cargar especialidades...');
-                const specs = await db.especialidades.toArray();
-                console.log('MedicoConfigForm: Especialidades cargadas:', specs.length, specs);
-                setEspecialidades(specs);
-
-                // Establecer especialidad por defecto si hay especialidades cargadas
-                if (specs.length > 0) {
-                    const defaultSpec = specs.find(s => s.id === 'general') || specs[0];
-                    console.log('MedicoConfigForm: Estableciendo especialidad por defecto:', defaultSpec);
-                    form.setValue('especialidad', defaultSpec.label);
-                    form.setValue('especialidadKey', defaultSpec.id);
-                } else {
-                    console.warn('MedicoConfigForm: No se encontraron especialidades en IndexedDB');
-                }
-            } catch (error) {
-                console.error("Error cargando especialidades:", error);
-            }
-        };
-        loadEspecialidades();
-    }, [form]);
-
-    // Cargar datos existentes al montar
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const data = await medicoService.get()
-                if (data) {
-                    form.reset({
-                        nombre: data.nombre,
-                        especialidad: data.especialidad,
-                        especialidadKey: data.especialidadKey || "general",
-                        cedula: data.cedula,
-                        telefono: data.telefono,
-                        direccion: data.direccion || "",
-                    })
-                    if (data.logo) {
-                        setLogoPreview(data.logo)
-                        setLogoBase64(data.logo)
-                    }
-                }
-            } catch (error) {
-                console.error("Error cargando datos del médico:", error)
-            }
+        if (initialData) {
+            form.reset(initialData)
+            setLogoPreview(initialData.logo || null)
         }
-        loadData()
-    }, [form])
+    }, [initialData, form])
 
-    // Convertir imagen a Base64
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
-        if (!file) return
+        if (file) {
+            if (file.size > 500 * 1024) {
+                toast({
+                    title: "Imagen demasiado grande",
+                    description: "El tamaño máximo es de 500KB.",
+                    variant: "destructive",
+                })
+                return
+            }
 
-        // Validar tamaño (máx 500KB)
-        if (file.size > 500 * 1024) {
-            toast({
-                title: "Archivo muy grande",
-                description: "El logo debe ser menor a 500KB",
-                variant: "destructive",
-            })
-            return
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                const base64String = reader.result as string
+                setLogoPreview(base64String)
+                form.setValue("logo", base64String)
+            }
+            reader.readAsDataURL(file)
         }
-
-        // Validar tipo
-        if (!file.type.startsWith('image/')) {
-            toast({
-                title: "Formato inválido",
-                description: "Solo se permiten imágenes",
-                variant: "destructive",
-            })
-            return
-        }
-
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            const base64String = reader.result as string
-            setLogoPreview(base64String)
-            setLogoBase64(base64String)
-        }
-        reader.readAsDataURL(file)
     }
 
-    // Eliminar logo
     const handleRemoveLogo = () => {
         setLogoPreview(null)
-        setLogoBase64(undefined)
+        form.setValue("logo", "")
         if (fileInputRef.current) {
-            fileInputRef.current.value = ''
+            fileInputRef.current.value = ""
         }
     }
 
-    async function onSubmit(values: MedicoConfigFormDataWithoutLogo) {
+    const onSubmit = async (values: z.infer<typeof medicoConfigSchema>) => {
         setIsLoading(true)
         onLoadingChange?.(true)
         try {
-            // Asegurar que el nombre de la especialidad coincida con la key seleccionada
-            const selectedSpecialty = especialidades.find(e => e.id === (values.especialidadKey || 'general'));
-            const especialidadLabel = selectedSpecialty ? selectedSpecialty.label : values.especialidad;
-
-            await medicoService.save({
-                ...values,
-                especialidad: especialidadLabel,
-                logo: logoBase64,
-            })
+            await medicoService.save(values)
             toast({
                 title: "Configuración guardada",
-                description: "Los datos del médico han sido actualizados correctamente.",
+                description: "Tus datos se han actualizado correctamente.",
             })
-            if (onSuccess) {
-                onSuccess();
-            }
+            onSuccess?.()
         } catch (error) {
-            console.error(error)
             toast({
                 title: "Error",
-                description: "Hubo un problema al guardar la configuración.",
+                description: "Hubo un problema al guardar los cambios.",
                 variant: "destructive",
             })
         } finally {
@@ -200,156 +132,165 @@ export function MedicoConfigForm({ onSuccess, hideSubmitButton = false, onLoadin
 
     return (
         <Form {...form}>
-            <form id="medico-config-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Logo Institucional */}
-                <div className="space-y-4">
-                    <div>
-                        <label className="text-sm font-medium">Logo Institucional (Opcional)</label>
-                        <p className="text-sm text-muted-foreground">Aparecerá en las recetas PDF. Tamaño máximo: 500KB</p>
+            <form id="medico-config-form" onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col h-[75vh]", !onCancel && "h-auto space-y-6")}>
+                <div className={cn("flex-1 overflow-y-auto p-6 pt-0 space-y-6", !onCancel && "overflow-visible p-0")}>
+                    {/* Logo Institucional */}
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-sm font-medium">Logo Institucional (Opcional)</label>
+                            <p className="text-sm text-muted-foreground">Aparecerá en las recetas PDF. Tamaño máximo: 500KB</p>
+                        </div>
+
+                        {logoPreview ? (
+                            <div className="flex items-start gap-4">
+                                <div className="relative w-32 h-32 border border-gray-300 rounded-lg overflow-hidden bg-white">
+                                    <Image
+                                        src={logoPreview}
+                                        alt="Logo preview"
+                                        fill
+                                        className="object-contain p-2"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={handleRemoveLogo}
+                                >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Eliminar
+                                </Button>
+                            </div>
+                        ) : (
+                            <div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleLogoChange}
+                                    className="hidden"
+                                    id="logo-upload"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Subir Logo
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
-                    {logoPreview ? (
-                        <div className="flex items-start gap-4">
-                            <div className="relative w-32 h-32 border border-gray-300 rounded-lg overflow-hidden bg-white">
-                                <Image
-                                    src={logoPreview}
-                                    alt="Logo preview"
-                                    fill
-                                    className="object-contain p-2"
-                                />
-                            </div>
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                onClick={handleRemoveLogo}
-                            >
-                                <X className="h-4 w-4 mr-2" />
-                                Eliminar
-                            </Button>
-                        </div>
-                    ) : (
-                        <div>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleLogoChange}
-                                className="hidden"
-                                id="logo-upload"
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                <Upload className="h-4 w-4 mr-2" />
-                                Subir Logo
-                            </Button>
-                        </div>
-                    )}
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                            control={form.control}
+                            name="nombre"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nombre Completo</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Dr. Juan Pérez" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                            control={form.control}
+                            name="especialidadKey"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Especialidad</FormLabel>
+                                    <FormControl>
+                                        <SpecialtySelect
+                                            value={field.value}
+                                            onValueChange={(key, label) => {
+                                                field.onChange(key);
+                                                form.setValue('especialidad', label);
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="cedula"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Cédula Profesional</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="12345678" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="telefono"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Teléfono</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="+52 55 1234 5678" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
                     <FormField
                         control={form.control}
-                        name="nombre"
+                        name="direccion"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Nombre Completo</FormLabel>
+                                <FormLabel>Dirección del Consultorio (Opcional)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Dr. Juan Pérez" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="especialidadKey"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Especialidad</FormLabel>
-                                <FormControl>
-                                    <SpecialtySelect
-                                        value={field.value}
-                                        onValueChange={(key, label) => {
-                                            field.onChange(key);
-                                            form.setValue('especialidad', label);
-                                        }}
+                                    <Textarea
+                                        placeholder="Av. Principal #123, Col. Centro"
+                                        className="resize-none"
+                                        {...field}
                                     />
                                 </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="cedula"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Cédula Profesional</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="12345678" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="telefono"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Teléfono</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="+52 55 1234 5678" {...field} />
-                                </FormControl>
+                                <FormDescription>
+                                    Esta dirección aparecerá en el pie de página de las recetas.
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
                 </div>
 
-                <FormField
-                    control={form.control}
-                    name="direccion"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Dirección del Consultorio (Opcional)</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                    placeholder="Av. Principal #123, Col. Centro"
-                                    className="resize-none"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormDescription>
-                                Esta dirección aparecerá en el pie de página de las recetas.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {!hideSubmitButton && (
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Guardando...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Guardar Configuración
-                            </>
+                    <div className={cn("flex flex-row-reverse items-center justify-start gap-4 p-6 border-t sticky bottom-0 bg-background z-10", !onCancel && "relative border-t-0 p-0")}>
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all active:scale-95 text-white">
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Guardar Configuración
+                                </>
+                            )}
+                        </Button>
+                        {onCancel && (
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100">
+                                Cancelar
+                            </Button>
                         )}
-                    </Button>
+                    </div>
                 )}
             </form>
         </Form>

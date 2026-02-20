@@ -1,0 +1,50 @@
+
+> recetaz-app@1.0.0 build /mnt/HOME/Proyectos/recetaz
+> next build --webpack
+
+   ▲ Next.js 16.0.7 (webpack)
+
+   Creating an optimized production build ...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /mnt/HOME/Proyectos/recetaz/node_modules/.pnpm/next-pwa@5.6.0_@babel+core@7.28.5_@types+babel__core@7.20.5_next@16.0.7_@babel+core@7.2_35252d86ef453300439b3808aec3a5a4/node_modules/next-pwa/register.js
+> [PWA] Service worker: /mnt/HOME/Proyectos/recetaz/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+ ✓ Compiled successfully in 19.0s
+   Running TypeScript ...
+   Collecting page data using 7 workers ...
+   Generating static pages using 7 workers (0/18) ...
+   Generating static pages using 7 workers (4/18) 
+   Generating static pages using 7 workers (8/18) 
+   Generating static pages using 7 workers (13/18) 
+ ✓ Generating static pages using 7 workers (18/18) in 2.7s
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /configuracion
+├ ○ /dashboard
+├ ○ /demo
+├ ○ /dev-utils
+├ ○ /diagnosticos
+├ ○ /medicamentos
+├ ○ /pacientes
+├ ƒ /pacientes/[id]
+├ ○ /recetas
+├ ƒ /recetas/[id]
+├ ○ /recetas/plantillas
+├ ƒ /recetas/plantillas/[id]
+├ ○ /recetas/plantillas/nueva
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /test-db
+└ ○ /test-receta
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

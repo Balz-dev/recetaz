@@ -31,12 +31,14 @@ import { useToast } from "@/shared/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Loader2, Save } from "lucide-react"
+import { cn } from "@/shared/lib/utils"
 
 const pacienteFormSchema = z.object({
     nombre: z.string().min(2, {
         message: "El nombre es requerido.",
     }),
     edad: z.number().optional(),
+    telefono: z.string().optional(),
     peso: z.string().optional(),
     talla: z.string().optional(),
     alergias: z.string().optional(),
@@ -72,6 +74,7 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
             nombre: initialData?.nombre || "",
             edad: initialData?.edad,
             fechaNacimiento: initialData?.fechaNacimiento,
+            telefono: initialData?.telefono || "",
             peso: initialData?.peso || "",
             talla: initialData?.talla || "",
             alergias: initialData?.alergias || "",
@@ -212,181 +215,189 @@ export function PacienteForm({ initialData, isEditing = false, afterSave, onCanc
     };
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {!onCancel && (
-                    <div className="flex items-center gap-4 mb-6">
-                        <Link href="/pacientes">
-                            <Button variant="ghost" size="icon" type="button">
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                        </Link>
-                        <h2 className="text-xl font-semibold">
-                            {isEditing ? "Editar Paciente" : "Nuevo Paciente"}
-                        </h2>
+        <div className={cn(!onCancel && "p-6 pt-0")}>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className={cn(onCancel ? "flex flex-col flex-1 min-h-0" : "space-y-6")}>
+                    <div className={cn(onCancel ? "flex-1 overflow-y-auto p-6 space-y-6" : "space-y-6")}>
+
+                        {/* Datos Personales */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="nombre"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Nombre Completo *</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nombre del paciente" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="telefono"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Teléfono / WhatsApp</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: 5512345678" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid grid-cols-12 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="fechaNacimiento"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-12 md:col-span-8">
+                                            <FormLabel className="text-xs font-bold text-slate-500">Fecha Nacimiento</FormLabel>
+                                            <FormControl>
+                                                <DateInput
+                                                    value={field.value}
+                                                    onDateChange={(date) => {
+                                                        field.onChange(date);
+                                                        onDateChange(date);
+                                                    }}
+                                                    className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="edad"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-12 md:col-span-4">
+                                            <FormLabel className="text-xs font-bold text-slate-500">Edad</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    {...field}
+                                                    value={field.value ?? ""}
+                                                    onChange={onAgeChange}
+                                                    className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+
+                            <FormField
+                                control={form.control}
+                                name="peso"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Peso (kg)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: 75" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="talla"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Talla (cm/m)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: 1.75" {...field} className="rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+
+
+                        {/* Campos Dinámicos - Datos Médicos */}
+                        {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_medicos') && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
+                                <div className="md:col-span-2 font-medium text-slate-700">Información Médica Adicional</div>
+                                {specialtyConfig.patientFields
+                                    .filter((f: any) => f.section === 'datos_medicos')
+                                    .map(renderDynamicField)}
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="alergias"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-bold text-red-600">Alergias</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Lista de alergias conocidas..."
+                                                className="resize-none border-red-100 focus:border-red-400 rounded-xl bg-red-50/30"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="antecedentes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs font-bold text-slate-500">Antecedentes Médicos</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Enfermedades crónicas, cirugías previas..."
+                                                className="resize-none rounded-xl border-slate-200 focus:border-blue-500 bg-slate-50/50"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
-                )}
 
-                {/* Campos Dinámicos - Datos Personales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="nombre"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Nombre Completo *</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Nombre del paciente" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <div className="grid grid-cols-12 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="fechaNacimiento"
-                            render={({ field }) => (
-                                <FormItem className="col-span-12 md:col-span-8">
-                                    <FormLabel>Fecha Nacimiento</FormLabel>
-                                    <FormControl>
-                                        <DateInput
-                                            value={field.value}
-                                            onDateChange={(date) => {
-                                                field.onChange(date);
-                                                onDateChange(date);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="edad"
-                            render={({ field }) => (
-                                <FormItem className="col-span-12 md:col-span-4">
-                                    <FormLabel>Edad</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            {...field}
-                                            value={field.value ?? ""}
-                                            onChange={onAgeChange}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-
-                    <FormField
-                        control={form.control}
-                        name="peso"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Peso (kg)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ej: 75" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="talla"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Talla (cm/m)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ej: 1.75" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-
-
-                {/* Campos Dinámicos - Datos Médicos */}
-                {specialtyConfig?.patientFields.some((f: any) => f.section === 'datos_medicos') && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-lg border">
-                        <div className="md:col-span-2 font-medium text-slate-700">Información Médica Adicional</div>
-                        {specialtyConfig.patientFields
-                            .filter((f: any) => f.section === 'datos_medicos')
-                            .map(renderDynamicField)}
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="alergias"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-red-600 font-medium">Alergias</FormLabel>
-                                <FormControl>
-                                    <Textarea
-                                        placeholder="Lista de alergias conocidas..."
-                                        className="resize-none border-red-100 focus:border-red-400"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="antecedentes"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Antecedentes Médicos</FormLabel>
-                                <FormControl>
-                                    <Textarea
-                                        placeholder="Enfermedades crónicas, cirugías previas..."
-                                        className="resize-none"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <div className="flex justify-end gap-4">
-                    {onCancel ? (
-                        <Button variant="outline" type="button" onClick={onCancel}>Cancelar</Button>
-                    ) : (
-                        <Link href="/pacientes">
-                            <Button variant="outline" type="button">Cancelar</Button>
-                        </Link>
-                    )}
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Guardando...
-                            </>
+                    <div className={cn("flex items-center gap-4", onCancel ? "p-6 pt-4 bg-white border-t border-slate-100 flex-col-reverse sm:flex-row sm:justify-end sm:gap-3" : "flex-row-reverse justify-start")}>
+                        {onCancel ? (
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
                         ) : (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Guardar Paciente
-                            </>
+                            <Link href="/pacientes">
+                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
+                            </Link>
                         )}
-                    </Button>
-                </div>
-            </form>
-        </Form >
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xl shadow-blue-200 transition-all active:scale-95 text-white px-10 font-bold h-11">
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    {isEditing ? "Guardar Cambios" : "Guardar Paciente"}
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </form>
+            </Form>
+        </div>
     )
 }

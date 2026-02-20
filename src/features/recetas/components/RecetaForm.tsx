@@ -42,6 +42,8 @@ import { medicoService } from "@/features/config-medico/services/medico.service"
 import { db } from "@/shared/db/db.config"
 import { Switch } from "@/shared/components/ui/switch"
 import { Label } from "@/shared/components/ui/label"
+import { useMetrics } from "@/shared/hooks/useMetrics"
+import { cn } from "@/shared/lib/utils"
 
 const medicamentoSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -110,13 +112,14 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     const { toast } = useToast()
     const router = useRouter()
+    const { track, trackMarketing } = useMetrics()
 
     const form = useForm<RecetaFormData>({
         resolver: zodResolver(recetaFormSchema),
         defaultValues: {
             pacienteId: preSelectedPacienteId || undefined,
             pacienteNombre: "",
-            pacienteEdad: undefined,
+            pacienteEdad: 0,
             pacienteFechaNacimiento: undefined,
             pacientePeso: "",
             pacienteTalla: "",
@@ -153,18 +156,37 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     useEffect(() => {
         loadPacientes()
-        // Cargar configuración de especialidad desde BD
+        // Cargar configuración de especialidad y preferencia del toggle desde BD
         const loadConfig = async () => {
             try {
+                // Esperar a que Dexie esté listo
+                await db.open().catch(() => { }); // Ignorar si ya está abierto
+
                 const config = await medicoService.get();
+
+                // Restaurar preferencia del toggle: default = true si nunca se guardó
+                if (config && config.recordarDiagnostico !== undefined) {
+                    setSaveDiagnosis(config.recordarDiagnostico);
+                }
+
                 if (config && config.especialidadKey) {
-                    const spConfig = await db.especialidades.get(config.especialidadKey);
-                    if (spConfig) {
-                        // Adaptar para mantener compatibilidad si recetaz usa specialtyName (bug fix/improvement)
-                        setSpecialtyConfig({ ...spConfig, specialtyName: spConfig.label });
-                    } else {
-                        const generalConfig = await db.especialidades.get('general');
-                        setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
+                    try {
+                        const spConfig = await db.especialidades.get(config.especialidadKey);
+                        if (spConfig) {
+                            setSpecialtyConfig({ ...spConfig, specialtyName: spConfig.label });
+                        } else {
+                            const generalConfig = await db.especialidades.get('general');
+                            setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label || 'General' });
+                        }
+
+                        // Detectar pediatría
+                        if (config.especialidadKey === 'pediatria' || config.especialidad?.toLowerCase().includes('pediatra')) {
+                            setIsPediatric(true);
+                        }
+                    } catch (dbError) {
+                        console.error("Error accediendo a especialidades:", dbError);
+                        // Fallback: configuración mínima para permitir funcionamiento
+                        setSpecialtyConfig({ specialtyName: 'General', prescriptionFields: [], patientFields: [] });
                     }
 
                     // Detectar pediatría
@@ -172,11 +194,18 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                         setIsPediatric(true);
                     }
                 } else {
-                    const generalConfig = await db.especialidades.get('general');
-                    setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label });
+                    try {
+                        const generalConfig = await db.especialidades.get('general');
+                        setSpecialtyConfig({ ...(generalConfig || {}), specialtyName: generalConfig?.label || 'General' });
+                    } catch (dbError) {
+                        console.error("Error cargando config general:", dbError);
+                        setSpecialtyConfig({ specialtyName: 'General', prescriptionFields: [], patientFields: [] });
+                    }
                 }
             } catch (error) {
                 console.error("Error cargando configuración de especialidad:", error);
+                // Fallback crítico: permitir que el formulario funcione sin campos dinámicos
+                setSpecialtyConfig({ specialtyName: 'General', prescriptionFields: [], patientFields: [] });
             }
         };
         loadConfig();
@@ -358,6 +387,11 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             const bestMsg = suggestions[0];
             if (bestMsg.usoCount >= 10 || diagnostico.codigo) { // Si hay código oficial, asumimos estándar, o si es muy usado
                 applyTreatment(bestMsg);
+                // Track valor: uso de tratamiento sugerido (Ahorro de tiempo)
+                track('treatment_auto_applied', {
+                    diagnostico: bestMsg.nombreTratamiento,
+                    medCount: bestMsg.medicamentos.length
+                }, 'marketing');
                 toast({
                     title: "Tratamiento sugerido cargado",
                     description: `Se aplicó el protocolo: ${bestMsg.nombreTratamiento}`,
@@ -472,6 +506,12 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
             form.setValue(`medicamentos.${index}.indicaciones`, medicamento.indicacionesDefault, { shouldValidate: true })
         }
 
+        // Track valor: uso de autocompletado de medicamentos
+        track('autocomplete_used', {
+            medicamento: medicamento.nombre,
+            hasDefaults: !!medicamento.dosisDefault
+        });
+
         setMedicamentoSuggestions([])
         setActiveMedicamentoIndex(null)
     }
@@ -567,22 +607,36 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 pacienteData
             )
 
-            // 2. Aprender tratamiento (Gestión de diagnóstico centralizada en servicio)
+            // 2. Aprender tratamiento y actualizar catálogos (si el toggle está activo)
             const diagInput = values.diagnostico.trim();
             const codeMatch = diagInput.match(/\(([^)]+)\)$/);
             // Pasar el código si existe, o el nombre completo si es nuevo
             const diagIdentifier = codeMatch ? codeMatch[1] : diagInput;
+            // Nombre sin el sufijo del código para crear diagnósticos personalizados
+            const diagNombre = codeMatch ? diagInput.replace(/\s*\([^)]+\)$/, '') : diagInput;
 
             try {
-                // Solo aprender si el toggle está activado
+                // Solo aprender y actualizar catálogos si el toggle está activado
                 if (saveDiagnosis) {
-                    // Esperar a que el aprendizaje se complete para asegurar consistencia
+                    // 2a. Actualizar vecesUsado en la tabla de diagnósticos
+                    await diagnosticoService.incrementarUsoPorIdentificador(
+                        diagIdentifier,
+                        diagNombre,
+                        specialtyConfig?.specialtyName
+                    );
+
+                    // 2b. Actualizar vecesUsado en la tabla de medicamentos
+                    await Promise.all(
+                        values.medicamentos.map(m =>
+                            medicamentoService.incrementarUsoPorNombre(m.nombre)
+                        )
+                    );
+
+                    // 2c. Guardar/actualizar tratamiento habitual (asociación diagnóstico → medicamentos)
                     await treatmentLearningService.learn(
                         diagIdentifier,
                         values.medicamentos.map(m => ({
-                            ...m,
-                            nombre: m.nombre,
-                            nombreGenerico: m.nombreGenerico
+                            ...m
                         }) as any),
                         values.instrucciones || "",
                         specialtyConfig?.specialtyName
@@ -597,11 +651,18 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                 description: `Receta guardada correctamente.`,
             })
 
+            // Track hito: Receta creada exitosamente
+            trackMarketing('prescription_created', {
+                medCount: values.medicamentos.length,
+                hasPatient: !!pacienteId,
+                isNewPatient: !values.pacienteId
+            });
+
             if (onSuccess) {
                 onSuccess(recetaId)
             } else {
-                // Redirigir a la receta creada si no hay callback
-                router.push(`/recetas/${recetaId}`)
+                // Usar window.location para evitar RSC payload fetch offline
+                window.location.href = `/recetas/${recetaId}`
             }
         } catch (error) {
             console.error(error)
@@ -651,6 +712,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                     type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'}
                                     placeholder={fieldDef.placeholder}
                                     {...field}
+                                    value={field.value ?? ""}
                                 />
                             )}
                         </FormControl>
@@ -663,7 +725,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className={cn(onCancel ? "flex flex-col flex-1 min-h-0" : "space-y-8")}>
                 {!onCancel && (
                     <div className="flex items-center gap-4 mb-6">
                         <Link href="/recetas">
@@ -675,7 +737,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                     </div>
                 )}
 
-                <div className="grid gap-6">
+                <div className={cn("grid gap-6", onCancel && "flex-1 overflow-y-auto p-6 content-start")}>
                     {/* Selección/Búsqueda de Paciente y Diagnóstico */}
                     <Card>
                         <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
@@ -800,6 +862,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                         type="number"
                                                         placeholder="0"
                                                         {...field}
+                                                        value={field.value ?? ""}
                                                         onChange={onAgeChange}
                                                     />
                                                 )}
@@ -815,7 +878,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                         <FormItem className="col-span-6 md:col-span-2">
                                             <FormLabel>Peso</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="kg" {...field} />
+                                                <Input placeholder="kg" {...field} value={field.value ?? ""} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -828,7 +891,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                         <FormItem className="col-span-6 md:col-span-3">
                                             <FormLabel>Talla</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="cm" {...field} />
+                                                <Input placeholder="cm" {...field} value={field.value ?? ""} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -849,6 +912,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                     placeholder="Alergias a medicamentos, alimentos, etc."
                                                     className="resize-none min-h-[80px]"
                                                     {...field}
+                                                    value={field.value ?? ""}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -866,6 +930,7 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                                                     placeholder="Enfermedades crónicas, cirugías previas..."
                                                     className="resize-none min-h-[80px]"
                                                     {...field}
+                                                    value={field.value ?? ""}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -1174,20 +1239,55 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                     </Card>
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-end items-center gap-6 mt-8 pb-10">
-                    <div className="flex items-center space-x-2">
+                <div className={cn("mt-8 pb-10", onCancel ? "p-6 pt-4 bg-white border-t border-slate-100 mt-0" : "flex flex-col md:flex-row justify-end items-center gap-6")}>
+                    <div className={cn("flex items-center space-x-2", onCancel ? "hidden" : "")}>
                         <Switch
                             id="save-diagnosis"
                             checked={saveDiagnosis}
-                            onCheckedChange={setSaveDiagnosis}
+                            onCheckedChange={async (checked) => {
+                                setSaveDiagnosis(checked);
+                                // Persistir preferencia en la configuración del médico
+                                try {
+                                    const config = await medicoService.get();
+                                    if (config) {
+                                        // Omitir campos de solo lectura para cumplir con MedicoConfigFormData
+                                        const { id, createdAt, updatedAt, ...formData } = config;
+                                        await medicoService.save({
+                                            ...formData,
+                                            recordarDiagnostico: checked
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error('Error al guardar preferencia del toggle:', err);
+                                }
+                            }}
                         />
                         <Label htmlFor="save-diagnosis" className="text-sm font-medium text-slate-600 cursor-pointer">
                             Recordar diagnóstico con medicamentos (Autocompletado futuro)
                         </Label>
                     </div>
 
-                    <div className="flex gap-4">
-                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 order-1 md:order-none">
+                    <div className={cn("flex items-center gap-4", onCancel ? "flex-col-reverse sm:flex-row sm:justify-end w-full" : "flex-row-reverse justify-start")}>
+                        {onCancel && (
+                            <div className="flex items-center gap-2 mr-auto">
+                                <Switch
+                                    id="save-diagnosis-dialog"
+                                    checked={saveDiagnosis}
+                                    onCheckedChange={setSaveDiagnosis}
+                                />
+                                <Label htmlFor="save-diagnosis-dialog" className="text-xs font-bold text-slate-500 cursor-pointer">
+                                    Recordar tratamiento
+                                </Label>
+                            </div>
+                        )}
+                        {onCancel ? (
+                            <Button variant="ghost" type="button" onClick={onCancel} className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
+                        ) : (
+                            <Link href="/recetas">
+                                <Button variant="ghost" type="button" className="text-slate-500 hover:bg-slate-100 rounded-xl px-6 font-bold">Cancelar</Button>
+                            </Link>
+                        )}
+                        <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xl shadow-blue-200 transition-all active:scale-95 text-white px-10 font-bold h-11">
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1196,18 +1296,10 @@ export function RecetaForm({ preSelectedPacienteId, onCancel, onSuccess }: Recet
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                    Guardar/Imprimir Receta
+                                    Guardar Receta
                                 </>
                             )}
                         </Button>
-
-                        {onCancel ? (
-                            <Button variant="outline" type="button" onClick={onCancel} className="order-2 md:order-none">Cancelar</Button>
-                        ) : (
-                            <Link href="/recetas">
-                                <Button variant="outline" type="button" className="order-2 md:order-none">Cancelar</Button>
-                            </Link>
-                        )}
                     </div>
                 </div>
             </form>
