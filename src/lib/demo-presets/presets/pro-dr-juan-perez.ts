@@ -1,0 +1,99 @@
+/**
+ * @fileoverview Preset de demo personalizada: Dr. Juan Pérez (Ejemplo Plan Pro).
+ *
+ * Datos ficticios para demostrar el Plan Pro a un médico de Cardiología.
+ * Incluye configuración completa del canvas de la receta membretada.
+ */
+
+import type { DemoPreset } from '../types';
+
+/**
+ * Preset de demostración para el perfil de un cardiólogo.
+ * Los datos son completamente ficticios y se cargan solo en la BD demo.
+ */
+export const proDrJuanPerez: DemoPreset = {
+    slug: 'pro-dr-juan-perez-2026',
+    etiqueta: 'Dr. Juan Pérez Sánchez - Cardiología',
+    doctor: {
+        nombre: 'Dr. Juan Pérez Sánchez',
+        especialidad: 'Cardiología',
+        cedula: '12345678',
+        telefono: '55 1234-5678',
+    },
+    recetaConfig: {
+        nombre: 'Membretada - Plan Pro Cardiología',
+        tamanoPapel: 'carta',
+        imprimirFondo: false,
+        campos: [
+            {
+                id: 'fecha',
+                etiqueta: 'Fecha',
+                x: 72,
+                y: 14,
+                ancho: 24,
+                visible: true,
+                tipo: 'fecha',
+            },
+            {
+                id: 'paciente_nombre',
+                etiqueta: 'Paciente',
+                x: 8,
+                y: 22,
+                ancho: 60,
+                visible: true,
+                tipo: 'texto',
+            },
+            {
+                id: 'paciente_edad',
+                etiqueta: 'Edad',
+                x: 72,
+                y: 22,
+                ancho: 15,
+                visible: true,
+                tipo: 'texto',
+            },
+            {
+                id: 'diagnostico',
+                etiqueta: 'Diagnóstico',
+                x: 8,
+                y: 30,
+                ancho: 84,
+                visible: true,
+                tipo: 'texto',
+            },
+            {
+                id: 'cuerpo_receta',
+                etiqueta: 'Receta Médica',
+                x: 8,
+                y: 38,
+                ancho: 84,
+                alto: 42,
+                visible: true,
+                tipo: 'lista',
+            },
+            {
+                id: 'linea_firma',
+                etiqueta: 'Línea de Firma',
+                x: 55,
+                y: 85,
+                ancho: 35,
+                visible: true,
+                tipo: 'linea',
+                color: '#334155',
+                grosor: 1,
+            },
+            {
+                id: 'texto_firma',
+                etiqueta: 'Firma del Médico',
+                x: 57,
+                y: 87,
+                ancho: 30,
+                visible: true,
+                tipo: 'textoDecorativo',
+                contenido: 'Dr. Juan Pérez Sánchez\nCed. Prof. 12345678',
+                fontSize: 8,
+                color: '#475569',
+            },
+        ],
+    },
+};
