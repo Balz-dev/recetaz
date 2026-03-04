@@ -240,3 +240,20 @@ const getDBName = () => {
  * Se adapta automáticamente al contexto (Demo o Real).
  */
 export const db = new RecetasDatabase(getDBName());
+
+/**
+ * Utilidad táctica para eliminar la base de datos de demostración
+ * y liberar espacio en almacenamiento persistente del cliente.
+ */
+export const limpiarBaseDatosDemo = async () => {
+    try {
+        if (typeof window !== 'undefined') {
+            console.log('🚮 Iniciando limpieza de BD Demo...');
+            // Dexie.delete() elimina por completo la DB dado su nombre
+            await Dexie.delete('RecetasMedicasDB_Demo');
+            console.log('✅ BD Demo eliminada correctamente. Espacio liberado.');
+        }
+    } catch (error) {
+        console.error('❌ Error al intentar eliminar BD Demo:', error);
+    }
+};

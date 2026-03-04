@@ -27,13 +27,17 @@ export function FooterCTA() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     {/* Botón Secundario - Demo/Sandbox */}
-                    <Link
+                    <a
                         href="/demo"
-                        onClick={() => trackMarketing('lp_demo_requested', { location: 'footer' })}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            trackMarketing('lp_demo_requested', { location: 'footer' });
+                            window.location.href = '/demo';
+                        }}
                         className="group w-full sm:w-auto inline-flex items-center justify-center rounded-2xl border-2 border-white/30 bg-transparent px-10 py-5 text-xl font-semibold text-white hover:bg-white/10 hover:border-white/50 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
                     >
                         Probar Demo Interactiva
-                    </Link>
+                    </a>
                     {/* Botón Principal - Dashboard/App Real */}
                     <Link
                         href="/dashboard"

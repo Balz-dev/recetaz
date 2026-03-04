@@ -31,13 +31,17 @@ export function Hero() {
 
             <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4 mb-4">
               {/* Botón Secundario - Demo/Sandbox */}
-              <Link
+              <a
                 href="/demo"
-                onClick={() => trackMarketing('lp_demo_requested', { location: 'hero' })}
+                onClick={(e) => {
+                  e.preventDefault();
+                  trackMarketing('lp_demo_requested', { location: 'hero' });
+                  window.location.href = '/demo';
+                }}
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-8 py-4 text-lg font-semibold text-slate-700 dark:text-slate-200 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
               >
                 Probar Demo Interactiva
-              </Link>
+              </a>
 
               {/* Botón Principal - Dashboard/App Real */}
               <Link
