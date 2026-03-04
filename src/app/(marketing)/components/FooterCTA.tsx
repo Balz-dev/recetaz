@@ -15,7 +15,7 @@ export function FooterCTA() {
     return (
         <section className="py-24 bg-blue-600 dark:bg-blue-700 relative overflow-hidden">
             {/* Fondo con textura sutil */}
-            <div className="absolute inset-0 w-full h-full bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-10"></div>
+            <div className="absolute inset-0 w-full h-full bg-[radial-gradient(#ffffff_1px,transparent_1px)] bg-size-[24px_24px] opacity-10"></div>
 
             <div className="container mx-auto px-4 sm:px-6 relative z-10 text-center text-white">
                 <h2 className="text-3xl sm:text-6xl font-extrabold mb-6 tracking-tighter text-balance">
