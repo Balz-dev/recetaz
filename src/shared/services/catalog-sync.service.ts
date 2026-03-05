@@ -61,7 +61,7 @@ export const catalogSyncService = {
             }
 
             console.log('📥 Cargando tratamientos iniciales...');
-            const response = await fetch(TRATAMIENTOS_URL);
+            const response = await fetch(`${TRATAMIENTOS_URL}?t=${Date.now()}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const data: TratamientoHabitual[] = await response.json();
@@ -88,7 +88,7 @@ export const catalogSyncService = {
      */
     async syncMedicamentos() {
         try {
-            const response = await fetch(MEDICAMENTOS_URL);
+            const response = await fetch(`${MEDICAMENTOS_URL}?t=${Date.now()}`);
             if (!response.ok) throw new Error('No se pudo cargar el JSON de medicamentos');
 
             const medicamentosExternos: any[] = await response.json();
@@ -148,7 +148,7 @@ export const catalogSyncService = {
      */
     async syncDiagnosticos() {
         try {
-            const response = await fetch(DIAGNOSTICOS_URL);
+            const response = await fetch(`${DIAGNOSTICOS_URL}?t=${Date.now()}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const diagnosticosExternos: DiagnosticoCatalogo[] = await response.json();
@@ -196,7 +196,7 @@ export const catalogSyncService = {
      */
     async syncEspecialidades() {
         try {
-            const response = await fetch(ESPECIALIDADES_URL);
+            const response = await fetch(`${ESPECIALIDADES_URL}?t=${Date.now()}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const especialidadesExternas: EspecialidadCatalogo[] = await response.json();

@@ -223,8 +223,7 @@ class RecetasDatabase extends Dexie {
 }
 
 /**
- * Determina si estamos en modo Demo basándose en la URL.
- * En Next.js, window solo está disponible en el cliente.
+ * Determina si estamos en modo Demo basándose en la URL o LocalStorage.
  */
 const getDBName = () => {
     if (typeof window !== 'undefined') {
@@ -236,25 +235,48 @@ const getDBName = () => {
 };
 
 /**
- * Instancia única de la base de datos.
- * Se adapta automáticamente al contexto (Demo o Real).
+ * Instancia inicial de la base de datos.
  */
-export const db = new RecetasDatabase(getDBName());
+let currentDBName = getDBName();
+let dbInstance = new RecetasDatabase(currentDBName);
 
 /**
- * Utilidad táctica para eliminar la base de datos de demostración
- * y liberar espacio en almacenamiento persistente del cliente.
- * También limpia todos los flags de modo demo (incluido el slug de preset).
+ * Exportamos un Proxy que actúa como la base de datos 'db'.
+ * Si detectamos que el nombre de la base de datos debería cambiar 
+ * (ej: al activar modo demo), re-instanciamos internamente.
+ */
+export const db = new Proxy(dbInstance, {
+    get(target, prop) {
+        if (typeof window !== 'undefined') {
+            const nextName = getDBName();
+            if (nextName !== currentDBName) {
+                console.log(`🔌 Cambiando instancia de DB: ${currentDBName} -> ${nextName}`);
+                currentDBName = nextName;
+                dbInstance = new RecetasDatabase(currentDBName);
+            }
+        }
+
+        // Retornar la propiedad de la instancia actual
+        const value = (dbInstance as any)[prop];
+        if (typeof value === 'function') {
+            return value.bind(dbInstance);
+        }
+        return value;
+    }
+}) as RecetasDatabase;
+
+/**
+ * Utilidad táctica para eliminar la base de datos de demostración.
  */
 export const limpiarBaseDatosDemo = async () => {
     try {
         if (typeof window !== 'undefined') {
             console.log('🚮 Iniciando limpieza de BD Demo...');
-            // Dexie.delete() elimina por completo la DB dado su nombre
             await Dexie.delete('RecetasMedicasDB_Demo');
-            // Limpiar todos los flags relacionados con la demo
             localStorage.removeItem('recetaz_demo_slug');
-            console.log('✅ BD Demo eliminada correctamente. Espacio liberado.');
+            localStorage.setItem('recetaz_is_demo', 'false');
+            // Forzamos que el proxy detecte el cambio en el próximo acceso
+            console.log('✅ BD Demo eliminada correctamente.');
         }
     } catch (error) {
         console.error('❌ Error al intentar eliminar BD Demo:', error);
