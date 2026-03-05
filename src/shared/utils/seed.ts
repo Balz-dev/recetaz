@@ -42,6 +42,7 @@ function generarMedicoConfig(): MedicoConfig {
         id: 'default',
         nombre: 'Juan Carlos Pérez González',
         especialidad: 'Medicina General',
+        especialidadKey: 'general',
         cedula: '1234567',
         telefono: '55-1234-5678',
         direccion: 'Av. Reforma 123, Col. Centro, CDMX, C.P. 06000',
@@ -96,19 +97,18 @@ function generarPacientes(): Paciente[] {
 /**
  * Genera recetas de ejemplo para los pacientes
  */
-function generarRecetas(pacientes: Paciente[]): Receta[] {
+function generarRecetas(pacientes: Paciente[], especialidad: string = 'general'): Receta[] {
     const recetas: Receta[] = [];
 
     const diagnosticos = [
-        { dx: 'Hipertensión arterial sistémica', med1: 'Losartán', med2: 'Hidroclorotiazida', ind: 'Control diario de PA. Dieta baja en sodio.' },
-        { dx: 'Diabetes mellitus tipo 2', med1: 'Metformina', med2: 'Glibenclamida', ind: 'Dieta baja en carbohidratos. Ejercicio regular.' },
-        { dx: 'Infección respiratoria aguda', med1: 'Amoxicilina', med2: 'Paracetamol', ind: 'Abundantes líquidos. Reposo.' },
-        { dx: 'Gastritis aguda', med1: 'Omeprazol', med2: 'Butilhioscina', ind: 'Evitar irritantes, café y alcohol.' },
-        { dx: 'Colitis nerviosa', med1: 'Butilhioscina', med2: 'Loperamida', ind: 'Reducir estrés. Comer despacio.' },
-        { dx: 'Cefalea tensional', med1: 'Ibuprofeno', med2: '', ind: 'Reposo en lugar oscuro y silencioso.' },
-        { dx: 'Dermatitis atópica', med1: 'Loratadina', med2: 'Betametasona', ind: 'No rascar. Usar ropa de algodón.' }, // Betametasona might be missing in seed, will handle fallback
-        { dx: 'Lumbalgia mecánica', med1: 'Naproxeno', med2: 'Complejo B', ind: 'Evitar cargar objetos pesados. Higiene de columna.' },
-        { dx: 'Faringoamigdalitis', med1: 'Ceftriaxona', med2: 'Ibuprofeno', ind: 'Completar esquema de antibiótico.' }
+        { dx: 'Hipertensión arterial sistémica', med1: 'Losartán', med2: 'Hidroclorotiazida', ind: 'Control diario de PA. Dieta baja en sodio.', esp: 'cardiologia' },
+        { dx: 'Insuficiencia cardíaca congestiva', med1: 'Enalapril', med2: 'Furosemida', ind: 'Restricción de líquidos. Vigilancia de edemas.', esp: 'cardiologia' },
+        { dx: 'Arritmia cardíaca', med1: 'Amiodarona', med2: 'Aspirina', ind: 'Toma de pulso diaria. Reposo relativo.', esp: 'cardiologia' },
+        { dx: 'Infarto agudo al miocardio (Seguimiento)', med1: 'Atorvastatina', med2: 'Clopidogrel', ind: 'Dieta cardioprotectora. No esfuerzos.', esp: 'cardiologia' },
+        { dx: 'Diabetes mellitus tipo 2', med1: 'Metformina', med2: 'Glibenclamida', ind: 'Dieta baja en carbohidratos. Ejercicio regular.', esp: 'general' },
+        { dx: 'Infección respiratoria aguda', med1: 'Amoxicilina', med2: 'Paracetamol', ind: 'Abundantes líquidos. Reposo.', esp: 'general' },
+        { dx: 'Gastritis aguda', med1: 'Omeprazol', med2: 'Butilhioscina', ind: 'Evitar irritantes, café y alcohol.', esp: 'general' },
+        { dx: 'Faringoamigdalitis', med1: 'Ceftriaxona', med2: 'Ibuprofeno', ind: 'Completar esquema de antibiótico.', esp: 'general' }
     ];
 
     const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -130,7 +130,13 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
 
         for (let i = 0; i < numRecetas; i++) {
             const fecha = generarFechaDemo();
-            const dxData = getRandomItem(diagnosticos);
+            // Filtrar diagnósticos por especialidad con mayor peso
+            const dxEspecializados = diagnosticos.filter(d => d.esp === especialidad);
+            const dxGenerales = diagnosticos.filter(d => d.esp === 'general');
+
+            // 100% probabilidad de especialidad si existe y no es general
+            const usarEspecialidad = especialidad !== 'general' && dxEspecializados.length > 0;
+            const dxData = getRandomItem(usarEspecialidad ? dxEspecializados : dxGenerales);
 
             const medicamentos: Medicamento[] = [];
 
@@ -179,6 +185,14 @@ function generarRecetas(pacientes: Paciente[]): Receta[] {
                 pacienteEdad: paciente.edad || 0,
                 peso: paciente.peso,
                 talla: paciente.talla,
+                // Datos dinámicos para cardiología
+                datosEspecificos: especialidad === 'cardiologia' ? {
+                    ta_brazo_der: `${getRandomInt(110, 140)}/${getRandomInt(70, 95)}`,
+                    ta_brazo_izq: `${getRandomInt(110, 140)}/${getRandomInt(70, 95)}`,
+                    fc: getRandomInt(60, 100),
+                    fr: getRandomInt(12, 20),
+                    saturacion: getRandomInt(95, 100)
+                } : {},
                 diagnostico: dxData.dx,
                 medicamentos: medicamentos,
                 instrucciones: dxData.ind,
@@ -319,7 +333,7 @@ export function generarConfiguracionFinanciera(): ConfiguracionFinanciera {
  * @param isDemo - Si es true, añade datos ficticios (pacientes, recetas, etc.).
  * @returns Promise que se resuelve cuando el seed se completa exitosamente
  */
-export async function seedDatabase(isDemo: boolean = false): Promise<void> {
+export async function seedDatabase(isDemo: boolean = false, especialidad: string = 'general', extraData?: any): Promise<void> {
     try {
         console.log(`🌱 Iniciando población de base de datos (${isDemo ? 'MODO DEMO' : 'MODO REAL'})...\n`);
 
@@ -340,10 +354,57 @@ export async function seedDatabase(isDemo: boolean = false): Promise<void> {
 
         if (isDemo) {
             // Insertar configuración del médico ficticio
-            console.log('👨‍⚕️ [DEMO] Insertando configuración del médico...');
-            const medico = generarMedicoConfig();
-            await db.medico.add(medico);
-            console.log(`✅ Médico: ${medico.nombre}\n`);
+            const medicoBase = generarMedicoConfig();
+            // Extraer datos del doctor del preset de forma robusta
+            const doctorData = extraData?.doctor || extraData;
+
+            // Helper para obtener y capitalizar etiquetas correctamente (ej. cardiologia -> Cardiología)
+            const obtenerEtiquetaEspecialidad = (key: string): string => {
+                const etiquetas: Record<string, string> = {
+                    'cardiologia': 'Cardiología',
+                    'pediatria': 'Pediatría',
+                    'ginecologia': 'Ginecología y Obstetricia',
+                    'oftalmologia': 'Oftalmología',
+                    'traumatologia': 'Traumatología y Ortopedia',
+                    'saludMental': 'Psicología / Psiquiatría',
+                    'general': 'Medicina General / Familiar'
+                };
+
+                // Si está en el mapeo, devolver tal cual
+                if (key && etiquetas[key]) return etiquetas[key];
+
+                if (!key) return 'Medicina General';
+
+                // Si no, capitalizar y limpiar (reemplazar guiones por espacios)
+                const label = key.replace(/([A-Z])/g, ' $1') // para saludMental -> Salud Mental
+                    .replace(/[_-]/g, ' ')
+                    .trim();
+                return label.charAt(0).toUpperCase() + label.slice(1);
+            };
+
+            const especialidadKeyFinal = doctorData?.especialidadKey || (especialidad !== 'general' ? especialidad : medicoBase.especialidadKey);
+
+            // Fundimentación de datos del médico con prioridad absoluta al JSON
+            const medicoFinal: MedicoConfig = {
+                id: 'default',
+                nombre: String(doctorData?.nombre || medicoBase.nombre),
+                cedula: String(doctorData?.cedula || medicoBase.cedula),
+                telefono: String(doctorData?.telefono || medicoBase.telefono),
+                direccion: String(doctorData?.direccion || medicoBase.direccion || ''),
+                especialidadKey: String(especialidadKeyFinal),
+                especialidad: String(doctorData?.especialidad || obtenerEtiquetaEspecialidad(especialidadKeyFinal)),
+                createdAt: medicoBase.createdAt || new Date(),
+                updatedAt: new Date()
+            };
+
+            console.log('👨‍⚕️ [DEMO] Guardando médico final en DB:', JSON.stringify(medicoFinal));
+            try {
+                await db.medico.put(medicoFinal);
+                console.log('✅ Médico guardado exitosamente.');
+            } catch (err) {
+                console.error('❌ Error guardando médico:', err);
+            }
+            console.log(`✅ Médico: ${medicoFinal.nombre} (${medicoFinal.especialidadKey})\n`);
 
             // Insertar pacientes ficticios
             console.log('👥 [DEMO] Insertando pacientes...');
@@ -352,8 +413,8 @@ export async function seedDatabase(isDemo: boolean = false): Promise<void> {
             console.log(`✅ ${pacientes.length} pacientes insertados\n`);
 
             // Insertar recetas ficticias
-            console.log('📋 [DEMO] Insertando recetas...');
-            const recetas = generarRecetas(pacientes);
+            console.log(`📋 [DEMO] Insertando recetas para especialidad: ${especialidad}...`);
+            const recetas = generarRecetas(pacientes, especialidad);
             await db.recetas.bulkAdd(recetas);
             console.log(`✅ ${recetas.length} recetas insertadas\n`);
 
