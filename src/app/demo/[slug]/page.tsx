@@ -25,26 +25,15 @@ async function inicializarDemoSlug(preset: DemoPreset): Promise<void> {
     const { seedDatabase } = await import("@/shared/utils/seed");
     const { db } = await import("@/shared/db/db.config");
 
-    // 1. Poblar pacientes y recetas ficticias
-    await seedDatabase(true);
-
-    // 2. Sobreescribir el médico con los datos del preset
-    await db.medico.put({
-        id: "default",
-        nombre: preset.doctor.nombre,
-        especialidad: preset.doctor.especialidad,
-        cedula: preset.doctor.cedula,
-        telefono: preset.doctor.telefono,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    });
+    // 1. Poblar base de datos (médico, pacientes, recetas, catálogos)
+    await seedDatabase(true, preset.doctor.especialidadKey || 'general', preset);
 
     // 3. Limpiar plantillas genéricas y agregar la del preset como única activa
     await db.plantillas.clear();
     await db.plantillas.add({
+        ...preset.recetaConfig,
         id: crypto.randomUUID(),
         activa: true,
-        ...preset.recetaConfig,
         createdAt: new Date(),
         updatedAt: new Date(),
     });
@@ -79,26 +68,34 @@ export default function DemoSlugPage() {
             return;
         }
 
-        const preset = buscarPreset(slug);
-
-        if (!preset) {
-            // Slug no encontrado → fallback a demo genérica
-            setEstado(`Configuración "${slug}" no encontrada. Cargando demo estándar...`);
-            setTimeout(() => {
-                window.location.href = "/demo";
-            }, 1500);
-            return;
-        }
-
         // Preset válido → inicializar
         const inicializar = async () => {
             try {
+                setEstado(`Verificando configuración para "${slug}"...`);
+
+                // buscarPreset ahora es asíncrono
+                const preset = await buscarPreset(slug);
+
+                if (!preset) {
+                    // Slug no encontrado o error en carga JSON → fallback a demo genérica
+                    setEstado(`Configuración "${slug}" no encontrada en archivos JSON. Cargando demo estándar...`);
+                    setTimeout(() => {
+                        window.location.href = "/demo";
+                    }, 1500);
+                    return;
+                }
+
                 setEstado(`Preparando demo personalizada para ${preset.etiqueta}...`);
                 await inicializarDemoSlug(preset);
                 setEstado("¡Listo! Redirigiendo al dashboard...");
+
+                setEstado("¡Listo! Redirigiendo al dashboard...");
+
+                // Forzamos un hard reload para asegurar que todos los componentes
+                // detecten el modo demo y la nueva base de datos.
                 setTimeout(() => {
-                    window.location.href = "/dashboard";
-                }, 800);
+                    window.location.href = "/dashboard?demo=true";
+                }, 1000);
             } catch (error) {
                 console.error("[DemoSlug] Error al inicializar preset:", error);
                 setEsError(true);

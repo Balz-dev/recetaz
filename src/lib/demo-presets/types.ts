@@ -13,7 +13,7 @@ import type { MedicoConfig, PlantillaReceta } from '@/types';
  */
 export type DemoDoctor = Pick<
     MedicoConfig,
-    'nombre' | 'especialidad' | 'cedula' | 'telefono'
+    'nombre' | 'especialidad' | 'cedula' | 'telefono' | 'direccion' | 'especialidadKey'
 >;
 
 /**

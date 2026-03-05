@@ -178,8 +178,8 @@ const nextConfig = {
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' blob: data: https:;
-      connect-src 'self' wss: https: https://*.supabase.co https://*.posthog.com;
-      frame-src 'none';
+      connect-src 'self' wss: https: data: https://*.supabase.co https://*.posthog.com;
+      frame-src 'self' blob:;
       worker-src 'self' blob:;
       object-src 'none';
     `.replace(/\s{2,}/g, ' ').trim()
