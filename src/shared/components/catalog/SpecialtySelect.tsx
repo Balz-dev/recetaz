@@ -14,6 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/shared/components/ui/select";
+import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/shared/db/db.config";
 import { EspecialidadCatalogo } from "@/types";
 
@@ -33,15 +34,10 @@ export function SpecialtySelect({
     className,
     contentClassName = "z-[250]"
 }: SpecialtySelectProps) {
-    const [especialidades, setEspecialidades] = useState<EspecialidadCatalogo[]>([]);
-
-    useEffect(() => {
-        const load = async () => {
-            const data = await db.especialidades.toArray();
-            setEspecialidades(data);
-        };
-        load();
-    }, []);
+    const especialidades = useLiveQuery(
+        async () => await db.especialidades.toArray(),
+        []
+    ) || [];
 
     return (
         <Select

@@ -15,8 +15,9 @@
 
 "use client"
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLiveQuery } from "dexie-react-hooks";
 import { medicoService } from "@/features/config-medico/services/medico.service";
 import { recetaService } from "@/features/recetas/services/receta.service";
 import { pacienteService } from "@/features/pacientes/services/paciente.service";
@@ -40,48 +41,37 @@ import { motion } from "framer-motion";
  * @returns Página de dashboard con experiencia de usuario mejorada
  */
 export default function HomePage() {
-    const router = useRouter();
-    const [medicoNombre, setMedicoNombre] = useState<string>("");
-    const [stats, setStats] = useState({
-        totalRecetas: 0,
-        totalPacientes: 0,
-        loading: true
-    });
+    // Usar useLiveQuery para reactividad total con la base de datos (especialmente en modo Demo)
+    const config = useLiveQuery(() => medicoService.get(), []);
+    const recetas = useLiveQuery(() => recetaService.getAll(), []);
+    const pacientes = useLiveQuery(() => pacienteService.getAll(), []);
+
+    const medicoNombre = config?.nombre || "";
+    const totalRecetas = recetas?.length || 0;
+    const totalPacientes = pacientes?.length || 0;
+    const isLoadingData = config === undefined || recetas === undefined || pacientes === undefined;
+
     const [showRecetaDialog, setShowRecetaDialog] = useState(false);
 
-    useEffect(() => {
-        const loadInitialData = async () => {
-            try {
-                // Cargar datos del médico y estadísticas en paralelo
-                const [medico, recetas, pacientes] = await Promise.all([
-                    medicoService.get(),
-                    recetaService.getAll(),
-                    pacienteService.getAll()
-                ]);
+    // Función para obtener el saludo formateado sin redundancia de "Dr."
+    const obtenerSaludo = () => {
+        if (!medicoNombre) return '¡Bienvenido!';
 
-                if (medico) {
-                    setMedicoNombre(medico.nombre);
-                }
+        // Limpiar "Dr.", "Dra.", "Méd.", etc. del inicio para el saludo informal
+        const nombreLimpio = medicoNombre.replace(/^(Dr\.|Dra\.|Dr|Dra|Méd\.|Med)\s+/i, '');
+        const primerNombre = nombreLimpio.split(' ')[0];
 
-                setStats({
-                    totalRecetas: recetas.length,
-                    totalPacientes: pacientes.length,
-                    loading: false
-                });
-            } catch (error) {
-                console.error("Error cargando datos del dashboard:", error);
-                setStats(prev => ({ ...prev, loading: false }));
-            }
-        };
-        loadInitialData();
-    }, [router]);
+        // Determinar si es Dr. o Dra. (por defecto Dr. si no hay pista)
+        const prefijo = medicoNombre.toLowerCase().includes('dra') ? 'Dra.' : 'Dr.';
+
+        return `¡Hola, ${prefijo} ${primerNombre}!`;
+    };
 
     const handleRecetaSuccess = () => {
-        setStats(prev => ({ ...prev, totalRecetas: prev.totalRecetas + 1 }))
         setShowRecetaDialog(false)
     }
 
-    if (stats.loading) {
+    if (isLoadingData) {
         return (
             <div className="flex h-[60vh] items-center justify-center">
                 <motion.div
@@ -139,7 +129,7 @@ export default function HomePage() {
                     </div>
                     <div>
                         <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-                            {medicoNombre ? `¡Hola, Dr. ${medicoNombre.split(' ')[0]}!` : '¡Bienvenido!'}
+                            {obtenerSaludo()}
                         </h2>
                         <p className="text-sm md:text-base text-muted-foreground">
                             Esto es lo que está pasando en su consultorio hoy.
@@ -163,7 +153,7 @@ export default function HomePage() {
                     </div>
                     <div>
                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Recetas</p>
-                        <h3 className="text-xl font-bold">{stats.totalRecetas}</h3>
+                        <h3 className="text-xl font-bold">{totalRecetas}</h3>
                     </div>
                 </div>
 
@@ -173,7 +163,7 @@ export default function HomePage() {
                     </div>
                     <div>
                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Pacientes</p>
-                        <h3 className="text-xl font-bold">{stats.totalPacientes}</h3>
+                        <h3 className="text-xl font-bold">{totalPacientes}</h3>
                     </div>
                 </div>
 
