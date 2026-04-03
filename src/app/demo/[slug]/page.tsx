@@ -26,7 +26,11 @@ async function inicializarDemoSlug(preset: DemoPreset): Promise<void> {
     const { db } = await import("@/shared/db/db.config");
 
     // 1. Poblar base de datos (médico, pacientes, recetas, catálogos)
-    await seedDatabase(true, preset.doctor.especialidadKey || 'general', preset);
+    await seedDatabase({
+        isDemo: true,
+        especialidad: preset.doctor.especialidadKey || 'general',
+        extraData: { doctor: preset.doctor }
+    });
 
     // 3. Limpiar plantillas genéricas y agregar la del preset como única activa
     await db.plantillas.clear();

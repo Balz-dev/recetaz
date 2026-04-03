@@ -2,6 +2,25 @@ import { db } from "@/shared/db/db.config";
 import { MedicamentoCatalogo, DiagnosticoCatalogo, TratamientoHabitual, EspecialidadCatalogo } from "@/types";
 import { generarConfiguracionFinanciera } from "@/shared/utils/seed";
 
+interface MedicamentoJson {
+    nombre: string;
+    nombreGenerico?: string;
+    formaFarmaceutica?: string;
+    presentacion?: string;
+    concentracion?: string;
+    categoria?: string;
+    laboratorio?: string;
+    cantidadSurtirDefault?: string;
+    dosisDefault?: string;
+    viaAdministracionDefault?: string;
+    frecuenciaDefault?: string;
+    duracionDefault?: string;
+    indicacionesDefault?: string;
+    registroSanitario?: string;
+    especialidad?: string[];
+    palabrasClave?: string[];
+}
+
 const MEDICAMENTOS_URL = '/data/medicamentos-v1.json';
 const DIAGNOSTICOS_URL = '/data/diagnosticos-v1.json';
 const TRATAMIENTOS_URL = '/data/tratamientos-iniciales.json';
@@ -91,37 +110,58 @@ export const catalogSyncService = {
             const response = await fetch(`${MEDICAMENTOS_URL}?t=${Date.now()}`);
             if (!response.ok) throw new Error('No se pudo cargar el JSON de medicamentos');
 
-            const medicamentosExternos: any[] = await response.json();
+            const medicamentosExternos: MedicamentoJson[] = await response.json();
 
             await db.transaction('rw', db.medicamentos, async () => {
                 for (const med of medicamentosExternos) {
-                    // Normalización para búsqueda
                     const nombreBusqueda = med.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    const palabrasClave = [
+                    const palabrasClave: string[] = [
                         ...nombreBusqueda.split(' '),
                         med.nombreGenerico?.toLowerCase() || '',
                         med.formaFarmaceutica?.toLowerCase() || ''
                     ].filter(Boolean);
 
-                    // Verificar si ya existe por ID (si el JSON trae IDs estables) o por nombre
-                    // Asumimos que los del JSON no son personalizados (esPersonalizado: false)
                     const existing = await db.medicamentos.where('nombreBusqueda').equals(nombreBusqueda).first();
 
                     if (existing) {
-                        // Si existe y NO es personalizado, actualizamos datos del catálogo oficial
-                        // Si es personalizado, respetamos la versión del usuario (o podríamos fusionar)
                         if (!existing.esPersonalizado) {
                             await db.medicamentos.update(existing.id!, {
-                                ...med,
+                                nombre: med.nombre,
+                                nombreGenerico: med.nombreGenerico,
+                                formaFarmaceutica: med.formaFarmaceutica,
+                                presentacion: med.presentacion,
+                                concentracion: med.concentracion,
+                                categoria: med.categoria,
+                                laboratorio: med.laboratorio,
+                                cantidadSurtirDefault: med.cantidadSurtirDefault,
+                                dosisDefault: med.dosisDefault,
+                                viaAdministracionDefault: med.viaAdministracionDefault,
+                                frecuenciaDefault: med.frecuenciaDefault,
+                                duracionDefault: med.duracionDefault,
+                                indicacionesDefault: med.indicacionesDefault,
+                                registroSanitario: med.registroSanitario,
+                                especialidad: med.especialidad,
                                 nombreBusqueda,
                                 palabrasClave,
-                                updatedAt: new Date()
                             });
                         }
                     } else {
-                        // Insertar nuevo registro del catálogo oficial
-                        const nuevoMedicamento: MedicamentoCatalogo = {
-                            ...med,
+                        const nuevoMedicamento: Omit<MedicamentoCatalogo, 'id'> = {
+                            nombre: med.nombre,
+                            nombreGenerico: med.nombreGenerico,
+                            formaFarmaceutica: med.formaFarmaceutica,
+                            presentacion: med.presentacion,
+                            concentracion: med.concentracion,
+                            categoria: med.categoria,
+                            laboratorio: med.laboratorio,
+                            cantidadSurtirDefault: med.cantidadSurtirDefault,
+                            dosisDefault: med.dosisDefault,
+                            viaAdministracionDefault: med.viaAdministracionDefault,
+                            frecuenciaDefault: med.frecuenciaDefault,
+                            duracionDefault: med.duracionDefault,
+                            indicacionesDefault: med.indicacionesDefault,
+                            registroSanitario: med.registroSanitario,
+                            especialidad: med.especialidad,
                             nombreBusqueda,
                             palabrasClave,
                             esPersonalizado: false,
