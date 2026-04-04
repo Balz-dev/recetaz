@@ -207,6 +207,7 @@ export function MedicoConfigForm({ initialData, onCancel, onSuccess, onLoadingCh
                                     <FormLabel>Especialidad</FormLabel>
                                     <FormControl>
                                         <SpecialtySelect
+                                            key={`spec-${field.value}`}
                                             value={field.value}
                                             onValueChange={(key, label) => {
                                                 field.onChange(key);

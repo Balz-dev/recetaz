@@ -13,6 +13,7 @@ import { MetricsProvider } from "@/shared/providers/MetricsProvider";
 import { ConsentBanner } from "@/shared/components/metrics/ConsentBanner";
 import { MetricsDebugger } from "@/shared/components/metrics/MetricsDebugger";
 import { DemoIndicator } from "@/shared/components/ui/DemoIndicator";
+import { DemoBanner } from "@/shared/components/ui/DemoBanner";
 
 export const metadata: Metadata = {
     title: "Recetas Médicas - Sistema de Gestión",
@@ -42,6 +43,7 @@ export default function PlatformLayout({
             <body className="antialiased h-screen overflow-hidden flex flex-col">
                 <MetricsProvider>
                     <PWAProvider>
+                        <DemoBanner />
                         <DemoIndicator />
                         <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
                             {/* Sidebar para desktop - oculto en impresión */}

@@ -5,7 +5,8 @@ import { MedicoConfigForm } from "@/features/config-medico/components/MedicoConf
 import { PlantillaList } from "@/features/recetas/components/PlantillaList";
 import { Button } from "@/shared/components/ui/button";
 import { Save, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { MedicoConfig } from "@/types";
 import { medicoService } from "@/features/config-medico/services/medico.service";
 
@@ -15,24 +16,14 @@ interface ConfiguracionContentProps {
 
 export function ConfiguracionContent({ onConfigSaved }: ConfiguracionContentProps) {
     const [isSaving, setIsSaving] = useState(false);
-    const [config, setConfig] = useState<MedicoConfig | null>(null);
-    const [isLoadingData, setIsLoadingData] = useState(true);
 
-    useEffect(() => {
-        const loadConfig = async () => {
-            try {
-                const data = await medicoService.get();
-                if (data) {
-                    setConfig(data);
-                }
-            } catch (error) {
-                console.error("Error cargando configuración:", error);
-            } finally {
-                setIsLoadingData(false);
-            }
-        };
-        loadConfig();
-    }, []);
+    // Usar useLiveQuery para que se actualice automáticamente si el seed cambia los datos
+    const config = useLiveQuery(
+        async () => await medicoService.get(),
+        []
+    );
+
+    const isLoadingData = config === undefined;
 
     return (
         <div className="space-y-8 pb-12">

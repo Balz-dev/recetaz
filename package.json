@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "test": "jest",
-    "build": "next build --webpack",
+    "build": "next build",
     "start": "next start",
     "playwright:install": "npx playwright install --with-deps",
     "test:e2e": "node ./scripts/run-e2e.js",

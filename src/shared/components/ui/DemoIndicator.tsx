@@ -31,13 +31,16 @@ export function DemoIndicator() {
 
     const handleExitDemo = async (target: string = '/') => {
         try {
-            // Limpiar estado de demo
-            localStorage.removeItem('recetaz_is_demo')
+            // 1. Eliminar la BD explícitamente y esperar a que termine
+            const { limpiarBaseDatosDemo } = await import('@/shared/db/db.config');
+            await limpiarBaseDatosDemo();
 
-            // Redirigir al destino (landing por defecto o dashboard real)
-            window.location.href = target
+            // 2. Limpiar estado de demo
+            localStorage.removeItem('recetaz_is_demo')
         } catch (error) {
             console.error("Error al salir de demo:", error)
+        } finally {
+            // 3. Redirigir siempre, incluso si falló el borrado (fallback en layout se encargará)
             window.location.href = target
         }
     }

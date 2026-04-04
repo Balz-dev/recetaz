@@ -17,7 +17,7 @@ export default function DemoPage() {
                 setStatus("Limpiando y poblando base de datos...");
 
                 // Ejecutar ssemilla real con datos demo
-                await seedDatabase(true);
+                await seedDatabase({ isDemo: true });
 
                 setStatus("Datos cargados exitosamente.");
 

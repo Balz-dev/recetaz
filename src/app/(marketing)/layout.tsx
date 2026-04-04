@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react"
 import "../globals.css"
 import Link from "next/link"
@@ -60,12 +62,16 @@ export default function MarketingLayout({
 
                   <div className="flex items-center space-x-2 sm:space-x-4">
                     <ThemeToggle />
-                    <Link
+                    <a
                       href="/demo"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = '/demo';
+                      }}
                       className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                     >
                       Probar Demo
-                    </Link>
+                    </a>
                   </div>
                 </div>
               </header>
@@ -93,7 +99,7 @@ export default function MarketingLayout({
                     <div>
                       <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Producto</h3>
                       <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                        <li><Link href="/demo" className="hover:text-blue-600 transition-colors">Demo</Link></li>
+                        <li><a href="/demo" onClick={(e) => { e.preventDefault(); window.location.href = '/demo'; }} className="hover:text-blue-600 transition-colors">Demo</a></li>
                         <li><Link href="#pricing" className="hover:text-blue-600 transition-colors">Precios</Link></li>
                         <li><Link href="#faq" className="hover:text-blue-600 transition-colors">Preguntas Frecuentes</Link></li>
                       </ul>

@@ -69,6 +69,13 @@ class MetricsCollector {
         payload: Record<string, any> = {},
         priority: Severity = 'medium'
     ) {
+        // Validar tamaño máximo del payload para evitar DoS costoso o inyección masiva
+        const payloadString = JSON.stringify(payload);
+        if (payloadString.length > 2000) {
+            console.warn(`[Seguridad] Evento métrico ${name} rechazado: Payload demasiado grande (${payloadString.length} bytes). Límite es 2000.`);
+            return; // Rechazar silenciosamente el trackeo
+        }
+
         const event: MetricEvent = {
             name,
             type,
@@ -80,6 +87,15 @@ class MetricsCollector {
             appVersion: this.appVersion,
             environment: this.environment,
         };
+
+        // Prevención de Queue Overfill (Rate Limit Offline DoS)
+        const currentCount = await metricsQueueDB.metricsQueue.count();
+        if (currentCount > 500) {
+            console.warn('[Seguridad] Cola local de métricas excedida (Lim: 500). Pausando ingesta hasta sincronización.');
+            // Eliminamos los 100 más antiguos para hacer espacio si se fuerza
+            const oldest = await metricsQueueDB.metricsQueue.orderBy('timestamp').limit(100).keys();
+            await metricsQueueDB.metricsQueue.bulkDelete(oldest as number[]);
+        }
 
         // 1. Guardar en la cola local (Offline-first)
         await metricsQueueDB.metricsQueue.add({

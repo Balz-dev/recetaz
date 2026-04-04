@@ -79,7 +79,6 @@ export const medicamentoService = {
     create: async (data: MedicamentoCatalogoFormData): Promise<number> => {
         const now = new Date();
 
-        // Generar nombre de búsqueda y palabras clave
         const nombreBusqueda = data.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         const palabrasClave = [
             ...nombreBusqueda.split(' '),
@@ -96,8 +95,8 @@ export const medicamentoService = {
             fechaCreacion: now,
         };
 
-        const id = await db.medicamentos.add(newMedicamento as any);
-        return id as number;
+        const id = await db.medicamentos.add(newMedicamento);
+        return id;
     },
 
     /**

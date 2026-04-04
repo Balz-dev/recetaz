@@ -207,7 +207,6 @@ export async function agregarMedicamento(
 ): Promise<number> {
     const nombreBusqueda = normalizarTexto(medicamento.nombre);
 
-    // Generar palabras clave automáticas
     const palabrasClave = generarPalabrasClave(medicamento);
 
     const existente = await db.medicamentos
@@ -219,7 +218,6 @@ export async function agregarMedicamento(
         await db.medicamentos.update(existente.id!, {
             vecesUsado: existente.vecesUsado + 1,
             fechaUltimoUso: new Date(),
-            // Actualizar palabras clave por si cambiaron reglas
             palabrasClave
         });
         return existente.id!;
@@ -234,7 +232,7 @@ export async function agregarMedicamento(
         fechaUltimoUso: new Date(),
     };
 
-    return await db.medicamentos.add(nuevoMedicamento as any);
+    return await db.medicamentos.add(nuevoMedicamento);
 }
 
 /**
@@ -256,10 +254,8 @@ export async function actualizarMedicamento(
 
     // Siempre regenerar palabras clave al actualizar cualquier campo relevante
     if (cambios.nombre || cambios.nombreGenerico || cambios.categoria || cambios.palabrasClave) {
-        // Nota: Si 'cambios.palabrasClave' viene del UI, generarPalabrasClave lo incluirá
-        // Se asume que el UI pasa las "extra" keywords en un array si es edición manual
         const nuevasKeywords = generarPalabrasClave(medicamentoFusionado);
-        (cambios as any).palabrasClave = nuevasKeywords;
+        cambios.palabrasClave = nuevasKeywords;
     }
 
     await db.medicamentos.update(id, cambios);
