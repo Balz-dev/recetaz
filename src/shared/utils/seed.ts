@@ -67,6 +67,27 @@ function generarFechaDemo(): Date {
 }
 
 /**
+ * Genera una fecha relativa para datos demo.
+ * Distribuye los datos de forma que siempre haya actividad "hoy", "esta semana" y "este año".
+ */
+function generarFechaDemo(): Date {
+    const ahora = new Date();
+    const azar = Math.random();
+
+    // Distribución equilibrada para que todas las vistas tengan datos interesantes
+    if (azar > 0.9) {
+        // 10% son de HOY o AYER (Vista Semanal/Día activa)
+        return new Date(ahora.getTime() - Math.floor(Math.random() * 1.5 * 24 * 60 * 60 * 1000));
+    } else if (azar > 0.7) {
+        // 20% son de este MES (Vista Mensual activa)
+        return new Date(ahora.getTime() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000));
+    } else {
+        // 70% son del resto del AÑO (Vista Anual activa y bien poblada)
+        return new Date(ahora.getTime() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000));
+    }
+}
+
+/**
  * Genera datos de ejemplo para el médico
  */
 function generarMedicoConfig(): MedicoConfig {
