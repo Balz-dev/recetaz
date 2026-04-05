@@ -31,9 +31,9 @@ import { Label } from '@/shared/components/ui/label';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { useToast } from '@/shared/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
-import { medicoService } from '@/features/config-medico/services/medico.service';
-import { plantillaService } from '@/features/recetas/services/plantilla.service';
-import { db } from '@/shared/db/db.config';
+import { useMedico } from '@/features/config-medico/hooks/useMedico';
+import { useEspecialidades } from '@/features/config-medico/hooks/useEspecialidades';
+import { usePlantillas } from '@/features/recetas/hooks/usePlantillas';
 import { EspecialidadCatalogo, MedicoConfigFormData } from '@/types';
 import { PlantillaGallery } from '@/features/recetas/components/PlantillaGallery';
 import { SpecialtySelect } from '@/shared/components/catalog/SpecialtySelect';
@@ -116,12 +116,16 @@ const ZOYLA_CONFIG: Record<number, { pose: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 1
 export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-    const [especialidades, setEspecialidades] = useState<EspecialidadCatalogo[]>([]);
     const [goToEditor, setGoToEditor] = useState(true);
     const { toast } = useToast();
     const router = useRouter();
     const { installApp, isInstalled, isIOS, hasPrompt } = usePWA();
     const { track, trackMarketing } = useMetrics();
+
+    // Hooks de aplicación: abstraen el acceso a IndexedDB
+    const { data: medicoData, save: guardarMedico } = useMedico();
+    const { data: especialidades } = useEspecialidades();
+    const { crear: crearPlantilla } = usePlantillas();
 
     // Estado del formulario
     const [formData, setFormData] = useState<MedicoConfigFormData>({
@@ -174,36 +178,32 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         setStepStartTime(Date.now());
     }, [currentStep]);
 
-    // Cargar datos existentes y especialidades
+    // Pre-poblar el formulario cuando el médico o las especialidades se cargan desde IndexedDB
     useEffect(() => {
-        const init = async () => {
-            const specs = await db.especialidades.toArray();
-            setEspecialidades(specs);
+        if (medicoData) {
+            setFormData({
+                nombre: medicoData.nombre,
+                especialidad: medicoData.especialidad,
+                especialidadKey: medicoData.especialidadKey || 'general',
+                cedula: medicoData.cedula,
+                telefono: medicoData.telefono,
+                direccion: medicoData.direccion || '',
+                logo: medicoData.logo,
+            });
+        } else if (especialidades.length > 0) {
+            const defaultSpec = especialidades.find(s => s.id === 'general') || especialidades[0];
+            setFormData(prev => ({
+                ...prev,
+                especialidad: defaultSpec.label,
+                especialidadKey: defaultSpec.id,
+            }));
+        }
+    }, [medicoData, especialidades]);
 
-            const existing = await medicoService.get();
-            if (existing) {
-                setFormData({
-                    nombre: existing.nombre,
-                    especialidad: existing.especialidad,
-                    especialidadKey: existing.especialidadKey || 'general',
-                    cedula: existing.cedula,
-                    telefono: existing.telefono,
-                    direccion: existing.direccion || '',
-                    logo: existing.logo,
-                });
-            } else if (specs.length > 0) {
-                const defaultSpec = specs.find(s => s.id === 'general') || specs[0];
-                setFormData(prev => ({
-                    ...prev,
-                    especialidad: defaultSpec.label,
-                    especialidadKey: defaultSpec.id,
-                }));
-            }
-        };
-        init();
-
+    useEffect(() => {
         // Track inicio de onboarding
         trackMarketing('onboarding_started');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const nextStep = () => {
@@ -262,14 +262,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     const handleSaveAndComplete = async () => {
         setIsLoading(true);
         try {
-            // 1. Guardar datos del médico
-            await medicoService.save(formData);
+            // 1. Guardar datos del médico (a través del hook de la capa de aplicación)
+            await guardarMedico(formData);
 
             let createdPlantillaId = '';
 
-            // 2. Manejar plantilla
+            // 2. Manejar plantilla (a través del hook usePlantillas)
             if (customDesign) {
-                createdPlantillaId = await plantillaService.create({
+                createdPlantillaId = await crearPlantilla({
                     nombre: 'Mi Diseño Personalizado',
                     activa: true,
                     tamanoPapel: 'media_carta',
@@ -283,7 +283,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 });
             } else if (selectedGalleryTemplate) {
                 const templateData = selectedGalleryTemplate.content || selectedGalleryTemplate;
-                createdPlantillaId = await plantillaService.create({
+                createdPlantillaId = await crearPlantilla({
                     ...templateData,
                     activa: true,
                     updatedAt: new Date()
@@ -775,7 +775,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
             {/* Modal de Galería de Plantillas */}
             <Dialog open={isGalleryModalOpen} onOpenChange={setIsGalleryModalOpen}>
-                <DialogContent className="max-w-[95vw] w-full lg:max-w-4xl p-0 overflow-hidden bg-white dark:bg-slate-950 border-none shadow-2xl z-[300]">
+                <DialogContent className="max-w-[95vw] w-full lg:max-w-4xl p-0 overflow-hidden bg-white dark:bg-slate-950 border-none shadow-2xl z-300">
                     <DialogHeader className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
                         <DialogTitle className="text-xl font-bold flex items-center gap-2">
                             <Layout className="text-blue-500" size={24} />

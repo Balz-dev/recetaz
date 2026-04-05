@@ -14,8 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/shared/components/ui/select";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/shared/db/db.config";
+import { useEspecialidades } from "@/features/config-medico/hooks/useEspecialidades";
 import { EspecialidadCatalogo } from "@/types";
 
 interface SpecialtySelectProps {
@@ -34,10 +33,7 @@ export function SpecialtySelect({
     className,
     contentClassName = "z-[250]"
 }: SpecialtySelectProps) {
-    const especialidades = useLiveQuery(
-        async () => await db.especialidades.toArray(),
-        []
-    ) || [];
+    const { data: especialidades } = useEspecialidades();
 
     return (
         <Select

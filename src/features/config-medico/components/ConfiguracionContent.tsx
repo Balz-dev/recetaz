@@ -6,9 +6,7 @@ import { PlantillaList } from "@/features/recetas/components/PlantillaList";
 import { Button } from "@/shared/components/ui/button";
 import { Save, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { MedicoConfig } from "@/types";
-import { medicoService } from "@/features/config-medico/services/medico.service";
+import { useMedico } from "@/features/config-medico/hooks/useMedico";
 
 interface ConfiguracionContentProps {
     onConfigSaved?: () => void;
@@ -17,13 +15,8 @@ interface ConfiguracionContentProps {
 export function ConfiguracionContent({ onConfigSaved }: ConfiguracionContentProps) {
     const [isSaving, setIsSaving] = useState(false);
 
-    // Usar useLiveQuery para que se actualice automáticamente si el seed cambia los datos
-    const config = useLiveQuery(
-        async () => await medicoService.get(),
-        []
-    );
-
-    const isLoadingData = config === undefined;
+    // Usar hook the aplicación para los datos del médico
+    const { data: config, isLoading: isLoadingData } = useMedico();
 
     return (
         <div className="space-y-8 pb-12">

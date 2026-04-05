@@ -16,8 +16,7 @@ import { useAuth } from '@/shared/hooks/useAuth';
 import { cn } from '@/shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { medicoService } from '@/features/config-medico/services/medico.service';
+import { useMedico } from '@/features/config-medico/hooks/useMedico';
 
 interface MenuItem {
     icon?: LucideIcon;
@@ -49,8 +48,8 @@ export function UserProfile({ isCollapsed, className }: UserProfileProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // Obtener datos locales de Dexie como fallback
-    const localMedico = useLiveQuery(() => medicoService.get());
+    // Obtener datos locales desde el hook de aplicación
+    const { data: localMedico } = useMedico();
 
     // Cerrar el menú al hacer clic fuera
     useEffect(() => {
@@ -93,7 +92,7 @@ export function UserProfile({ isCollapsed, className }: UserProfileProps) {
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         className={cn(
-                            "absolute z-[100] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden py-2 w-64",
+                            "absolute z-100 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden py-2 w-64",
                             isCollapsed ? "left-full top-0 ml-4" : "left-0 top-full mt-2"
                         )}
                     >
@@ -143,7 +142,7 @@ export function UserProfile({ isCollapsed, className }: UserProfileProps) {
                 {/* Avatar Circular */}
                 <div className={cn(
                     "flex items-center justify-center rounded-full font-bold text-white shadow-lg shrink-0 overflow-hidden ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all",
-                    "bg-gradient-to-br from-blue-500 to-cyan-500",
+                    "bg-linear-to-br from-blue-500 to-cyan-500",
                     isCollapsed ? "w-12 h-12 text-base" : "w-11 h-11 text-base"
                 )}>
                     {avatarUrl ? (

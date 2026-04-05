@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import DemoSlugPage from "./page";
 import { useRouter, useParams } from "next/navigation";
 import { buscarPreset } from "@/lib/demo-presets";
+import { navigation } from "@/shared/utils/navigation";
 
 // Mocks de Next.js
 jest.mock("next/navigation", () => ({
@@ -19,6 +20,13 @@ jest.mock("@/shared/utils/seed", () => ({
   seedDatabase: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock("@/shared/utils/navigation", () => ({
+  navigation: {
+    redirect: jest.fn(),
+    reload: jest.fn(),
+  },
+}));
+
 jest.mock("@/shared/db/db.config", () => ({
   db: {
     plantillas: {
@@ -31,35 +39,25 @@ jest.mock("@/shared/db/db.config", () => ({
 describe("DemoSlugPage Funcionalidad Principal", () => {
   const mockRouter = {
     replace: jest.fn(),
+    push: jest.fn(),
   };
 
-  const originalLocation = window.location;
-
   beforeAll(() => {
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { href: '', reload: jest.fn() },
-    });
+    jest.useFakeTimers();
   });
 
   afterAll(() => {
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: originalLocation,
-    });
+    jest.useRealTimers();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
-    window.location.href = "";
+    localStorage.clear();
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
-    localStorage.clear();
+    jest.clearAllTimers();
   });
 
   it("1. Debería redirigir a /demo si no hay slug presente en los parámetros", () => {
@@ -84,7 +82,7 @@ describe("DemoSlugPage Funcionalidad Principal", () => {
 
     jest.advanceTimersByTime(1500);
 
-    expect(window.location.href).toBe("/demo");
+    expect(navigation.redirect).toHaveBeenCalledWith("/demo");
   });
 
   it("3. Debería inicializar el entorno y redirigir al dashboard con preset válido", async () => {
@@ -110,7 +108,7 @@ describe("DemoSlugPage Funcionalidad Principal", () => {
 
     jest.advanceTimersByTime(1000);
 
-    expect(window.location.href).toBe("/dashboard?demo=true");
+    expect(navigation.redirect).toHaveBeenCalledWith("/dashboard?demo=true");
   });
 
   it("4. Debería mostrar un mensaje de error y el botón de reintento si falla la inicialización", async () => {
@@ -128,6 +126,6 @@ describe("DemoSlugPage Funcionalidad Principal", () => {
     expect(retryBtn).toBeInTheDocument();
 
     retryBtn.click();
-    expect(window.location.reload).toHaveBeenCalled();
+    expect(navigation.reload).toHaveBeenCalled();
   });
 });
