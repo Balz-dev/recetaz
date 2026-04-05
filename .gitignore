@@ -19,19 +19,16 @@ coverage/
 # Misc
 .idea/
 .vagrant/
-.agent/rules/documentacion-esp.md
-.gitignore
-.gitignore
-.agent/rules/pwa.md
-.agent/rules/liberar-puertos.md
-.agent/rules/doc-esp.md
-.agent/rules/liberar-puerto.md
-.agent/rules/pwa2.md
-.gitignore
-.agent/rules/git-workflow.md
 next-env.d.ts
 
 # PWA files
 public/sw.js
 public/workbox-*.js
 public/worker-*.js
+
+# Archivos temporales de debug/agentes
+*.log
+build_*.txt
+git_*.txt
+push_error.txt
+tsc_output.txt
