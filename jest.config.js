@@ -12,6 +12,9 @@ const customJestConfig = {
     testPathIgnorePatterns: [
         "<rootDir>/tests/e2e/"
     ],
+    moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1'
+    }
 }
 
 // createJestConfig se exporta de esta manera para asegurar que next/jest pueda cargar la configuración de Next.js que es asíncrona
