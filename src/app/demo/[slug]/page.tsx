@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { buscarPreset } from "@/lib/demo-presets";
 import type { DemoPreset } from "@/lib/demo-presets/types";
+import { navigation } from "@/shared/utils/navigation";
 
 // -----------------------------------------------------------------------------
 // Función de Inicialización del Preset
@@ -84,21 +85,18 @@ export default function DemoSlugPage() {
                     // Slug no encontrado o error en carga JSON → fallback a demo genérica
                     setEstado(`Configuración "${slug}" no encontrada en archivos JSON. Cargando demo estándar...`);
                     setTimeout(() => {
-                        window.location.href = "/demo";
+                        navigation.redirect("/demo");
                     }, 1500);
                     return;
                 }
 
-                setEstado(`Preparando demo personalizada para ${preset.etiqueta}...`);
+                setEstado("¡Listo! Redirigiendo al dashboard...");
                 await inicializarDemoSlug(preset);
-                setEstado("¡Listo! Redirigiendo al dashboard...");
-
-                setEstado("¡Listo! Redirigiendo al dashboard...");
 
                 // Forzamos un hard reload para asegurar que todos los componentes
                 // detecten el modo demo y la nueva base de datos.
                 setTimeout(() => {
-                    window.location.href = "/dashboard?demo=true";
+                    navigation.redirect("/dashboard?demo=true");
                 }, 1000);
             } catch (error) {
                 console.error("[DemoSlug] Error al inicializar preset:", error);
@@ -130,7 +128,7 @@ export default function DemoSlugPage() {
             {/* Botón de reintento en caso de error */}
             {esError && (
                 <button
-                    onClick={() => window.location.reload()}
+                    onClick={() => navigation.reload()}
                     className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                     Reintentar
