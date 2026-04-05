@@ -17,10 +17,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
-import { medicoService } from "@/features/config-medico/services/medico.service";
-import { recetaService } from "@/features/recetas/services/receta.service";
-import { pacienteService } from "@/features/pacientes/services/paciente.service";
+import { useDashboardData } from "@/shared/hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { FileText, Users, Activity, Plus, ArrowRight, ClipboardList, Settings } from "lucide-react";
@@ -41,15 +38,8 @@ import { motion } from "framer-motion";
  * @returns Página de dashboard con experiencia de usuario mejorada
  */
 export default function HomePage() {
-    // Usar useLiveQuery para reactividad total con la base de datos (especialmente en modo Demo)
-    const config = useLiveQuery(() => medicoService.get(), []);
-    const recetas = useLiveQuery(() => recetaService.getAll(), []);
-    const pacientes = useLiveQuery(() => pacienteService.getAll(), []);
-
-    const medicoNombre = config?.nombre || "";
-    const totalRecetas = recetas?.length || 0;
-    const totalPacientes = pacientes?.length || 0;
-    const isLoadingData = config === undefined || recetas === undefined || pacientes === undefined;
+    // Usar hook de aplicación en vez del de infraestructura para el flujo de datos
+    const { medicoNombre, totalRecetas, totalPacientes, isLoading: isLoadingData } = useDashboardData();
 
     const [showRecetaDialog, setShowRecetaDialog] = useState(false);
 
@@ -120,7 +110,7 @@ export default function HomePage() {
             {/* Header Rediseñado: Equilibrio entre Impacto y Espacio */}
             <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="relative h-16 w-16 md:h-20 md:w-20 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 border-2 border-white dark:border-slate-800 shadow-xl shadow-blue-200/20 transition-transform hover:scale-105">
+                    <div className="relative h-16 w-16 md:h-20 md:w-20 shrink-0 rounded-2xl overflow-hidden bg-linear-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 border-2 border-white dark:border-slate-800 shadow-xl shadow-blue-200/20 transition-transform hover:scale-105">
                         <img
                             src="/dra-zoyla/saluda.png"
                             alt="Dra. Zoyla Avatar"
@@ -128,7 +118,7 @@ export default function HomePage() {
                         />
                     </div>
                     <div>
-                        <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                        <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
                             {obtenerSaludo()}
                         </h2>
                         <p className="text-sm md:text-base text-muted-foreground">

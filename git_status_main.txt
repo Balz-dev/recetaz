@@ -1,0 +1,12 @@
+En la rama main
+Tu rama está actualizada con 'origin/main'.
+
+Archivos sin seguimiento:
+  (usa "git add <archivo>..." para incluirlo a lo que será confirmado)
+	build_output.log
+	build_output_clean.log
+	git_pull.log
+	git_status.txt
+	git_status_main.txt
+
+no hay nada agregado al commit pero hay archivos sin seguimiento presentes (usa "git add" para hacerles seguimiento)

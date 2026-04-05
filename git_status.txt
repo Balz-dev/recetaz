@@ -1,0 +1,10 @@
+En la rama dev
+Tu rama está detrás de 'origin/dev' por 3 commits, y puede ser avanzada rápido.
+  (usa "git pull" para actualizar tu rama local)
+
+Archivos sin seguimiento:
+  (usa "git add <archivo>..." para incluirlo a lo que será confirmado)
+	build_output.log
+	git_status.txt
+
+no hay nada agregado al commit pero hay archivos sin seguimiento presentes (usa "git add" para hacerles seguimiento)

@@ -13,13 +13,7 @@
 
 "use client"
 
-import { useState, useEffect } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
-import {
-    obtenerMedicamentos,
-    eliminarMedicamento,
-    obtenerEstadisticasMedicamentos,
-} from '@/shared/services/medicamentos.service'
+import { useState, useEffect, useCallback } from 'react'
 import { MedicamentoCatalogo } from '@/types'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -56,25 +50,26 @@ import { StatsCards } from '@/shared/components/catalog/StatsCards'
 import { CatalogFilters } from '@/shared/components/catalog/CatalogFilters'
 import { TableActions } from '@/shared/components/catalog/TableActions'
 import { MedicamentoDialog } from "@/features/medicamentos/components/MedicamentoDialog"
+import { useMedicamentosEstadisticas, useMedicamentos } from "@/features/medicamentos/hooks/useMedicamentos";
 
 /**
  * Componente principal de gestión de medicamentos
  */
 export default function MedicamentosPage() {
-    const [medicamentos, setMedicamentos] = useState<MedicamentoCatalogo[]>([])
     const [filtroCategoria, setFiltroCategoria] = useState<string>('todas')
     const [filtroTipo, setFiltroTipo] = useState<'todos' | 'catalogo' | 'personalizados'>('todos')
-    const [ordenPor, setOrdenPor] = useState<'nombre' | 'uso' | 'reciente'>('uso') // Ordenar por más usados por defecto
+    const [ordenPor, setOrdenPor] = useState<'nombre' | 'uso' | 'reciente'>('uso')
     const [busqueda, setBusqueda] = useState('')
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [medicamentoEditando, setMedicamentoEditando] = useState<MedicamentoCatalogo | null>(null)
     const [medicamentoEliminar, setMedicamentoEliminar] = useState<MedicamentoCatalogo | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
     const [viewMode, setViewMode] = useState<'grid' | 'compact' | 'list'>('list')
     const [paginaActual, setPaginaActual] = useState(1)
-    const [totalItems, setTotalItems] = useState(0)
     const [itemsPorPagina, setItemsPorPagina] = useState(20)
     const { toast } = useToast()
+
+    // Hook de aplicación: abstrae el acceso a IndexedDB y los servicios de la capa de presentación
+    const { medicamentos, totalItems, isLoading, cargar, eliminar } = useMedicamentos()
 
     // Actualizar itemsPorPagina automáticamente según el modo de vista
     useEffect(() => {
@@ -88,46 +83,33 @@ export default function MedicamentosPage() {
     }, [viewMode]);
 
     // Estadísticas en tiempo real
-    const estadisticas = useLiveQuery(
-        () => obtenerEstadisticasMedicamentos(),
-        []
-    )
+    const { data: estadisticas } = useMedicamentosEstadisticas();
 
     /**
-     * Carga medicamentos con filtros aplicados
+     * Carga medicamentos con los filtros y paginación actuales.
+     * Delega al hook useMedicamentos para mantener la capa de presentación limpia.
      */
-    const cargarMedicamentos = async () => {
-        setIsLoading(true)
-        try {
-            const filtros: any = {
-                ordenarPor: ordenPor,
-                busqueda: busqueda // Pasar búsqueda al servicio
-            }
-
-            if (filtroCategoria !== 'todas') {
-                filtros.categoria = filtroCategoria
-            }
-
-            if (filtroTipo === 'catalogo') {
-                filtros.soloPersonalizados = false
-            } else if (filtroTipo === 'personalizados') {
-                filtros.soloPersonalizados = true
-            }
-
-            // Paginación
-            const offset = (paginaActual - 1) * itemsPorPagina
-            const { items, total } = await obtenerMedicamentos(filtros, { offset, limit: itemsPorPagina })
-
-            setMedicamentos(items)
-            setTotalItems(total)
-        } finally {
-            setIsLoading(false)
+    const cargarMedicamentos = useCallback(async () => {
+        const filtros: Parameters<typeof cargar>[0] = {
+            ordenarPor: ordenPor,
+            busqueda: busqueda,
         }
-    }
+
+        if (filtroCategoria !== 'todas') {
+            filtros.categoria = filtroCategoria
+        }
+
+        if (filtroTipo === 'personalizados') {
+            filtros.soloPersonalizados = true
+        }
+
+        const offset = (paginaActual - 1) * itemsPorPagina
+        await cargar(filtros, { offset, limit: itemsPorPagina })
+    }, [filtroCategoria, filtroTipo, ordenPor, busqueda, paginaActual, itemsPorPagina, cargar])
 
     useEffect(() => {
         cargarMedicamentos()
-    }, [filtroCategoria, filtroTipo, ordenPor, busqueda, paginaActual])
+    }, [cargarMedicamentos])
 
     // Resetear a página 1 cuando cambian los filtros
     useEffect(() => {
@@ -151,13 +133,13 @@ export default function MedicamentosPage() {
     }
 
     /**
-     * Confirma y elimina un medicamento
+     * Confirma y elimina un medicamento usando el hook de aplicación.
      */
     const handleEliminarConfirmado = async () => {
         if (!medicamentoEliminar) return
 
         try {
-            await eliminarMedicamento(medicamentoEliminar.id!)
+            await eliminar(medicamentoEliminar.id!)
             toast({
                 title: 'Medicamento eliminado',
                 description: `${medicamentoEliminar.nombre} ha sido eliminado del catálogo.`,

@@ -1,0 +1,56 @@
+
+> recetaz-app@1.0.0 build /mnt/HOME/Proyectos/recetaz
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled successfully in 12.3s
+   Running TypeScript ...
+   Collecting page data using 7 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 7 workers (0/20) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 7 workers (5/20) 
+   Generating static pages using 7 workers (10/20) 
+   Generating static pages using 7 workers (15/20) 
+ ✓ Generating static pages using 7 workers (20/20) in 2.5s
+   Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /configuracion
+├ ○ /dashboard
+├ ○ /demo
+├ ƒ /demo/[slug]
+├ ○ /dev-utils
+├ ○ /diagnosticos
+├ ○ /medicamentos
+├ ○ /pacientes
+├ ƒ /pacientes/[id]
+├ ○ /privacidad
+├ ○ /recetas
+├ ƒ /recetas/[id]
+├ ○ /recetas/plantillas
+├ ƒ /recetas/plantillas/[id]
+├ ○ /recetas/plantillas/nueva
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /terminos
+├ ○ /test-db
+└ ○ /test-receta
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

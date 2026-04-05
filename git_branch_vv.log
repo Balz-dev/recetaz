@@ -1,0 +1,8 @@
+  app/demo-slug-personalizada 2dceb9f test: add unit tests for demo slug page initialization and redirection logic
+  demo                        ffdd914 style(marketing): corregir advertencias de lint en Hero y FooterCTA
+  dev                         f8656eb [origin/dev] fix: update TypeScript route types path in next-env.d.ts
+  dev-app                     e2e7308 [origin/dev-app] style: Remove `pb-0` class from conditional styling in RecetaForm's footer.
+  dev-landing                 e2e7308 [origin/dev-landing] style: Remove `pb-0` class from conditional styling in RecetaForm's footer.
+  feature/seguridad-mejoras   b9063b0 fix(build): remueve bandera --webpack que causaba un bucle infinito en next-pwa durante la compilación
+* main                        4988d1d [origin/main] test(demo): implementa pruebas unitarias para demo personalizada dinámica (#59)
+  seguridad                   d326ccc docs(seguridad): documentación y reglas anti-XSS y Data Leaks establecidas

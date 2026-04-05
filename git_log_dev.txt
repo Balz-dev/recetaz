@@ -1,0 +1,30 @@
+commit f8656eb44326be214efd3dcf9b7b3b0ff9b545e2
+Author: BalzDev <balzhoyt.dev@gmail.com>
+Date:   Sat Apr 4 16:52:24 2026 -0600
+
+    fix: update TypeScript route types path in next-env.d.ts
+
+commit 4ed3f5d6f8e5e28f14ce441e0c614e33e2b0bfae
+Author: BalzDev <balzhoyt.dev@gmail.com>
+Date:   Sat Apr 4 16:52:05 2026 -0600
+
+    fix(demo): eliminar declaración duplicada de generarFechaDemo
+
+commit 2ee5711598501e5d9e7de90742e3997fe7817858
+Merge: 2dceb9f 001a7d3
+Author: Balzhoyt <balzhoyt.dev@gmail.com>
+Date:   Sat Apr 4 16:36:33 2026 -0600
+
+    Merge branch 'main' into dev
+
+commit 2dceb9f4cbe3c879c67dcb8c0c0d89a744c12e2b
+Author: BalzDev <balzhoyt.dev@gmail.com>
+Date:   Sat Apr 4 16:18:28 2026 -0600
+
+    test: add unit tests for demo slug page initialization and redirection logic
+
+commit 11b9e1b8000d728fc4aeaca9ca67f3932dd6de2d
+Author: BalzDev <balzhoyt.dev@gmail.com>
+Date:   Fri Apr 3 17:57:08 2026 -0600
+
+    refactor: improve type safety and data handling in medication services and database seeding logic

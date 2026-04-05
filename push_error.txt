@@ -1,0 +1,8 @@
+remote: error: GH013: Repository rule violations found for refs/heads/main.        
+remote: Review all repository rules at https://github.com/Balz-dev/recetaz/rules?ref=refs%2Fheads%2Fmain        
+remote: 
+remote: - Changes must be made through a pull request.        
+remote: 
+To github.com:Balz-dev/recetaz.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: falló el empuje de algunas referencias a 'github.com:Balz-dev/recetaz.git'

@@ -1,0 +1,8 @@
+Desde github.com:Balz-dev/recetaz
+ * branch            dev        -> FETCH_HEAD
+Actualizando 2dceb9f..2ee5711
+Fast-forward
+ next-env.d.ts            |  2 +-
+ src/shared/utils/seed.ts | 21 +++++++++++++++++++++
+ tsconfig.tsbuildinfo     |  2 +-
+ 3 files changed, 23 insertions(+), 2 deletions(-)
