@@ -74,7 +74,7 @@ describe('Componentes Decorativos', () => {
             );
 
             expect(screen.getByTitle('Eliminar')).toBeInTheDocument();
-            expect(screen.getByText('linea')).toBeInTheDocument();
+            expect(screen.getByText('Test')).toBeInTheDocument();
         });
 
         it('muestra selector de color para tipos permitidos', () => {

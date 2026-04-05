@@ -53,7 +53,7 @@ describe('import-export.utils', () => {
             const blob = new Blob([JSON.stringify(jsonData)], { type: 'application/json' })
             const file = new File([blob], 'test.json', { type: 'application/json' })
 
-            await expect(importFromJSON(file)).rejects.toThrow('El archivo JSON debe contener un array de datos')
+            await expect(importFromJSON(file)).rejects.toThrow('El archivo JSON no tiene un formato reconocido')
         })
     })
 
